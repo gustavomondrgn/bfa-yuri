@@ -415,11 +415,18 @@ for (const a of ampliacoes) {
   });
   await p.goto(PAGINA, { waitUntil: "load" });
   await p.waitForTimeout(300);
-  const total = tamanhos.reduce((s, t) => s + t.bytes, 0);
+  // o Cloudflare do domínio injeta o próprio analytics (beacon assíncrono);
+  // não é deste app, então fica fora do orçamento e só é informado
+  const doCloudflare = (u) => /cloudflareinsights\.com|\/cdn-cgi\//.test(u);
+  const proprios = tamanhos.filter((t) => !doCloudflare(t.url));
+  const injetados = tamanhos.filter((t) => doCloudflare(t.url));
+  const total = proprios.reduce((s, t) => s + t.bytes, 0);
+  const extra = injetados.reduce((s, t) => s + t.bytes, 0);
   registrar(
     "peso total sem Pixel",
     total < 40 * 1024,
-    `${(total / 1024).toFixed(1)} KB em ${tamanhos.length} arquivo(s): ${tamanhos.map((t) => t.url.replace(BASE, "")).join(", ")}`,
+    `${(total / 1024).toFixed(1)} KB em ${proprios.length} arquivo(s): ${proprios.map((t) => t.url.replace(BASE, "")).join(", ")}` +
+      (injetados.length ? ` (+ ${(extra / 1024).toFixed(1)} KB do Cloudflare Web Analytics, assíncrono)` : ""),
   );
   await ctx.close();
 }

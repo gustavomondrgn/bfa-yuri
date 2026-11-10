@@ -61,7 +61,8 @@ as UTMs filtradas.
 Nenhum projeto do Yuri tinha Pixel instalado até 10/11/2026. A página está
 **preparada, mas desligada**: falta o ID real.
 
-Para ligar, cole o ID (só números) em `site/index.html`:
+Para ligar, cole o ID (só números) em `site/index.html`, faça o push e
+publique (ver "Push não publica sozinho" abaixo):
 
 ```html
 <meta name="meta-pixel-id" content="">
@@ -120,29 +121,35 @@ Anúncios: mesma página, utm_medium=paid_social e utm_content com o nome do cri
 O `/guias` quebra se o Coolify recolocar o `stripprefix`. Este app responde
 com e sem o corte de prefixo, então não depende disso.
 
-## Publicar
+## Publicação (no ar desde 10/11/2026)
 
-Nada disto foi executado. Publicar depende de pedido explícito do Gustavo.
+- **Repositório:** <https://github.com/gustavomondrgn/bfa-yuri> (público).
+- **Coolify** (<https://coolify.kandle.studio>): projeto **Yuri dos Anjos**,
+  ambiente `production`, app **`bfa-grupo`** (uuid
+  `agrsd6rza28b7cgdgsquoy7n`). Fonte: repositório público, branch `main`,
+  Build Pack Dockerfile, porta 80, health check `/healthz`.
+- **Domínio:** `https://yuridosanjos.com.br/bfa-grupo`. O Coolify gerou o
+  `stripprefix` nos labels; o `nginx.conf` atende com e sem ele, então os
+  labels ficaram como foram gerados.
+- **Verificação em produção:** 46/46 com
+  `$env:BASE = "https://yuridosanjos.com.br"; npm run verificar`.
 
-1. Criar o repositório no GitHub (sugestão: `gustavomondrgn/bfa-grupo-yuri`,
-   privado), fazer o commit e o push da branch `main`.
-2. No Coolify, projeto do Yuri: **New Resource → Private Repository**, usando o
-   GitHub App `yuri-dos-anjos-github`. Branch `main`, **Build Pack:
-   Dockerfile**, porta exposta **80**.
-3. **Domains:** `https://yuridosanjos.com.br/bfa-grupo`.
-4. Deploy. O build roda `nginx -t`; um erro no `nginx.conf` derruba o build
-   em vez de ir para o ar.
-5. Conferir no ar:
+**Push não publica sozinho.** O app usa o repositório público, sem o GitHub
+App `yuri-dos-anjos-github` (que só tem acesso a repositórios selecionados) e
+sem webhook. Depois de um push, publicar de um destes jeitos:
 
-   ```powershell
-   curl.exe -I https://yuridosanjos.com.br/bfa-grupo
-   $env:BASE = "https://yuridosanjos.com.br"; npm run verificar
-   ```
+- botão **Redeploy** do app `bfa-grupo` no Coolify; ou
+- API: `POST https://coolify.kandle.studio/api/v1/deploy` com
+  `{"uuid":"agrsd6rza28b7cgdgsquoy7n"}` e o token do Coolify no header
+  `Authorization: Bearer`.
 
-   Abrir também no celular, pelo navegador do Instagram (link na DM ou no
-   Story de teste), sem precisar entrar no grupo.
-6. Cloudflare: o HTML não fica em cache por padrão. Se houver regra "Cache
-   Everything" no domínio, purgar `/bfa-grupo` depois de cada mudança.
+O build roda `nginx -t`; um erro no `nginx.conf` derruba o build em vez de ir
+para o ar.
+
+O Cloudflare do domínio injeta o próprio Web Analytics (`beacon.min.js`,
+assíncrono, cerca de 31 KB). É configuração do domínio inteiro, não deste app.
+O HTML não fica em cache no Cloudflare; se algum dia houver regra "Cache
+Everything", purgar `/bfa-grupo` depois de cada mudança.
 
 ### Cuidado com o futuro `/bfa`
 
