@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<title>Black Friday Apocalíptica | Yuri dos Anjos</title>
+<meta name="description" content="Ofertas com até 80% de desconto. Dia 16/11, os preços saem primeiro no grupo do WhatsApp.">
+<link rel="canonical" href="https://yuridosanjos.com.br/bfa-grupo">
+<meta name="robots" content="index, follow">
+<meta name="color-scheme" content="only light">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Yuri dos Anjos">
+<meta property="og:title" content="Black Friday Apocalíptica | Yuri dos Anjos">
+<meta property="og:description" content="Ofertas com até 80% de desconto. Dia 16/11, os preços saem primeiro no grupo do WhatsApp.">
+<meta property="og:url" content="https://yuridosanjos.com.br/bfa-grupo">
+<meta property="og:image" content="https://yuridosanjos.com.br/bfa-grupo/assets/og-bfa-grupo.png?v=1">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Black Friday Apocalíptica, de Yuri dos Anjos: ofertas com até 80% de desconto.">
+<meta name="twitter:card" content="summary_large_image">
+
+<!--
+  Meta Pixel — cole o ID do Pixel (só números) no content abaixo.
+  Vazio = a página funciona normalmente, sem carregar nada da Meta.
+  Eventos: PageView na visita e WhatsAppGroupClick no botão (ver app.js).
+-->
+<meta name="meta-pixel-id" content="">
+
+<link rel="icon" href="/bfa-grupo/assets/favicon.svg?v=1" type="image/svg+xml">
+
+<!--
+  CSS inline de propósito: a página inteira chega numa única resposta e o
+  botão aparece sem esperar nenhum outro arquivo. Sem webfont, sem imagem.
+-->
+<style>
+:root {
+  color-scheme: only light;
+
+  /* neutros das telas internas do Placidus */
+  --bg:          #FFFFFF;
+  --ink:         #181818;
+  --ink-soft:    #4A4A4A;
+  --ink-muted:   #616161;
+  --line:        #E9E9E9;
+
+  /* ação principal: inversão neutra */
+  --action:        #181818;
+  --action-hover:  #2E2E2E;
+  --on-action:     #FFFFFF;
+
+  /* o único traço da campanha: céu vermelho e reflexo azul-petróleo */
+  --ember:       #A3171B;
+  --ember-deep:  #6E0E12;
+  --petrol:      #0E5A6B;
+  --focus:       #006B89;
+
+  --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --ease: cubic-bezier(.23, 1, .32, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-x: clip;
+
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  background: var(--bg);
+
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* filete do topo: do vermelho ao azul-petróleo */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ember-deep), var(--ember) 42%, var(--petrol));
+  pointer-events: none;
+}
+
+/* coluna única; minmax(0, 1fr) impede que uma palavra longa em fonte
+   ampliada alargue a coluna além da tela */
+.bridge {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-inline: max(1.25rem, env(safe-area-inset-left), env(safe-area-inset-right));
+  /* mais respiro embaixo: o bloco fica um pouco acima do centro e o botão sobe */
+  padding-block:
+    calc(clamp(1.75rem, 6svh, 4rem) + env(safe-area-inset-top))
+    calc(clamp(1.75rem, 12svh, 8rem) + env(safe-area-inset-bottom));
+}
+
+.bridge__inner {
+  width: 100%;
+  max-width: 25rem;
+  margin-inline: auto;
+}
+
+.brand {
+  margin: 0 0 .875rem;
+  font-size: .9375rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: var(--ink-muted);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2.25rem, 1.55rem + 4.2vw, 3.25rem);
+  font-weight: 750;
+  line-height: 1.02;
+  letter-spacing: -.03em;
+  color: var(--ink);
+  text-wrap: balance;
+  /* com zoom ou fonte grande, "Apocalíptica" quebra em vez de vazar */
+  overflow-wrap: anywhere;
+  -webkit-hyphens: manual;
+  hyphens: manual;
+}
+
+.highlight {
+  margin: 1rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -.01em;
+  color: var(--ember);
+}
+
+.text {
+  margin: .625rem 0 0;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .625rem;
+  width: 100%;
+  min-height: 3.5rem;
+  margin-top: 1.75rem;
+  padding: .875rem 1.25rem;
+
+  border-radius: 8px;
+  background: var(--action);
+  color: var(--on-action);
+
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: .06em;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 10px 24px -14px rgba(110, 14, 18, .4);
+  transition:
+    background-color 160ms var(--ease),
+    transform 120ms var(--ease);
+}
+
+.cta__icon {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 160ms var(--ease);
+}
+
+.cta:hover { background: var(--action-hover); }
+.cta:hover .cta__icon { transform: translateX(2px); }
+.cta:active { transform: scale(.985); }
+
+.cta:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.support {
+  margin: .875rem 0 0;
+  font-size: .875rem;
+  line-height: 1.45;
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+/* zoom muito alto: a seta sai para o texto do botão caber */
+@media (max-width: 15rem) {
+  .cta__icon { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta, .cta__icon { transition: none; }
+  .cta:active { transform: none; }
+  .cta:hover .cta__icon { transform: none; }
+}
+
+@media (forced-colors: active) {
+  .cta { border: 2px solid ButtonText; }
+  body::before { display: none; }
+}
+</style>
+
+<script src="/bfa-grupo/app.js?v=1" defer></script>
+</head>
+
+<body>
+<main class="bridge">
+  <div class="bridge__inner">
+    <p class="brand" translate="no">Yuri dos Anjos</p>
+
+    <!-- &shy;: se faltar espaço (zoom alto), quebra em "Apoca-líptica"; senão, invisível -->
+    <h1 class="title">Black Friday Apoca&shy;líptica</h1>
+
+    <p class="highlight">Ofertas com até 80% de desconto.</p>
+
+    <p class="text">Dia 16/11, os preços saem primeiro no grupo do WhatsApp. Os maiores descontos ficam no primeiro dia.</p>
+
+    <!--
+      Link real para o convite: abre o grupo mesmo sem JavaScript, sem Pixel
+      e sem esperar nada. O texto fica em caixa alta pelo CSS para o leitor de
+      tela não soletrar "ENTRAR NO GRUPO" letra por letra.
+    -->
+    <a class="cta"
+       href="https://chat.whatsapp.com/FGFkV5MuFd5G1dLnVXPola"
+       data-cta="whatsapp-group"
+       aria-describedby="cta-apoio">
+      <span>Entrar no grupo</span>
+      <svg class="cta__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M4.5 12h14.5M13.5 6.5 19 12l-5.5 5.5"/>
+      </svg>
+    </a>
+
+    <p class="support" id="cta-apoio">Você será direcionado para o grupo no WhatsApp.</p>
+  </div>
+</main>
+</body>
+</html>

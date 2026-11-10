@@ -1,0 +1,13 @@
+# dependências só das ferramentas de verificação
+node_modules/
+
+# capturas geradas por `npm run verificar`
+verificacao/
+
+# credenciais locais — nunca versionar
+.env
+.env.local
+
+# lixo de sistema
+Thumbs.db
+.DS_Store

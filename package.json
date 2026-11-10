@@ -1,0 +1,15 @@
+{
+  "name": "bfa-grupo",
+  "private": true,
+  "description": "Página ponte /bfa-grupo da Black Friday Apocalíptica (yuridosanjos.com.br). O site é estático; estas dependências servem só para preview e verificação local.",
+  "type": "module",
+  "scripts": {
+    "preview": "node scripts/preview.mjs",
+    "verificar": "node scripts/verificar.mjs",
+    "og": "node scripts/gerar-og.mjs"
+  },
+  "devDependencies": {
+    "axe-core": "4.10.2",
+    "playwright-core": "1.49.1"
+  }
+}
