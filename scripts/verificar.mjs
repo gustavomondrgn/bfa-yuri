@@ -370,6 +370,125 @@ for (const a of ampliacoes) {
   await ctx.close();
 }
 
+// ---------- 8b. Pixel real: o que o navegador manda para a Meta (interceptado) --
+//  fbevents.js e a configuração do Pixel vêm da Meta de verdade (só download).
+//  Os eventos (facebook.com/tr) são capturados aqui e respondidos localmente:
+//  nada chega ao Pixel. "Recebido pela Meta" só se confirma em Eventos de teste.
+function lerEvento(url, corpo) {
+  const campos = {};
+  try {
+    for (const [k, v] of new URL(url).searchParams) campos[k] = v;
+  } catch {
+    /* url sem query */
+  }
+  if (corpo) {
+    if (corpo.includes("Content-Disposition")) {
+      for (const m of corpo.matchAll(/name="([^"]+)"\r?\n\r?\n([^\r\n]*)/g)) campos[m[1]] = m[2];
+    } else {
+      try {
+        for (const [k, v] of new URLSearchParams(corpo)) campos[k] = v;
+      } catch {
+        /* corpo binário */
+      }
+    }
+  }
+  return campos;
+}
+
+if (idNoSite) {
+  const ctx = await navegador.newContext({
+    isMobile: true,
+    hasTouch: true,
+    deviceScaleFactor: 3,
+    userAgent: UA_INSTAGRAM,
+    locale: "pt-BR",
+    viewport: { width: 390, height: 844 },
+  });
+  const enviados = [];
+  await ctx.route(/^https:\/\/[a-z.]*facebook\.com\//, (rota) => {
+    const req = rota.request();
+    if (/facebook\.com\/tr\b/.test(req.url())) {
+      enviados.push(lerEvento(req.url(), req.postData()));
+      return rota.fulfill({ status: 200, contentType: "image/gif", body: "" });
+    }
+    return rota.abort();
+  });
+  await ctx.route("https://chat.whatsapp.com/**", (rota) =>
+    rota.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><title>convite (simulado)</title>" }),
+  );
+
+  const esperar = async (cond, ms = 10000) => {
+    const fim = Date.now() + ms;
+    while (Date.now() < fim && !cond()) await new Promise((ok) => setTimeout(ok, 100));
+    return cond();
+  };
+  const doEvento = (ev) => enviados.filter((e) => e.ev === ev);
+  const utmsDe = (e) =>
+    Object.fromEntries(Object.entries(e).filter(([k]) => k.startsWith("cd[")).map(([k, v]) => [k.slice(3, -1), v]));
+
+  const p = await ctx.newPage();
+  await p.goto(`${PAGINA}?${UTMS_PROPOSTAS}&utm_term=nao_deve_ir`);
+  await esperar(() => doEvento("PageView").length > 0);
+  await p.waitForTimeout(1500); // janela para um eventual PageView duplicado
+
+  const pv = doEvento("PageView");
+  registrar("rede: PageView sai com o ID do site", pv.length > 0 && pv.every((e) => e.id === idNoSite), pv.map((e) => e.id).join(", "));
+  registrar("rede: um PageView por carregamento", pv.length === 1, `${pv.length} enviado(s)`);
+  registrar(
+    "rede: PageView leva só as 4 UTMs como parâmetros",
+    JSON.stringify(utmsDe(pv[0] || {})) ===
+      JSON.stringify({ utm_source: "instagram", utm_medium: "organic_social", utm_campaign: "bf_apocaliptica_2026", utm_content: "story_link" }),
+    JSON.stringify(utmsDe(pv[0] || {})),
+  );
+
+  const pixels = await p.evaluate(() => {
+    try {
+      return window.fbq.getState().pixels.map((x) => x.id);
+    } catch {
+      return null;
+    }
+  });
+  registrar("uma única inicialização do Pixel", Array.isArray(pixels) && pixels.length === 1 && pixels[0] === idNoSite, JSON.stringify(pixels));
+
+  const cdp = await ctx.newCDPSession(p);
+  const { result } = await cdp.send("Runtime.evaluate", { expression: 'document.querySelector(".cta")' });
+  const { listeners } = await cdp.send("DOMDebugger.getEventListeners", { objectId: result.objectId });
+  const deClique = listeners.filter((l) => l.type === "click");
+  registrar("um único handler de clique no botão", deClique.length === 1, `${deClique.length} handler(s) de click`);
+
+  await p.evaluate(() => document.addEventListener("click", (e) => e.preventDefault(), true));
+  await p.evaluate(() => {
+    const b = document.querySelector(".cta");
+    b.click();
+    b.click();
+  });
+  await esperar(() => doEvento("WhatsAppGroupClick").length > 0);
+  await p.waitForTimeout(1500);
+  const cl = doEvento("WhatsAppGroupClick");
+  registrar("rede: clique duplo = 1 WhatsAppGroupClick enviado", cl.length === 1, `${cl.length} enviado(s), id ${cl[0]?.id}`);
+  registrar(
+    "rede: WhatsAppGroupClick leva só as 4 UTMs",
+    JSON.stringify(utmsDe(cl[0] || {})) ===
+      JSON.stringify({ utm_source: "instagram", utm_medium: "organic_social", utm_campaign: "bf_apocaliptica_2026", utm_content: "story_link" }),
+    JSON.stringify(utmsDe(cl[0] || {})),
+  );
+
+  // fluxo real: toque, saída para o convite e o evento indo junto
+  const p2 = await ctx.newPage();
+  await p2.goto(`${PAGINA}?${UTMS_DM}`);
+  await esperar(() => doEvento("PageView").length > 1);
+  const antes = doEvento("WhatsAppGroupClick").length;
+  await p2.tap(".cta");
+  await p2.waitForURL(CONVITE, { timeout: 5000 }).catch(() => {});
+  await esperar(() => doEvento("WhatsAppGroupClick").length > antes, 4000);
+  const ultimo = doEvento("WhatsAppGroupClick").at(-1);
+  registrar("toque real: convite abre e o clique sai antes da troca de página", p2.url() === CONVITE && doEvento("WhatsAppGroupClick").length === antes + 1, `${p2.url()} | utm_content=${ultimo?.["cd[utm_content]"]}`);
+
+  const tipos = [...new Set(enviados.map((e) => e.ev))];
+  registrar("rede: só PageView e WhatsAppGroupClick (sem Lead/compra/automáticos)", tipos.every((t) => t === "PageView" || t === "WhatsAppGroupClick"), tipos.join(", "));
+  await ctx.close();
+}
+
 // ---------------------------------------------- 9. teclado e foco visível --
 {
   const { ctx } = await contexto({ viewport: { width: 390, height: 844 }, isMobile: false, hasTouch: false, deviceScaleFactor: 2 });

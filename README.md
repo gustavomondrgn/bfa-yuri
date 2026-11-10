@@ -58,17 +58,24 @@ as UTMs filtradas.
 
 ## Meta Pixel
 
-Nenhum projeto do Yuri tinha Pixel instalado até 10/11/2026. A página está
-**preparada, mas desligada**: falta o ID real.
+**Instalado em 10/11/2026:** Pixel **"Pixel Yuri dos Anjos"**, ID
+`549360853227105` (proprietário Yuri dos Anjos, compartilhado com a conta de
+anúncios CA DAEDALOS `508603157734428`, que **não** é ID de Pixel). O outro
+Pixel da conta, `1243483549840950`, não é usado aqui.
 
-Para ligar, cole o ID (só números) em `site/index.html`, faça o push e
-publique (ver "Push não publica sozinho" abaixo):
+O ID fica em `site/index.html`:
 
 ```html
-<meta name="meta-pixel-id" content="">
+<meta name="meta-pixel-id" content="549360853227105">
 ```
 
-Com o campo vazio, a página não carrega nada da Meta.
+Trocar ou esvaziar esse campo exige push e redeploy (ver "Push não publica
+sozinho" abaixo). Com o campo vazio, a página não carrega nada da Meta.
+
+`npm run verificar` confere o que o navegador **envia** para a Meta, com o
+`fbevents.js` real e os eventos interceptados antes de sair (nada chega ao
+Pixel). Que a Meta **recebeu** só se confirma em **Gerenciador de Eventos →
+Pixel Yuri dos Anjos → Eventos de teste**.
 
 | Sinal | Quando | Parâmetros |
 | --- | --- | --- |
