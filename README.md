@@ -186,8 +186,17 @@ para o ar.
 
 O Cloudflare do domínio injeta o próprio Web Analytics (`beacon.min.js`,
 assíncrono, cerca de 31 KB). É configuração do domínio inteiro, não deste app.
-O HTML não fica em cache no Cloudflare; se algum dia houver regra "Cache
-Everything", purgar `/bfa-grupo` depois de cada mudança.
+**Cache no Cloudflare (desde 13/11/2026):** regra `bfa-grupo borda` em
+*Caching → Cache Rules*: URI Full wildcard `https://yuridosanjos.com.br/bfa-grupo*`,
+Edge TTL de 1 dia ignorando o cache-control da origem, Browser TTL respeitando
+a origem (o navegador continua recebendo `no-cache`) e query string ignorada
+na chave (UTMs e `fbclid` usam a mesma cópia). *Smart Tiered Cache* ligado.
+A página sai do Cloudflare do Brasil em ~50 ms, em vez de ir à Hetzner (EUA).
+
+**Depois de qualquer mudança na página: redeploy E purge** em *Caching →
+Configuration → Purge Cache → Custom purge → URL*
+`https://yuridosanjos.com.br/bfa-grupo` (e `/bfa-grupo/` e os arquivos de
+`assets/` que mudarem). Sem o purge, a versão antiga fica até 1 dia no ar.
 
 ### Cuidado com o futuro `/bfa`
 
