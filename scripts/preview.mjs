@@ -10,9 +10,11 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize, resolve, sep } from "node:path";
+import { gzipSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
 
-const SITE = resolve(fileURLToPath(new URL("../site/", import.meta.url)));
+// SITE_DIR permite servir outra cópia (ex.: a versão anterior, para comparar)
+const SITE = resolve(process.env.SITE_DIR || fileURLToPath(new URL("../site/", import.meta.url)));
 const PORT = Number(process.env.PORT) || 4173;
 
 const TIPOS = {
@@ -63,12 +65,16 @@ const servidor = createServer(async (req, res) => {
   const alvo = arquivoDe(caminho);
   if (alvo) {
     try {
-      const corpo = await readFile(join(SITE, alvo.arquivo));
-      res.writeHead(200, {
-        ...HEADERS,
-        "Content-Type": TIPOS[extname(alvo.arquivo)] || "application/octet-stream",
-        "Cache-Control": alvo.cache,
-      });
+      let corpo = await readFile(join(SITE, alvo.arquivo));
+      const tipo = TIPOS[extname(alvo.arquivo)] || "application/octet-stream";
+      const extras = {};
+      // comprime texto como o nginx e o Cloudflare fazem em produção
+      if (/text|javascript|svg/.test(tipo) && /gzip/.test(req.headers["accept-encoding"] || "")) {
+        corpo = gzipSync(corpo, { level: 6 });
+        extras["Content-Encoding"] = "gzip";
+        extras["Vary"] = "Accept-Encoding";
+      }
+      res.writeHead(200, { ...HEADERS, ...extras, "Content-Type": tipo, "Cache-Control": alvo.cache });
       return res.end(req.method === "HEAD" ? undefined : corpo);
     } catch {
       /* cai no 404 */

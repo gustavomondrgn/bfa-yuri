@@ -19,8 +19,7 @@ front-end nem webfont, e o CSS vai inline: a página chega numa única
 resposta.
 
 ```text
-site/index.html              página + CSS inline (copy, botão, meta do Pixel)
-site/app.js                  medição: PageView e WhatsAppGroupClick (opcional)
+site/index.html              página inteira: CSS, botão e medição (Pixel) inline
 site/assets/favicon.svg      ícone
 site/assets/og-bfa-grupo.png prévia do link (WhatsApp, Instagram), 1200×630
 nginx.conf                   rotas, headers e cache
@@ -30,7 +29,9 @@ scripts/verificar.mjs        verificação automática no Chrome
 scripts/og-image.html        molde da imagem de prévia (npm run og)
 ```
 
-Peso sem Pixel: cerca de 11 KB em 3 arquivos (HTML, app.js e favicon).
+Peso sem Pixel: cerca de 5 KB comprimidos no HTML + favicon. O Pixel da Meta
+baixa mais ~200 KB comprimidos (fbevents.js + configuração) depois que o botão
+já apareceu.
 
 ## Preview e verificação locais
 
@@ -40,7 +41,8 @@ Requer Node (via fnm) e o Google Chrome instalado.
 $env:Path = "C:\Users\PICHAU\AppData\Roaming\fnm\node-versions\v22.22.1\installation;$env:Path"
 npm install            # só na primeira vez (playwright-core e axe-core)
 npm run preview        # http://localhost:4173/bfa-grupo
-npm run verificar      # 47 verificações; capturas em verificacao/
+npm run verificar      # 56 verificações; capturas em verificacao/
+npm run velocidade -- --base http://localhost:4173 --rotulo teste   # rede lenta
 ```
 
 `npm run verificar` não entra no grupo nem envia nada à Meta: o convite é
@@ -52,11 +54,18 @@ Itens verificados: rotas, headers, copy exata, um único link com o href
 completo do convite, telas 360, 390 e 430 px (inclusive com a altura reduzida
 pelo navegador do Instagram), zoom de 200%, fonte ampliada em 130% e 200%,
 ausência de vazamento lateral e de sobreposição, alvo de toque, foco por
-teclado, axe-core (WCAG 2.2 A/AA), página sem JavaScript, `app.js`
-indisponível, Pixel bloqueado, PageView único, clique duplo contado uma vez e
+teclado, axe-core (WCAG 2.2 A/AA), página sem JavaScript, abertura do
+convite real do WhatsApp (sem entrar no grupo), Pixel bloqueado, PageView único, clique duplo contado uma vez e
 as UTMs filtradas.
 
 ## Meta Pixel
+
+**12/11/2026:** a medição saiu do `app.js` e foi para um script inline no fim
+do HTML. O botão pinta primeiro e o `fbevents.js` começa a baixar assim que o
+HTML termina, sem esperar outra requisição. Os eventos e as regras abaixo não
+mudaram. O clique é registrado por um único listener no documento; no
+navegador do Instagram, o próprio `fbevents.js` instala um listener seu, que
+não gera evento extra.
 
 **Instalado em 10/11/2026:** Pixel **"Pixel Yuri dos Anjos"**, ID
 `549360853227105` (proprietário Yuri dos Anjos, compartilhado com a conta de
@@ -96,7 +105,7 @@ Pixel Yuri dos Anjos → Eventos de teste**.
   parte dos cliques pode não chegar (bloqueador, rede fraca, saída antes de o
   script carregar). É o custo de não atrasar o botão.
 - Se algum dia a página ganhar um Pixel global (outro script já definindo
-  `fbq`), o `app.js` não inicializa de novo nem repete o PageView; só registra
+  `fbq`), o script da página não inicializa de novo nem repete o PageView; só registra
   o clique.
 
 Depois de colar o ID e publicar, conferir no **Gerenciador de Eventos → Testar
@@ -120,8 +129,8 @@ Anúncios: mesma página, utm_medium=paid_social e utm_content com o nome do cri
 | Pedido | Resposta |
 | --- | --- |
 | `/bfa-grupo`, `/bfa-grupo/` | a página, sem redirect (UTMs preservadas), `Cache-Control: no-cache` |
-| `/bfa-grupo/app.js`, `/bfa-grupo/assets/*` | arquivos, cache de 10 min (o HTML usa `?v=`) |
-| `/`, `/app.js`, `/assets/*` | o mesmo, para o caso de o Coolify aplicar `stripprefix` |
+| `/bfa-grupo/assets/*` | arquivos, cache de 10 min (o HTML usa `?v=`) |
+| `/`, `/assets/*` | o mesmo, para o caso de o Coolify aplicar `stripprefix` |
 | `/healthz` | `ok` (healthcheck interno) |
 | qualquer outro | 404 |
 
@@ -169,7 +178,7 @@ de ofertas receber prioridade manual, conferir que ele não captura
 
 - Texto ou visual: editar `site/index.html`. Não precisa trocar versão; o HTML
   sai com `no-cache`.
-- `app.js`, favicon ou imagem de prévia: trocar o arquivo e subir o `?v=` no
+- Favicon ou imagem de prévia: trocar o arquivo e subir o `?v=` no
   HTML.
 - Imagem de prévia: editar `scripts/og-image.html` e rodar `npm run og`.
 - Rodar `npm run verificar` antes de publicar.

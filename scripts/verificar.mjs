@@ -84,7 +84,6 @@ async function http(caminho, esperado, tipo) {
 const principal = await http("/bfa-grupo", 200, "text/html");
 await http("/bfa-grupo/", 200, "text/html");
 await http(`/bfa-grupo?${UTMS_PROPOSTAS}`, 200, "text/html");
-await http("/bfa-grupo/app.js?v=1", 200, "javascript");
 await http("/bfa-grupo/assets/favicon.svg?v=1", 200, "image/svg+xml");
 await http("/bfa-grupo/assets/og-bfa-grupo.png?v=1", 200, "image/png");
 if (!ehProducao) await http("/healthz", 200);
@@ -258,15 +257,22 @@ for (const a of ampliacoes) {
   await ctx.close();
 }
 
-// ------------------------------------------------ 6. app.js indisponível --
+// ------------------- 6. convite real do WhatsApp abre (sem entrar no grupo) --
+//  Deixa a navegação chegar ao chat.whatsapp.com de verdade: a página pública
+//  do convite só mostra o grupo; entrar exigiria confirmar no app.
 {
-  const { ctx } = await contexto({ viewport: { width: 360, height: 640 } });
-  await ctx.route("**/bfa-grupo/app.js*", (r) => r.abort());
+  const ctx = await navegador.newContext({ isMobile: true, hasTouch: true, viewport: { width: 390, height: 664 }, userAgent: UA_INSTAGRAM });
+  await ctx.route(/facebook\.(net|com)|fbcdn/, (r) => r.abort());
   const p = await ctx.newPage();
   await p.goto(PAGINA);
   await p.tap(".cta");
-  await p.waitForURL(CONVITE, { timeout: 5000 }).catch(() => {});
-  registrar("app.js falhou: botão abre o convite", p.url() === CONVITE, p.url());
+  await p.waitForURL(/chat\.whatsapp\.com/, { timeout: 15000 }).catch(() => {});
+  await p.waitForLoadState("domcontentloaded").catch(() => {});
+  const og = await p
+    .evaluate(() => document.querySelector('meta[property="og:title"]')?.content || document.title)
+    .catch(() => "");
+  registrar("toque abre o convite real do WhatsApp", p.url().startsWith(CONVITE) && /Black Friday Apocal/i.test(og), `${p.url()} | "${og}"`);
+  await p.screenshot({ path: `${SAIDA}convite-whatsapp.png` }).catch(() => {});
   await ctx.close();
 }
 
@@ -417,6 +423,23 @@ if (idNoSite) {
     rota.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><title>convite (simulado)</title>" }),
   );
 
+  // A Meta só envia eventos do domínio liberado no Pixel. No preview local, a
+  // página é servida ao navegador como se fosse yuridosanjos.com.br: o HTML vem
+  // daqui, a Meta vê o domínio real, e os eventos seguem interceptados.
+  const DOMINIO = "https://yuridosanjos.com.br";
+  const PAGINA_8B = ehProducao ? PAGINA : `${DOMINIO}/bfa-grupo`;
+  if (!ehProducao) {
+    await ctx.route(/^https:\/\/yuridosanjos\.com\.br\/bfa-grupo/, async (rota) => {
+      const local = rota.request().url().replace(DOMINIO, BASE);
+      const resp = await fetch(local);
+      return rota.fulfill({
+        status: resp.status,
+        headers: { "content-type": resp.headers.get("content-type") || "text/html" },
+        body: Buffer.from(await resp.arrayBuffer()),
+      });
+    });
+  }
+
   const esperar = async (cond, ms = 10000) => {
     const fim = Date.now() + ms;
     while (Date.now() < fim && !cond()) await new Promise((ok) => setTimeout(ok, 100));
@@ -427,7 +450,7 @@ if (idNoSite) {
     Object.fromEntries(Object.entries(e).filter(([k]) => k.startsWith("cd[")).map(([k, v]) => [k.slice(3, -1), v]));
 
   const p = await ctx.newPage();
-  await p.goto(`${PAGINA}?${UTMS_PROPOSTAS}&utm_term=nao_deve_ir`);
+  await p.goto(`${PAGINA_8B}?${UTMS_PROPOSTAS}&utm_term=nao_deve_ir`);
   await esperar(() => doEvento("PageView").length > 0);
   await p.waitForTimeout(1500); // janela para um eventual PageView duplicado
 
@@ -450,11 +473,32 @@ if (idNoSite) {
   });
   registrar("uma única inicialização do Pixel", Array.isArray(pixels) && pixels.length === 1 && pixels[0] === idNoSite, JSON.stringify(pixels));
 
+  // o listener do clique fica no documento (delegação); nenhum no próprio botão.
+  // No navegador do Instagram o fbevents.js instala um listener próprio (fase
+  // de captura); ele é da Meta e não gera evento extra (ver checagem de rede).
   const cdp = await ctx.newCDPSession(p);
-  const { result } = await cdp.send("Runtime.evaluate", { expression: 'document.querySelector(".cta")' });
-  const { listeners } = await cdp.send("DOMDebugger.getEventListeners", { objectId: result.objectId });
-  const deClique = listeners.filter((l) => l.type === "click");
-  registrar("um único handler de clique no botão", deClique.length === 1, `${deClique.length} handler(s) de click`);
+  await cdp.send("Debugger.enable");
+  const contarCliques = async (expr) => {
+    const { result } = await cdp.send("Runtime.evaluate", { expression: expr });
+    const { listeners } = await cdp.send("DOMDebugger.getEventListeners", { objectId: result.objectId });
+    const deClique = listeners.filter((l) => l.type === "click");
+    let nossos = 0;
+    let daMeta = 0;
+    for (const l of deClique) {
+      const { scriptSource } = await cdp.send("Debugger.getScriptSource", { scriptId: l.scriptId }).catch(() => ({ scriptSource: "" }));
+      if (scriptSource.includes('"trackCustom", "WhatsAppGroupClick"')) nossos++;
+      else if (/Facebook, Inc|fbevents/.test(scriptSource.slice(0, 400))) daMeta++;
+    }
+    return { total: deClique.length, nossos, daMeta };
+  };
+  const noBotao = await contarCliques('document.querySelector(".cta")');
+  const noDocumento = await contarCliques("document");
+  registrar(
+    "um único handler do WhatsAppGroupClick",
+    noDocumento.nossos === 1 && noBotao.total === 0 && noDocumento.total === noDocumento.nossos + noDocumento.daMeta,
+    `documento: ${noDocumento.nossos} nosso + ${noDocumento.daMeta} do fbevents.js | botão: ${noBotao.total}`,
+  );
+  await cdp.send("Debugger.disable");
 
   await p.evaluate(() => document.addEventListener("click", (e) => e.preventDefault(), true));
   await p.evaluate(() => {
@@ -475,7 +519,7 @@ if (idNoSite) {
 
   // fluxo real: toque, saída para o convite e o evento indo junto
   const p2 = await ctx.newPage();
-  await p2.goto(`${PAGINA}?${UTMS_DM}`);
+  await p2.goto(`${PAGINA_8B}?${UTMS_DM}`);
   await esperar(() => doEvento("PageView").length > 1);
   const antes = doEvento("WhatsAppGroupClick").length;
   await p2.tap(".cta");

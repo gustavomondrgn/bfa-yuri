@@ -6,7 +6,8 @@
   "scripts": {
     "preview": "node scripts/preview.mjs",
     "verificar": "node scripts/verificar.mjs",
-    "og": "node scripts/gerar-og.mjs"
+    "og": "node scripts/gerar-og.mjs",
+    "velocidade": "node scripts/medir-velocidade.mjs"
   },
   "devDependencies": {
     "axe-core": "4.10.2",

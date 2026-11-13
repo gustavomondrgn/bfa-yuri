@@ -24,19 +24,12 @@
 <meta property="og:image:alt" content="Black Friday Apocalíptica, de Yuri dos Anjos: ofertas com até 80% de desconto.">
 <meta name="twitter:card" content="summary_large_image">
 
-<!--
-  Meta Pixel "Pixel Yuri dos Anjos" (ID público, não é segredo).
-  Vazio = a página funciona normalmente, sem carregar nada da Meta.
-  Eventos: PageView na visita e WhatsAppGroupClick no botão (ver app.js).
--->
+<!-- Meta Pixel "Pixel Yuri dos Anjos" (ID público). Vazio = nada da Meta é carregado. -->
 <meta name="meta-pixel-id" content="549360853227105">
 
 <link rel="icon" href="/bfa-grupo/assets/favicon.svg?v=1" type="image/svg+xml">
 
-<!--
-  CSS inline de propósito: a página inteira chega numa única resposta e o
-  botão aparece sem esperar nenhum outro arquivo. Sem webfont, sem imagem.
--->
+<!-- CSS inline: a página inteira chega numa única resposta. Sem webfont, sem imagem. -->
 <style>
 :root {
   color-scheme: only light;
@@ -46,14 +39,14 @@
   --ink:         #181818;
   --ink-soft:    #4A4A4A;
   --ink-muted:   #616161;
-  --line:        #E9E9E9;
 
-  /* ação principal: inversão neutra */
-  --action:        #181818;
-  --action-hover:  #2E2E2E;
-  --on-action:     #FFFFFF;
+  /* botão: verde do WhatsApp com texto escuro (contraste 8,9:1) */
+  --wa:          #25D366;
+  --wa-hover:    #1FC05C;
+  --wa-press:    #1AAE52;
+  --on-wa:       #0B141A;
 
-  /* o único traço da campanha: céu vermelho e reflexo azul-petróleo */
+  /* o traço da campanha: céu vermelho e reflexo azul-petróleo */
   --ember:       #A3171B;
   --ember-deep:  #6E0E12;
   --petrol:      #0E5A6B;
@@ -160,29 +153,32 @@ body::before {
   text-wrap: pretty;
 }
 
+/* o elemento principal: pílula verde, ícone do WhatsApp, alvo de 60 px */
 .cta {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: .625rem;
+  gap: .75rem;
   width: 100%;
-  min-height: 3.5rem;
-  margin-top: 1.75rem;
-  padding: .875rem 1.25rem;
+  min-height: 3.75rem;
+  margin-top: 1.5rem;
+  padding: .875rem 1.5rem;
 
-  border-radius: 8px;
-  background: var(--action);
-  color: var(--on-action);
+  border-radius: 999px;
+  background: var(--wa);
+  color: var(--on-wa);
 
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.125rem;
+  font-weight: 800;
   line-height: 1.2;
-  letter-spacing: .06em;
+  letter-spacing: .04em;
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
 
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 10px 24px -14px rgba(110, 14, 18, .4);
+  box-shadow:
+    0 1px 2px rgba(11, 20, 26, .10),
+    0 10px 22px -12px rgba(18, 140, 74, .75);
   transition:
     background-color 160ms var(--ease),
     transform 120ms var(--ease);
@@ -190,19 +186,13 @@ body::before {
 
 .cta__icon {
   flex: none;
-  width: 1.25rem;
-  height: 1.25rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform 160ms var(--ease);
+  width: 1.625rem;
+  height: 1.625rem;
+  fill: currentColor;
 }
 
-.cta:hover { background: var(--action-hover); }
-.cta:hover .cta__icon { transform: translateX(2px); }
-.cta:active { transform: scale(.985); }
+.cta:hover { background: var(--wa-hover); }
+.cta:active { background: var(--wa-press); transform: scale(.985); }
 
 .cta:focus-visible {
   outline: 3px solid var(--focus);
@@ -217,15 +207,14 @@ body::before {
   text-align: center;
 }
 
-/* zoom muito alto: a seta sai para o texto do botão caber */
+/* zoom muito alto: o ícone sai para o texto do botão caber */
 @media (max-width: 15rem) {
   .cta__icon { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cta, .cta__icon { transition: none; }
+  .cta { transition: none; }
   .cta:active { transform: none; }
-  .cta:hover .cta__icon { transform: none; }
 }
 
 @media (forced-colors: active) {
@@ -233,8 +222,6 @@ body::before {
   body::before { display: none; }
 }
 </style>
-
-<script src="/bfa-grupo/app.js?v=1" defer></script>
 </head>
 
 <body>
@@ -258,14 +245,100 @@ body::before {
        href="https://chat.whatsapp.com/FGFkV5MuFd5G1dLnVXPola"
        data-cta="whatsapp-group"
        aria-describedby="cta-apoio">
-      <span>Entrar no grupo</span>
       <svg class="cta__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M4.5 12h14.5M13.5 6.5 19 12l-5.5 5.5"/>
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
       </svg>
+      <span>Entrar no grupo</span>
     </a>
 
     <p class="support" id="cta-apoio">Você será direcionado para o grupo no WhatsApp.</p>
   </div>
 </main>
+
+<!--
+  Medição inline, no fim da página: o botão pinta primeiro, sem disputar banda,
+  e o fbevents.js começa a baixar assim que o HTML termina, sem esperar outro
+  arquivo. As campanhas otimizam "visualizações da página de destino", que
+  dependem do PageView.
+
+    PageView            uma vez por carregamento
+    WhatsAppGroupClick  a cada toque no botão (toques no mesmo segundo = 1)
+
+  O botão é um link comum: nada aqui bloqueia, atrasa ou redireciona o clique.
+  Só utm_source, utm_medium, utm_campaign e utm_content vão nos parâmetros, e
+  só com valores simples. Sem Lead, sem dados pessoais. Se já existir um fbq
+  global, não inicializa de novo nem repete o PageView.
+-->
+<script>
+(function () {
+  "use strict";
+
+  var CAMPOS = ["utm_source", "utm_medium", "utm_campaign", "utm_content"];
+  var VALOR = /^[A-Za-z0-9_.\-]{1,100}$/;
+  var utms = {};
+  try {
+    var busca = new URLSearchParams(location.search);
+    for (var i = 0; i < CAMPOS.length; i++) {
+      var v = (busca.get(CAMPOS[i]) || "").trim();
+      if (v && VALOR.test(v)) utms[CAMPOS[i]] = v;
+    }
+  } catch (e) { /* sem UTMs */ }
+
+  var podeMedir = typeof window.fbq === "function";
+
+  if (!podeMedir) {
+    var meta = document.querySelector('meta[name="meta-pixel-id"]');
+    var id = meta ? (meta.getAttribute("content") || "").trim() : "";
+
+    if (/^\d{8,20}$/.test(id)) {
+      try {
+        // abre já a conexão com o endereço que recebe os eventos
+        var pc = document.createElement("link");
+        pc.rel = "preconnect";
+        pc.href = "https://www.facebook.com";
+        document.head.appendChild(pc);
+
+        // código-base oficial da Meta (fila + fbevents.js assíncrono)
+        /* eslint-disable */
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        t.fetchPriority='high';
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        /* eslint-enable */
+
+        // modo manual: sem isto o Pixel também registraria o toque como
+        // clique automático (SubscribedButtonClick)
+        window.fbq("set", "autoConfig", false, id);
+        window.fbq("init", id);
+        window.fbq("track", "PageView", utms);
+        podeMedir = true;
+      } catch (e) {
+        podeMedir = false;
+      }
+    }
+  }
+
+  if (!podeMedir) return;
+
+  // um único listener, no documento: vale desde o primeiro instante, mesmo
+  // antes de o botão existir no DOM
+  var ultimo = 0;
+  document.addEventListener("click", function (ev) {
+    var alvo = ev.target && ev.target.closest ? ev.target.closest('[data-cta="whatsapp-group"]') : null;
+    if (!alvo) return;
+    var agora = Date.now();
+    if (agora - ultimo < 1000) return;
+    ultimo = agora;
+    try {
+      if (typeof window.fbq === "function") window.fbq("trackCustom", "WhatsAppGroupClick", utms);
+    } catch (e) { /* medição nunca interfere no clique */ }
+  });
+})();
+</script>
 </body>
 </html>
