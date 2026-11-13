@@ -58,6 +58,28 @@ teclado, axe-core (WCAG 2.2 A/AA), página sem JavaScript, abertura do
 convite real do WhatsApp (sem entrar no grupo), Pixel bloqueado, PageView único, clique duplo contado uma vez e
 as UTMs filtradas.
 
+## Notas da página
+
+O `site/index.html` vai para o celular sem comentários: cada byte conta no 3G
+(em 12/11, 2 KB de comentários atrasavam o botão em ~60 ms). O que estaria
+neles fica aqui.
+
+- **CSS inline, sem webfont nem imagem:** a página chega numa única resposta.
+- **Medição inline no fim do `<body>`:** o botão pinta primeiro, sem disputar
+  banda, e o `fbevents.js` começa a baixar assim que o HTML termina. As
+  campanhas otimizam "visualizações da página de destino", que dependem do
+  `PageView`. O `preconnect` para `www.facebook.com` adianta a conexão que
+  recebe os eventos.
+- **Botão:** link comum para o convite (abre sem JavaScript e sem Pixel).
+  Verde do WhatsApp `#25D366` com texto `#0B141A` (contraste 8,9:1), 60 px de
+  altura. O texto é "Entrar no grupo" no HTML e vira caixa alta pelo CSS,
+  para o leitor de tela não soletrar. Sem animação: cor, ícone e tamanho já
+  bastam.
+- **`Apoca&shy;líptica`:** ponto de quebra invisível; com zoom alto, quebra em
+  "Apoca-líptica" em vez de vazar da tela.
+- **`grid-template-columns: minmax(0, 1fr)`:** impede que uma palavra longa
+  em fonte ampliada alargue a coluna.
+
 ## Meta Pixel
 
 **12/11/2026:** a medição saiu do `app.js` e foi para um script inline no fim

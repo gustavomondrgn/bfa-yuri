@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-
 <title>Black Friday Apocalíptica | Yuri dos Anjos</title>
 <meta name="description" content="Ofertas com até 80% de desconto. Dia 16/11, os preços saem primeiro no grupo do WhatsApp.">
 <link rel="canonical" href="https://yuridosanjos.com.br/bfa-grupo">
@@ -11,7 +10,6 @@
 <meta name="color-scheme" content="only light">
 <meta name="theme-color" content="#FFFFFF">
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
-
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:site_name" content="Yuri dos Anjos">
@@ -23,67 +21,48 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Black Friday Apocalíptica, de Yuri dos Anjos: ofertas com até 80% de desconto.">
 <meta name="twitter:card" content="summary_large_image">
-
-<!-- Meta Pixel "Pixel Yuri dos Anjos" (ID público). Vazio = nada da Meta é carregado. -->
+<!-- Pixel Yuri dos Anjos; vazio = nada da Meta. Explicações no README. -->
 <meta name="meta-pixel-id" content="549360853227105">
-
 <link rel="icon" href="/bfa-grupo/assets/favicon.svg?v=1" type="image/svg+xml">
-
-<!-- CSS inline: a página inteira chega numa única resposta. Sem webfont, sem imagem. -->
 <style>
 :root {
   color-scheme: only light;
-
-  /* neutros das telas internas do Placidus */
   --bg:          #FFFFFF;
   --ink:         #181818;
   --ink-soft:    #4A4A4A;
   --ink-muted:   #616161;
-
-  /* botão: verde do WhatsApp com texto escuro (contraste 8,9:1) */
   --wa:          #25D366;
   --wa-hover:    #1FC05C;
   --wa-press:    #1AAE52;
   --on-wa:       #0B141A;
-
-  /* o traço da campanha: céu vermelho e reflexo azul-petróleo */
   --ember:       #A3171B;
   --ember-deep:  #6E0E12;
   --petrol:      #0E5A6B;
   --focus:       #006B89;
-
   --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
           Roboto, "Helvetica Neue", Arial, sans-serif;
-
   --ease: cubic-bezier(.23, 1, .32, 1);
 }
-
 *, *::before, *::after { box-sizing: border-box; }
-
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   background: var(--bg);
 }
-
 body {
   margin: 0;
   min-height: 100vh;
   min-height: 100svh;
   overflow-x: clip;
-
   font-family: var(--sans);
   font-size: 1rem;
   line-height: 1.5;
   color: var(--ink-soft);
   background: var(--bg);
-
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
-
-/* filete do topo: do vermelho ao azul-petróleo */
 body::before {
   content: "";
   position: fixed;
@@ -92,9 +71,6 @@ body::before {
   background: linear-gradient(90deg, var(--ember-deep), var(--ember) 42%, var(--petrol));
   pointer-events: none;
 }
-
-/* coluna única; minmax(0, 1fr) impede que uma palavra longa em fonte
-   ampliada alargue a coluna além da tela */
 .bridge {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -102,18 +78,15 @@ body::before {
   min-height: 100vh;
   min-height: 100svh;
   padding-inline: max(1.25rem, env(safe-area-inset-left), env(safe-area-inset-right));
-  /* mais respiro embaixo: o bloco fica um pouco acima do centro e o botão sobe */
   padding-block:
     calc(clamp(1.75rem, 6svh, 4rem) + env(safe-area-inset-top))
     calc(clamp(1.75rem, 12svh, 8rem) + env(safe-area-inset-bottom));
 }
-
 .bridge__inner {
   width: 100%;
   max-width: 25rem;
   margin-inline: auto;
 }
-
 .brand {
   margin: 0 0 .875rem;
   font-size: .9375rem;
@@ -121,7 +94,6 @@ body::before {
   letter-spacing: .01em;
   color: var(--ink-muted);
 }
-
 .title {
   margin: 0;
   font-size: clamp(2.25rem, 1.55rem + 4.2vw, 3.25rem);
@@ -130,12 +102,10 @@ body::before {
   letter-spacing: -.03em;
   color: var(--ink);
   text-wrap: balance;
-  /* com zoom ou fonte grande, "Apocalíptica" quebra em vez de vazar */
   overflow-wrap: anywhere;
   -webkit-hyphens: manual;
   hyphens: manual;
 }
-
 .highlight {
   margin: 1rem 0 0;
   font-size: 1.25rem;
@@ -144,7 +114,6 @@ body::before {
   letter-spacing: -.01em;
   color: var(--ember);
 }
-
 .text {
   margin: .625rem 0 0;
   font-size: 1.0625rem;
@@ -152,8 +121,6 @@ body::before {
   color: var(--ink-soft);
   text-wrap: pretty;
 }
-
-/* o elemento principal: pílula verde, ícone do WhatsApp, alvo de 60 px */
 .cta {
   display: flex;
   align-items: center;
@@ -163,11 +130,9 @@ body::before {
   min-height: 3.75rem;
   margin-top: 1.5rem;
   padding: .875rem 1.5rem;
-
   border-radius: 999px;
   background: var(--wa);
   color: var(--on-wa);
-
   font-size: 1.125rem;
   font-weight: 800;
   line-height: 1.2;
@@ -175,7 +140,6 @@ body::before {
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
-
   box-shadow:
     0 1px 2px rgba(11, 20, 26, .10),
     0 10px 22px -12px rgba(18, 140, 74, .75);
@@ -183,22 +147,18 @@ body::before {
     background-color 160ms var(--ease),
     transform 120ms var(--ease);
 }
-
 .cta__icon {
   flex: none;
   width: 1.625rem;
   height: 1.625rem;
   fill: currentColor;
 }
-
 .cta:hover { background: var(--wa-hover); }
 .cta:active { background: var(--wa-press); transform: scale(.985); }
-
 .cta:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
 }
-
 .support {
   margin: .875rem 0 0;
   font-size: .875rem;
@@ -206,41 +166,26 @@ body::before {
   color: var(--ink-muted);
   text-align: center;
 }
-
-/* zoom muito alto: o ícone sai para o texto do botão caber */
 @media (max-width: 15rem) {
   .cta__icon { display: none; }
 }
-
 @media (prefers-reduced-motion: reduce) {
   .cta { transition: none; }
   .cta:active { transform: none; }
 }
-
 @media (forced-colors: active) {
   .cta { border: 2px solid ButtonText; }
   body::before { display: none; }
 }
 </style>
 </head>
-
 <body>
 <main class="bridge">
   <div class="bridge__inner">
     <p class="brand" translate="no">Yuri dos Anjos</p>
-
-    <!-- &shy;: se faltar espaço (zoom alto), quebra em "Apoca-líptica"; senão, invisível -->
     <h1 class="title">Black Friday Apoca&shy;líptica</h1>
-
     <p class="highlight">Ofertas com até 80% de desconto.</p>
-
     <p class="text">Dia 16/11, os preços saem primeiro no grupo do WhatsApp. Os maiores descontos ficam no primeiro dia.</p>
-
-    <!--
-      Link real para o convite: abre o grupo mesmo sem JavaScript, sem Pixel
-      e sem esperar nada. O texto fica em caixa alta pelo CSS para o leitor de
-      tela não soletrar "ENTRAR NO GRUPO" letra por letra.
-    -->
     <a class="cta"
        href="https://chat.whatsapp.com/FGFkV5MuFd5G1dLnVXPola"
        data-cta="whatsapp-group"
@@ -250,29 +195,12 @@ body::before {
       </svg>
       <span>Entrar no grupo</span>
     </a>
-
     <p class="support" id="cta-apoio">Você será direcionado para o grupo no WhatsApp.</p>
   </div>
 </main>
-
-<!--
-  Medição inline, no fim da página: o botão pinta primeiro, sem disputar banda,
-  e o fbevents.js começa a baixar assim que o HTML termina, sem esperar outro
-  arquivo. As campanhas otimizam "visualizações da página de destino", que
-  dependem do PageView.
-
-    PageView            uma vez por carregamento
-    WhatsAppGroupClick  a cada toque no botão (toques no mesmo segundo = 1)
-
-  O botão é um link comum: nada aqui bloqueia, atrasa ou redireciona o clique.
-  Só utm_source, utm_medium, utm_campaign e utm_content vão nos parâmetros, e
-  só com valores simples. Sem Lead, sem dados pessoais. Se já existir um fbq
-  global, não inicializa de novo nem repete o PageView.
--->
 <script>
 (function () {
   "use strict";
-
   var CAMPOS = ["utm_source", "utm_medium", "utm_campaign", "utm_content"];
   var VALOR = /^[A-Za-z0-9_.\-]{1,100}$/;
   var utms = {};
@@ -282,24 +210,17 @@ body::before {
       var v = (busca.get(CAMPOS[i]) || "").trim();
       if (v && VALOR.test(v)) utms[CAMPOS[i]] = v;
     }
-  } catch (e) { /* sem UTMs */ }
-
+  } catch (e) { }
   var podeMedir = typeof window.fbq === "function";
-
   if (!podeMedir) {
     var meta = document.querySelector('meta[name="meta-pixel-id"]');
     var id = meta ? (meta.getAttribute("content") || "").trim() : "";
-
     if (/^\d{8,20}$/.test(id)) {
       try {
-        // abre já a conexão com o endereço que recebe os eventos
         var pc = document.createElement("link");
         pc.rel = "preconnect";
         pc.href = "https://www.facebook.com";
         document.head.appendChild(pc);
-
-        // código-base oficial da Meta (fila + fbevents.js assíncrono)
-        /* eslint-disable */
         !function(f,b,e,v,n,t,s)
         {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
         n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -309,10 +230,6 @@ body::before {
         t.fetchPriority='high';
         s.parentNode.insertBefore(t,s)}(window, document,'script',
         'https://connect.facebook.net/en_US/fbevents.js');
-        /* eslint-enable */
-
-        // modo manual: sem isto o Pixel também registraria o toque como
-        // clique automático (SubscribedButtonClick)
         window.fbq("set", "autoConfig", false, id);
         window.fbq("init", id);
         window.fbq("track", "PageView", utms);
@@ -322,11 +239,7 @@ body::before {
       }
     }
   }
-
   if (!podeMedir) return;
-
-  // um único listener, no documento: vale desde o primeiro instante, mesmo
-  // antes de o botão existir no DOM
   var ultimo = 0;
   document.addEventListener("click", function (ev) {
     var alvo = ev.target && ev.target.closest ? ev.target.closest('[data-cta="whatsapp-group"]') : null;
@@ -336,7 +249,7 @@ body::before {
     ultimo = agora;
     try {
       if (typeof window.fbq === "function") window.fbq("trackCustom", "WhatsAppGroupClick", utms);
-    } catch (e) { /* medição nunca interfere no clique */ }
+    } catch (e) { }
   });
 })();
 </script>
