@@ -36,6 +36,17 @@ createServer(async (req, res) => {
       if (/text|javascript|json|svg/.test(tipo) && /gzip/.test(req.headers["accept-encoding"] || "")) {
         corpo = gzipSync(corpo, { level: 6 }); extras["Content-Encoding"] = "gzip"; extras["Vary"] = "Accept-Encoding";
       }
+      // vídeo: responde a Range com 206, como o nginx (sem isso o Chrome não avança o vídeo)
+      const faixa = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || "");
+      if (faixa && !extras["Content-Encoding"]) {
+        const total = corpo.length;
+        let ini = faixa[1] === "" ? total - Number(faixa[2]) : Number(faixa[1]);
+        let fim = faixa[1] !== "" && faixa[2] !== "" ? Math.min(Number(faixa[2]), total - 1) : total - 1;
+        if (ini >= total || ini < 0 || ini > fim) { res.writeHead(416, { "Content-Range": `bytes */${total}` }); return res.end(); }
+        res.writeHead(206, { "Content-Type": tipo, "Content-Range": `bytes ${ini}-${fim}/${total}`, "Content-Length": fim - ini + 1, "Accept-Ranges": "bytes", "Cache-Control": alvo.cache });
+        return res.end(req.method === "HEAD" ? undefined : corpo.subarray(ini, fim + 1));
+      }
+      if (!extras["Content-Encoding"]) extras["Accept-Ranges"] = "bytes";
       res.writeHead(200, { ...extras, "Content-Type": tipo, "Cache-Control": alvo.cache, "X-Content-Type-Options": "nosniff" });
       return res.end(req.method === "HEAD" ? undefined : corpo);
     } catch { /* 404 */ }

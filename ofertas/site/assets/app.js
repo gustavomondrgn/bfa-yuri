@@ -183,14 +183,8 @@
   function renderTudo(animar) {
     var fase = faseExibida();
     $$("[data-id]").forEach(function (el) { renderCard(el, animar); });
-    // chamada principal: maior desconto vigente entre o que está à venda
-    var max = 0;
-    D.itens.forEach(function (i) {
-      if (!noCenario(i)) return;
-      var v = preco(i, fase);
-      if (v != null) max = Math.max(max, Math.round((1 - v / i.referencia) * 100));
-    });
-    if (max) $("#max-off").textContent = max;
+    // chamada principal: fixa em "até 80%" (decisão de Gustavo em 16/11), vem dos dados
+    if (D.chamadaDesconto) $("#max-off").textContent = D.chamadaDesconto;
     $("#sobre-fase").textContent = atual.estado === "encerrada" ? "Black Friday encerrada" : fase.rotulo;
     $("#validade").textContent = atual.estado === "encerrada"
       ? "A campanha terminou em 19/11, às 23h59."
@@ -592,16 +586,24 @@
     var d = D.depoimentos && D.depoimentos[id];
     if (!d || !dlgV) return;
     origemVideo = botao;
-    vid.poster = d.poster; vid.src = d.mp4;
-    dlgV.classList.toggle("vertical", !!d.vertical);
+    var foto = d.tipo === "imagem", img = $("#video-img");
+    dlgV.classList.toggle("foto", foto);
+    dlgV.classList.toggle("vertical", !foto && !!d.vertical);
+    dlgV.setAttribute("aria-label", foto ? "Depoimento" : "Depoimento em vídeo");
     $("#video-leg").textContent = d.titulo;
+    if (foto) {
+      img.src = d.img; img.width = d.w; img.height = d.h;
+    } else {
+      img.removeAttribute("src");
+      vid.poster = d.poster || ""; vid.src = d.mp4;
+    }
     try { dlgV.showModal(); } catch (e) { dlgV.setAttribute("open", ""); }
     try { history.pushState({ bfaVideo: 1 }, ""); videoEmpurrou = true; } catch (e) {}
-    var pr = vid.play(); if (pr && pr.catch) pr.catch(function () {});
+    if (!foto) { var pr = vid.play(); if (pr && pr.catch) pr.catch(function () {}); }
   }
   function fecharVideo(viaHistorico) {
     if (!dlgV || !dlgV.open) return;
-    vid.pause(); vid.setAttribute("src", ""); vid.load();
+    if (!dlgV.classList.contains("foto")) { vid.pause(); vid.setAttribute("src", ""); vid.load(); }
     dlgV.close();
     if (videoEmpurrou && !viaHistorico) { try { history.back(); } catch (e) {} }
     videoEmpurrou = false;
@@ -617,6 +619,51 @@
     dlgV.addEventListener("click", function (e) { if (e.target === dlgV) fecharVideo(false); });
     window.addEventListener("popstate", function () { if (dlgV.open) fecharVideo(true); });
   }
+
+  // ------------------------------------------- mural "O que falam de mim" --
+  (function () {
+    var grade = $("#mural-grade"), corpo = $("#mural-corpo"), mais = $("#mural-mais");
+    if (!grade || !corpo || !mais) return;
+    var itens = $$(".mural__item", grade), ncols = 0, teto = 0;
+    function colunas() { var w = corpo.clientWidth; return w >= 720 ? 3 : w >= 460 ? 2 : 1; }
+    function montar() {
+      var n = colunas();
+      if (n === ncols) return;
+      ncols = n;
+      var cols = [], alt = [];
+      for (var k = 0; k < n; k++) { var c = document.createElement("div"); c.className = "mural__col"; cols.push(c); alt.push(0); }
+      itens.forEach(function (it) {
+        var prop = parseFloat(it.style.getPropertyValue("--prop")) || 1;
+        var k = alt.indexOf(Math.min.apply(null, alt));
+        cols[k].appendChild(it);
+        alt[k] += prop + 0.12;
+      });
+      grade.textContent = "";
+      cols.forEach(function (c) { grade.appendChild(c); });
+      grade.classList.add("js-mosaico");
+    }
+    function recolher() {
+      if (corpo.getAttribute("data-aberto")) return;
+      teto = Math.round(Math.max(1700, innerHeight * 2.6));
+      corpo.style.setProperty("--teto", teto + "px");
+      var longo = grade.scrollHeight > teto + 300;
+      corpo.classList.toggle("recolhido", longo);
+      mais.hidden = !longo;
+    }
+    function abrirTudo() {
+      corpo.classList.remove("recolhido");
+      corpo.setAttribute("data-aberto", "1");
+      mais.hidden = true;
+      mais.setAttribute("aria-expanded", "true");
+    }
+    mais.addEventListener("click", abrirTudo);
+    corpo.addEventListener("focusin", function (e) {
+      if (corpo.classList.contains("recolhido") && e.target.getBoundingClientRect().bottom > corpo.getBoundingClientRect().top + teto - 160) abrirTudo();
+    });
+    montar(); recolher();
+    var t;
+    window.addEventListener("resize", function () { clearTimeout(t); t = setTimeout(function () { montar(); recolher(); }, 150); });
+  })();
 
   // ---------------------------------------------------------------- início --
   tick(true);

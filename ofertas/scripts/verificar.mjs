@@ -226,7 +226,7 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
 {
   const { p, ctx } = await abrir({ query: "", relogio: "2026-11-16T07:30:00-03:00", semDataServidor: true });
   ok("antes das 8h: ofertas visíveis com preço de abertura", (await p.isVisible("main")) && (await p.textContent("#o-bussola [data-por]")).includes("797"));
-  ok("contagem da abertura no formato hh:mm:ss", /^\d{2}:\d{2}:\d{2}$/.test(await p.textContent("#contagem")), await p.textContent("#contagem"));
+  ok("um contador só (o do topo); a abertura não tem outro", (await p.locator("#contagem").count()) === 0 && /\d+h|\d+min/.test(await p.textContent("#relogio-tempo")), await p.textContent("#relogio-tempo"));
   await ctx.close();
 }
 {
@@ -262,8 +262,187 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
   await ctx.close();
   const b = await abrir();
   ok("cursos: Por que Astrologia Funciona? só dentro do Pacote Astrologia", (await b.p.locator("#o-curso-fundamentos").count()) === 0 && (await b.p.textContent("#o-pacote-astrologia .recibo")).includes("Por que Astrologia Funciona?"));
-  ok("chamada mostra o maior desconto real (78%)", (await b.p.textContent("#max-off")) === "78");
+  ok("chamada mostra até 80% (fixo) e nenhum \"até 78\" na página", (await b.p.textContent("#max-off")) === "80" && !/até 78/i.test(await b.p.content()));
   await b.ctx.close();
+}
+
+// -------------------------------------------- ajustes de 16/11 (estrutura) --
+{
+  const { p, ctx, erros } = await abrir({ w: 1366, h: 768 });
+  const html = await p.content();
+  ok("nenhum 78% na página", !/78\s*%/.test(html.replace(/font-size:\.78rem/g, "")));
+  ok("Pacote Astrologia mostra −80% e soma separada R$ 2.493", (await p.textContent("#o-pacote-astrologia [data-off]")).trim() === "−80%" && (await p.textContent("#o-pacote-astrologia .recibo__soma")).includes("2.493"));
+  ok("seções sem numeração (01 / 06)", !/\d{2} \/ \d{2}/.test(await p.textContent("body")));
+  ok("sem a seção Como funciona o pedido", (await p.locator(".como").count()) === 0 && !/Como funciona o pedido/.test(await p.textContent("body")));
+  ok("abertura sem o segundo contador", (await p.locator(".abertura .contagem").count()) === 0);
+  const selos = await p.$$eval(".selo-volta", (els) => els.map((e) => e.textContent.trim()));
+  ok("selo da Bússola: Voltou depois de um ano (abertura e card)", selos.length === 2 && selos.every((t) => t === "Voltou depois de um ano"), JSON.stringify(selos));
+  ok("mentoria: fundo preto com quadriculado", await p.evaluate(() => { const s = getComputedStyle(document.querySelector(".faixa-mentoria")); return s.backgroundColor === "rgb(0, 0, 0)" && s.backgroundImage.includes("svg"); }));
+  ok("faixa vermelha por cima da seção seguinte", await p.evaluate(() => Number(getComputedStyle(document.querySelector(".fita-moldura")).zIndex) >= 10));
+  ok("console limpo (estrutura)", !erros.length, erros.join(" | "));
+  await ctx.close();
+}
+
+// --------------------------------------------- todas as mídias existem --
+{
+  const urls = new Set();
+  for (const d of Object.values(DADOS.depoimentos)) for (const k of ["img", "mini", "mp4", "poster"]) if (d[k]) urls.add(d[k]);
+  const ruins = [];
+  for (const u of urls) { const r = await fetch(BASE + u, { method: "HEAD" }); if (r.status !== 200) ruins.push(`${r.status} ${u}`); }
+  ok(`todas as ${urls.size} mídias de depoimento respondem 200`, !ruins.length, ruins.join(" | "));
+  const r = await fetch(`${BASE}/bfa/assets/depoimentos/vicente.mp4?v=3`, { headers: { Range: "bytes=1000-1999" } });
+  ok("vídeo responde a Range (206), condição para avançar o vídeo", r.status === 206 && (r.headers.get("content-range") || "").startsWith("bytes 1000-1999/"), `${r.status} ${r.headers.get("content-range")}`);
+}
+
+// ------------------------------------------ depoimentos nos cards (prints) --
+{
+  const { p, ctx, erros } = await abrir({ w: 1366, h: 768 });
+  const comPrint = DADOS.itens.filter((i) => i.depoimento && DADOS.depoimentos[i.depoimento]?.tipo === "imagem");
+  ok("8 cards com depoimento em print", comPrint.length === 8, comPrint.map((i) => i.id).join(","));
+  const falhou = [];
+  for (const i of comPrint) {
+    const sel = `#o-${i.id} [data-video]`;
+    await clicar(p, sel);
+    await p.waitForTimeout(350);
+    const st = await p.evaluate(() => { const d = document.querySelector("#video"), im = document.querySelector("#video-img"); return { aberto: d.open, foto: d.classList.contains("foto"), src: im.getAttribute("src") || "", carregou: im.complete && im.naturalWidth > 0, leg: document.querySelector("#video-leg").textContent }; });
+    if (!st.aberto || !st.foto || !st.src.includes(i.depoimento) || !st.carregou) falhou.push(`${i.id}:${JSON.stringify(st)}`);
+    await p.keyboard.press("Escape");
+    await p.waitForTimeout(250);
+    const depois = await p.evaluate((s) => ({ fechado: !document.querySelector("#video").open, foco: document.activeElement === document.querySelector(s) }), sel);
+    if (!depois.fechado || !depois.foco) falhou.push(`${i.id} ao fechar:${JSON.stringify(depois)}`);
+  }
+  ok("cada print abre por cima, carrega, fecha com Esc e devolve o foco", !falhou.length, falhou.join(" | "));
+  // botão fechar com o mouse
+  await clicar(p, "#o-revolucao-solar [data-video]");
+  await p.waitForTimeout(300);
+  await p.click("#fechar-video");
+  await p.waitForTimeout(250);
+  ok("botão fechar fecha o print", !(await p.evaluate(() => document.querySelector("#video").open)));
+  // clique fora fecha
+  await clicar(p, "#o-horaria [data-video]");
+  await p.waitForTimeout(300);
+  await p.mouse.click(5, 5);
+  await p.waitForTimeout(250);
+  ok("clique fora fecha o print", !(await p.evaluate(() => document.querySelector("#video").open)));
+  ok("console limpo (prints)", !erros.length, erros.join(" | "));
+  await ctx.close();
+}
+
+// ------------------------------------------ vídeo: abre, avança, fecha --
+{
+  const { p, ctx, erros } = await abrir({ w: 1366, h: 768 });
+  await clicar(p, "#d-bussola [data-video]");
+  await p.waitForFunction(() => { const v = document.querySelector("#video video"); return v && v.readyState >= 1 && v.duration > 30; }, null, { timeout: 15000 }).catch(() => {});
+  const r = await p.evaluate(async () => {
+    const v = document.querySelector("#video video");
+    v.muted = true;
+    const alvo = v.duration * 0.7;
+    await new Promise((res) => { v.addEventListener("seeked", res, { once: true }); v.currentTime = alvo; setTimeout(res, 8000); });
+    return { dur: v.duration, t: v.currentTime, alvo, seekFim: v.seekable.length ? v.seekable.end(0) : 0 };
+  });
+  ok("vídeo do Vicente avança para 70%", Math.abs(r.t - r.alvo) < 1.5 && r.seekFim > r.alvo, JSON.stringify(r));
+  await p.keyboard.press("Escape");
+  await p.waitForTimeout(300);
+  const fechado = await p.evaluate(() => { const v = document.querySelector("#video video"); return { aberto: document.querySelector("#video").open, pausado: v.paused, src: v.getAttribute("src") }; });
+  ok("fechar vídeo para o som e solta o arquivo", !fechado.aberto && fechado.pausado && !fechado.src, JSON.stringify(fechado));
+  // mentoria (horizontal) também abre e avança
+  await clicar(p, '.depos [data-video="mentoria-01"]');
+  await p.waitForFunction(() => { const v = document.querySelector("#video video"); return v && v.readyState >= 1 && v.duration > 30; }, null, { timeout: 15000 }).catch(() => {});
+  const r2 = await p.evaluate(async () => { const v = document.querySelector("#video video"); v.muted = true; await new Promise((res) => { v.addEventListener("seeked", res, { once: true }); v.currentTime = 60; setTimeout(res, 8000); }); return v.currentTime; });
+  ok("vídeo da mentoria avança para 1 min", Math.abs(r2 - 60) < 1.5, String(r2));
+  await p.keyboard.press("Escape");
+  ok("console limpo (vídeos)", !erros.length, erros.join(" | "));
+  await ctx.close();
+}
+
+// ---------------------------------------------------------------- mural --
+{
+  const { p, ctx, erros } = await abrir({ w: 1366, h: 768 });
+  ok("título do mural: O que falam de mim", (await p.textContent("#h-mural")).trim() === "O que falam de mim");
+  const n = await p.locator(".mural__item").count();
+  ok(`mural com os ${DADOS.mural.length} depoimentos que sobraram`, n === DADOS.mural.length, String(n));
+  const usadosNosCards = new Set(DADOS.itens.map((i) => i.depoimento).filter(Boolean));
+  ok("mural não repete o que já está nos cards", !DADOS.mural.some((id) => usadosNosCards.has(id) || ["mentoria-01", "mentoria-02", "vicente"].includes(id)));
+  ok("mosaico em 3 colunas no desktop", (await p.locator(".mural__col").count()) === 3);
+  ok("primeiros prints aparecem inteiros, sem corte", await p.$$eval(".mural__item img", (ims) => ims.slice(0, 6).every((i) => getComputedStyle(i).objectFit !== "cover" || i.closest(".mural__item--video"))));
+  await p.locator("#mural-mais").scrollIntoViewIfNeeded();
+  ok("mural recolhido com botão Ver mais", (await p.isVisible("#mural-mais")) && (await p.evaluate(() => document.querySelector("#mural-corpo").classList.contains("recolhido"))));
+  await p.click("#mural-mais");
+  await p.waitForTimeout(200);
+  ok("Ver mais abre todos", !(await p.evaluate(() => document.querySelector("#mural-corpo").classList.contains("recolhido"))) && !(await p.isVisible("#mural-mais")));
+  const idImg = DADOS.mural.find((id) => DADOS.depoimentos[id].tipo === "imagem");
+  await clicar(p, `.mural [data-video="${idImg}"]`);
+  await p.waitForTimeout(400);
+  const st = await p.evaluate(() => ({ aberto: document.querySelector("#video").open, foto: document.querySelector("#video").classList.contains("foto"), ok: document.querySelector("#video-img").naturalWidth > 0 }));
+  ok("print do mural amplia ao clicar", st.aberto && st.foto && st.ok, JSON.stringify(st));
+  await p.keyboard.press("Escape"); await p.waitForTimeout(250);
+  const idVid = DADOS.mural.find((id) => DADOS.depoimentos[id].mp4 && !DADOS.depoimentos[id].audio);
+  await clicar(p, `.mural [data-video="${idVid}"]`);
+  await p.waitForTimeout(600);
+  const sv = await p.evaluate(() => ({ aberto: document.querySelector("#video").open, foto: document.querySelector("#video").classList.contains("foto"), src: document.querySelector("#video video").getAttribute("src") || "" }));
+  ok("vídeo do mural abre no player", sv.aberto && !sv.foto && sv.src.includes(idVid), JSON.stringify(sv));
+  await p.keyboard.press("Escape"); await p.waitForTimeout(250);
+  const idAud = DADOS.mural.find((id) => DADOS.depoimentos[id].audio);
+  await clicar(p, `.mural [data-video="${idAud}"]`);
+  await p.waitForTimeout(600);
+  ok("áudio do mural abre no player", await p.evaluate((id) => document.querySelector("#video").open && (document.querySelector("#video video").getAttribute("src") || "").includes(id), idAud));
+  await p.keyboard.press("Escape"); await p.waitForTimeout(250);
+  ok("sem rodapé", (await p.locator("footer.rodape").count()) === 0);
+  ok("console limpo (mural)", !erros.length, erros.join(" | "));
+  await ctx.close();
+  const b = await abrir({ w: 390, h: 844 });
+  ok("mosaico em 1 coluna no celular", (await b.p.locator(".mural__col").count()) === 1);
+  await b.ctx.close();
+}
+
+// ----------------------------------------- todos os botões de todas as ofertas --
+{
+  const { p, ctx, erros, wa } = await abrir({ w: 1366, h: 900 });
+  const ids = await p.$$eval("main [data-id]", (els) => els.filter((e) => e.offsetParent !== null).map((e) => e.getAttribute("data-id")));
+  const visiveis = [...new Set(ids)];
+  for (const id of visiveis) await clicar(p, `#o-${id} [data-add]`);
+  const esperado = visiveis.reduce((s, id) => s + DADOS.itens.find((i) => i.id === id).precos.d16, 0);
+  const brl = (v) => "R$ " + v.toLocaleString("pt-BR");
+  ok(`Adicionar funciona em todas as ${visiveis.length} ofertas`, (await p.textContent("#barra-qtd")) === `${visiveis.length} itens no pedido` && (await p.textContent("#barra-total")) === brl(esperado), `${await p.textContent("#barra-qtd")} · ${await p.textContent("#barra-total")} (esperado ${brl(esperado)})`);
+  // + e − em todas
+  for (const id of visiveis) { const mais = p.locator(`#o-${id} [data-mais]`); if (await mais.isEnabled()) await clicar(p, `#o-${id} [data-mais]`); }
+  for (const id of visiveis) { const menos = p.locator(`#o-${id} [data-menos]`); if (await menos.count()) await clicar(p, `#o-${id} [data-menos]`); }
+  ok("+ e − voltam ao mesmo total", (await p.textContent("#barra-total")) === brl(esperado), await p.textContent("#barra-total"));
+  // Ver detalhes abre e fecha em todos
+  let detOk = true;
+  for (const id of visiveis) {
+    const det = p.locator(`#o-${id} details`);
+    if (!(await det.count())) continue;
+    await clicar(p, `#o-${id} details > summary`);
+    if (!(await det.evaluate((d) => d.open))) detOk = false;
+    await clicar(p, `#o-${id} details > summary`);
+  }
+  ok("Ver detalhes abre e fecha em todos os cards", detOk);
+  await clicar(p, "#abrir-pedido");
+  await p.waitForTimeout(500);
+  ok("folha lista todas as ofertas", (await p.locator("#pedido-lista > li").count()) === visiveis.length, String(await p.locator("#pedido-lista > li").count()));
+  await clicar(p, "#enviar");
+  await p.waitForTimeout(800);
+  const t = textoWa(wa[0] || "https://wa.me/x");
+  const nomes = visiveis.map((id) => DADOS.itens.find((i) => i.id === id).nome);
+  ok("mensagem do WhatsApp com todas as ofertas e o total", nomes.every((n) => t.includes(n)) && t.includes(`Total: ${brl(esperado)}`), nomes.filter((n) => !t.includes(n)).join(","));
+  ok("console limpo (todas as ofertas)", !erros.length, erros.join(" | "));
+  await ctx.close();
+}
+
+// -------------------------------------------------------------- menu --
+{
+  const { p, ctx, erros } = await abrir({ w: 390, h: 844, movimento: true });
+  const falhas = [];
+  for (const s of DADOS.secoes) {
+    await p.click(`.atalhos a[data-atalho="${s.id}"]`);
+    await p.waitForTimeout(1300);
+    const r = await p.evaluate((id) => { const el = document.getElementById(id); const top = el.getBoundingClientRect().top; const cab = document.querySelector(".topo").getBoundingClientRect().bottom; return { top: Math.round(top), cab: Math.round(cab), atual: document.querySelector(`.atalhos a[data-atalho="${id}"]`).getAttribute("aria-current") }; }, s.id);
+    if (Math.abs(r.top - r.cab) > 90 || r.atual !== "true") falhas.push(`${s.id}:${JSON.stringify(r)}`);
+  }
+  ok("menu leva a cada seção e marca a atual", !falhas.length, falhas.join(" | "));
+  ok("console limpo (menu)", !erros.length, erros.join(" | "));
+  await ctx.close();
 }
 
 // ----------------------------------------------------- larguras e acessibilidade --

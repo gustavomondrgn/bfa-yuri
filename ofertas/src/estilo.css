@@ -462,12 +462,91 @@ html{overflow-x:clip}
   .faixa-mentoria .secao{padding-top:4rem;padding-bottom:4.4rem}
 }
 
-/* fundo da mentoria: gravura de astrolábio (gerada para a página) */
-.faixa-mentoria.lux{background:#08080A url(/bfa/assets/lux/fundo-astrolabio.webp?v=1) no-repeat 72% 0/240% auto}
+/* fundo da mentoria (16/11, pedido de Gustavo): preto puro com quadriculado em SVG,
+   linhas brancas bem fracas, na seção inteira (referência: hero da lp.plataformaassaad) */
+.faixa-mentoria.lux{--fundo:#000;background:#000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cpath d='M44 .5H.5V44' fill='none' stroke='%23fff' stroke-opacity='.075'/%3E%3C/svg%3E") 0 0/44px 44px}
+.faixa-mentoria.lux::before{display:none}
 .faixa-mentoria.lux::after{display:none}
-@media (min-width:700px){.faixa-mentoria.lux{background-size:150% auto;background-position:85% 0}}
-@media (min-width:1000px){.faixa-mentoria.lux{background-size:cover;background-position:right center}}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+
+/* ===================================================== ajustes 16/11 manhã == */
+/* faixa vermelha: por cima da seção seguinte e sem corte embaixo (a inclinação
+   desce ~1.4rem nas pontas; o recorte agora é só na horizontal) */
+.fita-moldura{z-index:12;overflow:clip visible}
+/* abertura: texto centrado na vertical em relação ao destaque */
+@media (min-width:1000px){.abertura__dentro{align-items:center}}
+
+/* ============================================== depoimentos e mural 16/11 == */
+/* seções sem numeração e um pouco mais de respiro entre elas */
+.secao{padding-top:4.3rem}
+@media (min-width:1000px){.secao{padding-top:5rem}}
+
+/* selo da Bússola: "Voltou depois de um ano", pulsando */
+.selo-volta{font-size:.72rem;padding:.3rem .65rem;overflow:hidden;isolation:isolate;animation:selo-pulsa 2.2s ease-in-out infinite}
+.selo-volta::after{content:"";position:absolute;z-index:-1;top:0;bottom:0;left:-60%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);animation:selo-brilho 3.6s ease-in-out infinite}
+.destaque__selo.selo-volta{font-size:.78rem}
+@keyframes selo-pulsa{0%,100%{box-shadow:0 0 0 0 rgba(255,70,50,.6)}55%{box-shadow:0 0 0 8px rgba(255,70,50,0)}}
+@keyframes selo-brilho{0%,55%{left:-60%}85%,100%{left:120%}}
+
+/* chip "Ver depoimento" com miniatura do print */
+.depo-chip--foto{text-decoration:none}
+.depo-chip__mini{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--tinta);color:var(--cartao);flex:none}
+
+/* janela do depoimento também mostra print */
+.video-dlg__midia{display:grid;place-items:center}
+.video-dlg #video-img{display:none;max-width:min(92vw,760px);max-height:82vh;width:auto;height:auto;border-radius:12px;background:#000;box-shadow:0 30px 80px -20px rgba(0,0,0,.8)}
+.video-dlg.foto #video-img{display:block}
+.video-dlg.foto video{display:none}
+
+/* mural "O que falam de mim": mosaico com os prints inteiros, legível só rolando */
+.mural{position:relative;background:#0E0B09 var(--grao);background-size:180px 180px;color:var(--tinta);padding:4.5rem 0 calc(7rem + env(safe-area-inset-bottom));margin-top:4rem}
+.mural::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(80% 40% at 50% 0%,rgba(255,138,61,.14),transparent 60%)}
+.mural__cab{position:relative;max-width:var(--largura);margin:0 auto 2.2rem;padding:0 var(--gutter)}
+.mural__cab h2{font-size:clamp(2.2rem,9vw,3.6rem);font-weight:900;letter-spacing:-.035em;line-height:.95;text-transform:uppercase;color:var(--creme)}
+.mural__cab .sobretitulo{color:var(--brasa-txt);margin-bottom:.6rem}
+.mural__intro{margin-top:.8rem;color:var(--tinta-2);max-width:46ch}
+.mural__corpo{position:relative;max-width:var(--largura);margin:0 auto;padding:0 var(--gutter)}
+.mural__corpo.recolhido{max-height:var(--teto,2600px);overflow:hidden}
+.mural__corpo.recolhido{-webkit-mask-image:linear-gradient(#000 calc(100% - 240px),transparent);mask-image:linear-gradient(#000 calc(100% - 240px),transparent)}
+.mural__grade{columns:3 300px;column-gap:1rem}
+.mural__grade.js-mosaico{columns:auto;display:flex;gap:1rem;align-items:flex-start}
+.mural__col{flex:1 1 0;min-width:0;display:grid;gap:1rem}
+.mural__item{display:block;break-inside:avoid;margin:0 0 1rem;text-decoration:none;color:inherit;border-radius:12px;outline-offset:4px;cursor:zoom-in}
+.mural__grade.js-mosaico .mural__item{margin:0}
+.mural__item img{display:block;width:100%;height:auto;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#1A1512;box-shadow:0 14px 30px -18px rgba(0,0,0,.9)}
+.mural__rot{display:block;margin-top:.4rem;font-size:.64rem;color:var(--tinta-3);letter-spacing:.06em;text-transform:uppercase}
+.mural__item--video,.mural__item--audio{cursor:pointer}
+.mural__quadro{position:relative;display:block;border-radius:12px;overflow:hidden;aspect-ratio:9/12;border:1px solid rgba(255,138,61,.35)}
+.mural__quadro img{width:100%;height:100%;object-fit:cover;object-position:center 25%;border:0;border-radius:0}
+.mural__item--video .depo__play{z-index:1}
+.mural__item--audio{position:relative;border-radius:12px;border:1px solid rgba(255,138,61,.35);background:linear-gradient(160deg,#2A1A10,#120D0A);padding:1rem}
+.mural__onda{display:flex;align-items:center;gap:3px;height:54px}
+.mural__onda i{display:block;flex:1;border-radius:2px;background:rgba(255,170,100,.6);height:22%}
+.mural__onda i:nth-child(3n){height:60%}.mural__onda i:nth-child(4n+1){height:38%}.mural__onda i:nth-child(5n){height:85%}.mural__onda i:nth-child(7n+2){height:48%}
+.mural__ouvir{display:flex;align-items:center;gap:.5rem;margin-top:.8rem;font-weight:700;font-size:.9rem;color:var(--tinta)}
+.mural__ouvir .depo-chip__play{background:var(--creme)}
+.mural__ouvir .depo-chip__play::after{border-left-color:#17130F}
+.mural__ouvir .mono{font-size:.68rem;color:var(--tinta-3)}
+.mural__item:hover img,.mural__item:focus-visible img{border-color:rgba(255,138,61,.6)}
+.mural__mais{display:flex;justify-content:center;margin-top:1.4rem;padding:0 var(--gutter)}
+.mural__btn{background:var(--creme);color:#17130F;min-width:min(100%,320px)}
+@media (min-width:700px){.mural{padding-top:6rem}}
+
+
+/* botão fechar: ícone desenhado e centrado (o "×" de texto ficava torto) */
+.fechar{display:grid;place-items:center;padding:0;font-size:0}
+.fechar svg{display:block}
+/* sem barra de rolagem visível (a rolagem continua funcionando) */
+html,body,.mural__fileira,.pedido__rolagem{scrollbar-width:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar,.mural__fileira::-webkit-scrollbar,.pedido__rolagem::-webkit-scrollbar{display:none;width:0;height:0}
+.mural__btn[hidden],[hidden].btn{display:none!important}
+
+/* ============================================ ajustes 16/11 07h30 == */
+/* hero: fundo um pouco mais escuro (só o fundo; texto, eclipse e cards iguais) */
+.abertura{background-color:#090706}
+.abertura::before{background-image:var(--grao),radial-gradient(110% 70% at 90% 0%,rgba(255,138,61,.15),transparent 55%),radial-gradient(90% 60% at 0% 100%,rgba(200,20,12,.12),transparent 60%)}
+/* seções claras (serviços e cursos) com granulado, como as escuras */
+body{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .15 0 0 0 0 .1 .07 0 0 0 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");background-size:180px 180px}
