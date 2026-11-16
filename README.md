@@ -8,7 +8,11 @@ para o convite do grupo do WhatsApp. A página não tem formulário, login,
 coleta de dados ou menu. O botão funciona mesmo sem JavaScript e sem o Pixel,
 e com o Pixel bloqueado.
 
-`/bfa` (ofertas de 16/11) **não** faz parte deste app.
+`/bfa` (ofertas de 16/11) **não** faz parte deste app. Desde 16/11 o código
+dela fica na pasta `ofertas/` deste repositório e é publicado por **outro app**
+do Coolify (`bfa-ofertas`, base directory `/ofertas`). Ver `ofertas/README.md`.
+O build deste app copia só `site/` e `nginx.conf`, então a pasta `ofertas/`
+não muda a `/bfa-grupo`.
 
 ## Stack
 

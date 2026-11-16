@@ -1,0 +1,14 @@
+{
+  "name": "bfa-ofertas",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "gerar": "node scripts/gerar.mjs",
+    "preview": "node scripts/preview.mjs",
+    "verificar": "node scripts/gerar.mjs && node scripts/verificar.mjs"
+  },
+  "devDependencies": {
+    "axe-core": "^4.10.0",
+    "playwright-core": "^1.48.0"
+  }
+}

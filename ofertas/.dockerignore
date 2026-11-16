@@ -1,0 +1,13 @@
+node_modules
+scripts
+src
+dados
+verificacao
+crm
+package.json
+package-lock.json
+README.md
+.env
+.env.local
+Thumbs.db
+.DS_Store
