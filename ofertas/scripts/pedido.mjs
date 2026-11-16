@@ -52,6 +52,17 @@ async function salvar() {
   }
   await writeFile(CSV, "\ufeff" + linhas.join("\n"));
 }
+// manda o pedido para o CRM on-line (yuridosanjos.com.br/bfa-crm); CRM_URL e CRM_CHAVE vêm de ofertas/.env
+async function enviarCrm(p) {
+  const url = process.env.CRM_URL, chave = process.env.CRM_CHAVE;
+  if (!url || !chave) return console.log("  (CRM: sem CRM_URL/CRM_CHAVE; carregue ofertas/.env)");
+  try {
+    const r = await fetch(url + "/api/pedidos", { method: "POST", headers: { "Content-Type": "application/json", "x-chave": chave }, body: JSON.stringify({ codigo: p.codigo, status: p.status, criado: p.chamouEm || p.criado, nome: p.nome, tel: p.tel, fase: p.fase, itens: p.itens, total: p.total, link: p.link || "", pagoEm: p.pagoEm }) });
+    console.log(r.ok ? `  CRM: ${p.codigo} atualizado` : `  CRM: falhou (${r.status})`);
+  } catch (e) { console.log("  CRM: fora do ar (" + e.message + ")"); }
+}
+const linkCurto = (p) => "https://yuridosanjos.com.br/pg/" + p.codigo.replace(/^BFA-/, "");
+
 function codigo() {
   const a = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let s; do { s = "BFA-" + Array.from({ length: 4 }, () => a[Math.floor(Math.random() * a.length)]).join(""); } while (crm.pedidos.some((p) => p.codigo === s));
@@ -92,7 +103,8 @@ if (cmd === "novo") {
   await salvar();
   console.log(`\n${p.codigo} · ${p.nome} · ${f.rotulo}`);
   for (const i of itens) console.log(`  ${i.qtd}× ${i.nome} — ${brl(i.preco)}${i.qtd > 1 ? ` cada (${brl(i.preco * i.qtd)})` : ""}`);
-  console.log(`  Total: ${brl(total)}\n  Link: ${p.link || "(falhou)"}\n`);
+  console.log(`  Total: ${brl(total)}\n  Link curto: ${linkCurto(p)}\n  Link InfinitePay: ${p.link || "(falhou)"}\n`);
+  await enviarCrm(p);
 } else if (cmd === "pago" || cmd === "cancelar") {
   const p = crm.pedidos.find((x) => x.codigo === args._?.[0]);
   if (!p) throw new Error("Pedido não encontrado.");
@@ -108,6 +120,12 @@ if (cmd === "novo") {
     console.log(`${p.codigo} pago. Vagas atualizadas em dados/ofertas.json — falta gerar, commit, push e redeploy.`);
   } else { p.status = "cancelado"; console.log(`${p.codigo} cancelado.`); }
   await salvar();
+  await enviarCrm(p);
+} else if (cmd === "sincronizar") {
+  for (const p of crm.pedidos) await enviarCrm(p);
+} else if (cmd === "link") {
+  const p = crm.pedidos.find((x) => x.codigo === args._?.[0]);
+  console.log(p ? linkCurto(p) : "Pedido não encontrado.");
 } else if (cmd === "lista") {
   for (const p of crm.pedidos) console.log(`${p.codigo}  ${p.status.padEnd(10)} ${p.nome.padEnd(22)} ${brl(p.total).padStart(10)}  ${p.itens.map((i) => `${i.qtd}× ${i.nome}`).join(" + ")}`);
   console.log("\nVagas na página:");
