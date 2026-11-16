@@ -444,7 +444,7 @@
     if (!p) { if (dlg.open) dlg.close(); return; }
     const k = ETAPAS.findIndex((e) => e.id === p.status);
     const pago = PAGOS.has(p.status);
-    const opcoes = ["", "Pix", ...Array.from({ length: 12 }, (_, i) => `Cartão ${i + 1}x`), "Mercado Pago"];
+    const opcoes = ["", "Pix", ...Array.from({ length: 12 }, (_, i) => `Cartão ${i + 1}x`), "Mercado Pago", "Remessa exterior"];
     const atual = /cart/i.test(p.metodo || "") ? `Cartão ${parcelas(p)}x` : p.metodo || "";
     const taxa = taxaDe(p);
     const ent = p.itens.filter((i) => i.entregue).length;
