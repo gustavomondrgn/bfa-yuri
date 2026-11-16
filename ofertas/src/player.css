@@ -1,0 +1,196 @@
+/* Player dos depoimentos (/bfa): porte do player da academia do Placidus
+   (academy.css, branch wip/academia). Tudo com prefixo .bplayer.
+   Paleta da página no escuro: creme #F6E3B4, brasa #FF8A3D, preto quente.
+   A raiz (.bplayer) abraça o <video>; a casca (.bplayer__ui) fica por cima. */
+
+.bplayer{
+  --bplayer-raio:12px;
+  --bplayer-creme:#F6E3B4;
+  --bplayer-brasa:#FF8A3D;
+  --bplayer-tinta:#1A140C;
+  --bplayer-foco:#FFD38A;
+  --bplayer-texto:#FBF6EC;
+  --bplayer-curva:cubic-bezier(.32,.72,0,1);
+  position:relative;
+  width:-webkit-fit-content;
+  width:fit-content;
+  max-width:100%;
+  margin-inline:auto;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.bplayer .bplayer__video{display:block}
+
+/* ——— a casca ——— */
+.bplayer__ui{
+  position:absolute;inset:0;z-index:1;
+  overflow:hidden;border-radius:var(--bplayer-raio);
+  container-type:size;container-name:bplayer;
+  color:var(--bplayer-texto);font-family:inherit;line-height:1.2;color-scheme:dark;
+}
+.bplayer.is-vazio .bplayer__ui{display:none}
+
+.bplayer__palco{position:absolute;inset:0;display:grid;place-items:center;cursor:pointer;outline:none}
+.bplayer__palco:focus-visible{outline:2px solid var(--bplayer-foco);outline-offset:-6px;border-radius:var(--bplayer-raio)}
+.bplayer.is-ocioso .bplayer__palco{cursor:none}
+
+/* botão grande do centro (o .ac-player-big) */
+.bplayer__grande{
+  grid-area:1/1;display:grid;place-items:center;
+  width:68px;height:68px;border-radius:50%;
+  color:var(--bplayer-tinta);background:rgba(246,227,180,.96);
+  box-shadow:0 16px 40px -14px rgba(0,0,0,.75),0 0 0 6px rgba(246,227,180,.14);
+  transition:transform 380ms var(--bplayer-curva),opacity 380ms var(--bplayer-curva);
+}
+.bplayer__grande svg{margin-left:2px}
+.bplayer__palco:hover .bplayer__grande{transform:scale(1.06)}
+.bplayer.is-tocando .bplayer__grande,
+.bplayer.is-carregando .bplayer__grande,
+.bplayer.is-erro .bplayer__grande{opacity:0;transform:scale(.9);pointer-events:none}
+
+/* carregando (aparece só depois de 240 ms, para não piscar) */
+.bplayer__espera{
+  grid-area:1/1;width:34px;height:34px;border-radius:50%;
+  border:3px solid rgba(246,227,180,.28);border-top-color:var(--bplayer-creme);
+  opacity:0;visibility:hidden;
+}
+.bplayer.is-carregando .bplayer__espera{visibility:visible;animation:bplayer-surge 380ms var(--bplayer-curva) 240ms forwards,bplayer-gira .9s linear infinite}
+@keyframes bplayer-gira{to{transform:rotate(360deg)}}
+@keyframes bplayer-surge{from{opacity:0}to{opacity:1}}
+@keyframes bplayer-pulsa{from{opacity:.35}to{opacity:1}}
+
+/* erro de rede ou de mídia */
+.bplayer__erro{
+  position:absolute;inset:0;z-index:2;display:grid;place-content:center;justify-items:center;gap:14px;
+  padding:24px;text-align:center;font-size:14.5px;line-height:1.5;background:rgba(8,6,4,.74);
+}
+.bplayer__erro[hidden]{display:none}
+.bplayer__erro p{max-width:34ch;margin:0}
+.bplayer__erro-btn{
+  -webkit-appearance:none;appearance:none;margin:0;border:0;min-height:44px;padding:0 18px;border-radius:10px;
+  background:var(--bplayer-creme);color:var(--bplayer-tinta);font:inherit;font-weight:700;cursor:pointer;
+}
+.bplayer__erro-btn:focus-visible{outline:2px solid var(--bplayer-foco);outline-offset:3px;border-radius:10px}
+
+/* ——— barra de controles ——— */
+.bplayer__barra{
+  position:absolute;right:0;bottom:0;left:0;display:flex;flex-direction:column;gap:2px;
+  padding:30px 10px 6px;
+  background:linear-gradient(180deg,rgba(8,6,4,0),rgba(8,6,4,.5) 45%,rgba(8,6,4,.82));
+  transition:opacity 380ms var(--bplayer-curva);
+}
+.bplayer.is-tocando.is-ocioso .bplayer__barra{opacity:0;pointer-events:none}
+
+/* linha do tempo: 22 px visíveis, 44 px de alvo */
+.bplayer__linha{position:relative;height:22px;margin:0 8px;cursor:pointer;touch-action:none;outline:none}
+.bplayer__linha::before{content:"";position:absolute;top:-11px;right:-8px;bottom:-11px;left:-8px}
+.bplayer__linha:focus-visible{outline:none}
+.bplayer__trilho{
+  position:absolute;top:9px;right:0;left:0;height:4px;border-radius:99px;
+  background:rgba(255,255,255,.24);transition:height 200ms,top 200ms,box-shadow 200ms;
+}
+.bplayer__linha:hover .bplayer__trilho,.bplayer.is-arrastando .bplayer__trilho{top:8px;height:6px}
+.bplayer__linha:focus-visible .bplayer__trilho{box-shadow:0 0 0 2px var(--bplayer-foco)}
+.bplayer__carregado,.bplayer__feito{position:absolute;top:0;bottom:0;left:0;width:0;border-radius:inherit}
+.bplayer__carregado{background:rgba(255,255,255,.36)}
+.bplayer__feito{background:var(--bplayer-brasa)}
+.bplayer__bolinha{
+  position:absolute;top:5px;left:0;width:12px;height:12px;margin-left:-6px;border-radius:50%;
+  background:var(--bplayer-creme);box-shadow:0 1px 4px rgba(0,0,0,.55);
+  transform:scale(0);transition:transform 200ms var(--bplayer-curva);pointer-events:none;
+}
+.bplayer__linha:hover .bplayer__bolinha,
+.bplayer__linha:focus-visible .bplayer__bolinha,
+.bplayer.is-arrastando .bplayer__bolinha{transform:scale(1)}
+.bplayer__dica{
+  position:absolute;bottom:24px;left:0;padding:3px 7px;border-radius:6px;
+  font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;
+  color:var(--bplayer-tinta);background:var(--bplayer-creme);
+  transform:translateX(-50%);opacity:0;pointer-events:none;transition:opacity 160ms;
+}
+.bplayer__dica.is-visivel{opacity:1}
+
+/* fileira de botões (o .ac-ctl): 44 px de alvo */
+.bplayer__fileira{position:relative;display:flex;align-items:center;gap:2px;min-width:0}
+.bplayer__btn{
+  -webkit-appearance:none;appearance:none;position:relative;display:grid;flex-shrink:0;place-items:center;
+  width:44px;height:44px;margin:0;padding:0;border:0;border-radius:10px;
+  background:transparent;color:inherit;font:inherit;cursor:pointer;transition:background-color 160ms;
+}
+.bplayer__btn[hidden]{display:none}
+.bplayer__btn:hover{background:rgba(246,227,180,.14)}
+.bplayer__btn:focus-visible{outline:2px solid var(--bplayer-foco);outline-offset:-2px;border-radius:10px}
+.bplayer__btn svg{display:block;pointer-events:none}
+.bplayer .bplayer__i-pausar,.bplayer .bplayer__i-mudo,.bplayer .bplayer__i-sair{display:none}
+.bplayer.is-tocando .bplayer__i-pausar,.bplayer.is-mudo .bplayer__i-mudo,.bplayer.is-cheia .bplayer__i-sair{display:block}
+.bplayer.is-tocando .bplayer__i-tocar,.bplayer.is-mudo .bplayer__i-som,.bplayer.is-cheia .bplayer__i-cheia{display:none}
+
+.bplayer__tempo{
+  margin:0 8px;font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums;
+  white-space:nowrap;color:rgba(251,246,236,.88);
+}
+.bplayer__vao{flex:1;min-width:0}
+
+/* volume (o .ac-volume, desenhado igual à linha do tempo) */
+.bplayer__volume{
+  --bplayer-vol:100%;
+  -webkit-appearance:none;appearance:none;width:72px;height:44px;margin:0 4px 0 0;padding:0;
+  background:transparent;cursor:pointer;
+}
+.bplayer__volume::-webkit-slider-runnable-track{
+  height:4px;border-radius:99px;
+  background:linear-gradient(90deg,var(--bplayer-creme) var(--bplayer-vol),rgba(255,255,255,.24) var(--bplayer-vol));
+}
+.bplayer__volume::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:12px;height:12px;margin-top:-4px;border:0;border-radius:50%;
+  background:var(--bplayer-creme);box-shadow:0 1px 4px rgba(0,0,0,.55);
+}
+.bplayer__volume::-moz-range-track{height:4px;border-radius:99px;background:rgba(255,255,255,.24)}
+.bplayer__volume::-moz-range-progress{height:4px;border-radius:99px;background:var(--bplayer-creme)}
+.bplayer__volume::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:var(--bplayer-creme)}
+.bplayer__volume:focus-visible{outline:2px solid var(--bplayer-foco);outline-offset:0;border-radius:8px}
+
+/* toque: sem hover, a bolinha fica sempre à vista; o volume é o do aparelho */
+@media (hover:none){
+  .bplayer__bolinha{transform:scale(1)}
+  .bplayer__volume{display:none}
+  .bplayer__btn:hover{background:transparent}
+}
+
+/* player estreito (vídeo vertical, celular) */
+@container bplayer (max-width:440px){
+  .bplayer__volume{display:none}
+  .bplayer__barra{padding:26px 6px 4px}
+  .bplayer__linha{margin:0 6px}
+  .bplayer__tempo{margin:0 4px;font-size:11.5px}
+}
+@container bplayer (max-width:300px){
+  .bplayer__voltar,.bplayer__avancar{display:none}
+}
+/* player baixo (vídeo horizontal no celular): o botão grande diminui e sobe
+   para não encostar na linha do tempo */
+@container bplayer (max-height:300px){
+  .bplayer__palco{padding-bottom:40px}
+  .bplayer__grande{width:56px;height:56px;box-shadow:0 12px 30px -12px rgba(0,0,0,.75),0 0 0 5px rgba(246,227,180,.14)}
+  .bplayer__grande svg{width:24px;height:24px}
+  .bplayer__barra{padding-top:16px}
+}
+
+/* tela cheia (classe posta pelo player, vale também para o prefixo webkit) */
+.bplayer.is-cheia{width:100%;height:100%;max-width:none;margin:0;display:grid;place-items:center;background:#000}
+.bplayer.is-cheia .bplayer__video{width:100%;height:100%;max-width:none;max-height:none;margin:0;border-radius:0;object-fit:contain}
+.bplayer.is-cheia .bplayer__ui{border-radius:0}
+.bplayer.is-cheia .bplayer__barra{padding:44px 18px 12px}
+.bplayer.is-cheia .bplayer__grande{width:80px;height:80px}
+
+/* reduzir movimento: some o deslocamento, fica o esmaecimento */
+@media (prefers-reduced-motion:reduce){
+  .bplayer__grande{transition:opacity 200ms linear}
+  .bplayer__palco:hover .bplayer__grande,
+  .bplayer.is-tocando .bplayer__grande,
+  .bplayer.is-carregando .bplayer__grande,
+  .bplayer.is-erro .bplayer__grande{transform:none}
+  .bplayer__trilho,.bplayer__bolinha{transition:none}
+  .bplayer.is-carregando .bplayer__espera{opacity:1;animation:bplayer-pulsa 1.2s ease-in-out infinite alternate}
+}

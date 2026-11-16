@@ -582,6 +582,7 @@
 
   // ---------------------------------------------------- vídeo de depoimento --
   var dlgV = $("#video"), vid = dlgV ? $("video", dlgV) : null, origemVideo = null, videoEmpurrou = false;
+  if (dlgV && vid && window.BfaPlayer) { try { window.BfaPlayer.montar($(".video-dlg__midia", dlgV), vid); } catch (e) {} }
   function abrirVideo(id, botao) {
     var d = D.depoimentos && D.depoimentos[id];
     if (!d || !dlgV) return;

@@ -10,8 +10,9 @@ import { fileURLToPath } from "node:url";
 
 const raiz = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const D = JSON.parse(await readFile(raiz("dados/ofertas.json"), "utf8"));
-const css = await readFile(raiz("src/estilo.css"), "utf8");
-const js = await readFile(raiz("src/app.js"), "utf8");
+// player de vídeo (visual da academia do Placidus) vai junto: CSS inline e JS antes do app
+const css = (await readFile(raiz("src/estilo.css"), "utf8")) + "\n" + (await readFile(raiz("src/player.css"), "utf8"));
+const js = (await readFile(raiz("src/player.js"), "utf8")) + "\n" + (await readFile(raiz("src/app.js"), "utf8"));
 
 const vJs = createHash("sha1").update(js).digest("hex").slice(0, 8);
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
