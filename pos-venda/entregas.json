@@ -157,14 +157,15 @@
     "horaria": {
       "nome": "Consulta Horária",
       "canal": "whatsapp",
-      "coletar": "a pergunta (uma por consulta; o pedido diz quantas)",
-      "prazo": "áudio de 2 a 5 min em 24 a 48 h",
+      "coletar": "nada agora: a horária fica guardada e o cliente manda a pergunta quando precisar (uma por consulta)",
+      "prazo": "áudio de 2 a 5 min em 24 a 48 h, contados de quando a pergunta chega",
       "prazo_dias": 2,
       "etapas": [
-        "dados_pedidos",
+        "horaria_guardada",
         "dados_recebidos",
         "entregue"
-      ]
+      ],
+      "nota": "Não pedir a pergunta na mensagem de boas-vindas: muita gente compra para ter a horária na manga (Yuri, 16/11/2026). Horária guardada não se cobra."
     },
     "temperamento": {
       "nome": "O seu real temperamento",
@@ -234,6 +235,7 @@
     "acesso_liberado": "acesso liberado (avisar o cliente)",
     "entregue": "entregue",
     "email_pedido": "e-mail pedido ao cliente",
-    "email_recebido": "e-mail recebido: Yuri precisa liberar o acesso"
+    "email_recebido": "e-mail recebido: Yuri precisa liberar o acesso",
+    "horaria_guardada": "horária guardada (o cliente manda a pergunta quando precisar)"
   }
 }

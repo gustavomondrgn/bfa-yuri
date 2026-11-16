@@ -166,6 +166,8 @@ def analisar(pedidos, acomp):
                 sit = "producao"
             elif etapa == "agendado":
                 sit = "agendado"
+            elif etapa == "horaria_guardada":
+                sit = "guardado"  # o cliente manda a pergunta quando precisar; não se cobra
             else:
                 sit = "seguir"
             prazo_fim = None
@@ -215,8 +217,11 @@ def mensagem_inicial(p, itens):
         if canal == "whatsapp":
             if pid == "horaria":
                 q = i["qtd"]
-                perguntas.append("Horária: me manda a sua pergunta do jeito que ela está na sua cabeça, sem arrumar"
-                                 if q == 1 else f"Horária: me manda as suas {q} perguntas, uma por linha, do jeito que estão na sua cabeça")
+                perguntas.append("A sua Horária fica guardada com você: não precisa fazer a pergunta agora. Quando surgir a questão, "
+                                 "é só me mandar aqui do jeito que ela estiver na sua cabeça, que em 24 a 48 horas eu te respondo em áudio"
+                                 if q == 1 else
+                                 f"As suas {q} Horárias ficam guardadas com você: não precisa fazer as perguntas agora. Quando surgir uma questão, "
+                                 "é só me mandar aqui, uma de cada vez ou todas juntas, que em 24 a 48 horas eu te respondo em áudio")
             elif pid == "natal-escrita":
                 dados_nasc.append(CHAMADA[pid])
                 perguntas.append("Natal Escrita: me manda também as perguntas que você quer ver respondidas")
@@ -284,7 +289,8 @@ def resumo_texto(an, pedidos):
     linhas = [f"Pós-venda BFA, {HOJE.strftime('%d/%m/%Y')}: {len(an)} pedidos pagos · {ag} aguardando pagamento (não entram aqui)\n"]
     grupos = [("mandar", "🔴 MANDAR AGORA (nada enviado ainda)"), ("cobrar", f"⏰ COBRAR RETORNO (enviado há {COBRAR_APOS_DIAS}+ dias, sem resposta)"),
               ("producao", "🛠  EM PRODUÇÃO (prazo correndo)"), ("agendado", "📅 CONSULTAS MARCADAS"),
-              ("seguir", "➡️  SEGUIR PARA A PRÓXIMA ETAPA"), ("esperando", "⏳ ESPERANDO O CLIENTE (enviado há pouco)")]
+              ("seguir", "➡️  SEGUIR PARA A PRÓXIMA ETAPA"), ("esperando", "⏳ ESPERANDO O CLIENTE (enviado há pouco)"),
+              ("guardado", "🗂  HORÁRIAS GUARDADAS (o cliente manda quando precisar; não cobrar)")]
     for sit, titulo in grupos:
         bloco = []
         for x in an:
@@ -378,6 +384,7 @@ def gerar_html(an, pedidos):
         ("agendado", "Consultas marcadas", False),
         ("seguir", "Seguir para a próxima etapa", False),
         ("esperando", "Esperando o cliente · enviado há pouco", False),
+        ("guardado", "Horárias guardadas · o cliente manda a pergunta quando precisar, não cobrar", False),
     ]
     for sit, titulo, msg in secoes:
         sel = [x for x in an if any(i["sit"] == sit for i in x["itens"])]
