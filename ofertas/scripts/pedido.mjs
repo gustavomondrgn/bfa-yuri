@@ -75,7 +75,9 @@ async function criarLink(p) {
     corpo.webhook_url = `${process.env.CRM_URL}/api/infinitepay?k=${encodeURIComponent(process.env.CRM_WEBHOOK_K)}`;
     corpo.redirect_url = `${process.env.CRM_URL}/pago`;
   }
-  if (p.nome || p.tel) corpo.customer = { name: p.nome, ...(p.tel ? { phone_number: "+" + String(p.tel).replace(/\D/g, "") } : {}) };
+  // telefone só se for do Brasil: número estrangeiro preenchido quebra o checkout da InfinitePay
+  const telBr = String(p.tel || "").replace(/\D/g, "");
+  if (p.nome || p.tel) corpo.customer = { name: p.nome, ...(/^55\d{10,11}$/.test(telBr) ? { phone_number: "+" + telBr } : {}) };
   const r = await fetch("https://api.checkout.infinitepay.io/links", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
   const txt = await r.text();
   let json = null; try { json = JSON.parse(txt); } catch {}
