@@ -537,47 +537,8 @@
     $$("main .secao").forEach(function (s) { obs.observe(s); });
   }
 
-  // -------------------------------------------------------------- prévia --
-  if (PREVIA) {
-    var faixa = document.createElement("div");
-    faixa.className = "previa-faixa";
-    faixa.textContent = "PRÉVIA" + (simBase !== null ? " · horário simulado " + fmtDia.format(new Date(simBase)) + " " + fmtHora.format(new Date(simBase)) : "") +
-      " · nada é enviado ao Pixel";
-    document.body.insertBefore(faixa, document.body.firstChild);
-    var painel = document.createElement("div");
-    painel.className = "painel-previa";
-    painel.setAttribute("aria-label", "Controles da prévia");
-    var hora = Q.get("agora") || "";
-    var op = function (v, t) { return '<option value="' + v + '"' + (hora === v ? " selected" : "") + ">" + t + "</option>"; };
-    painel.innerHTML =
-      '<button type="button" data-p="rec">Prévia ▾</button>' +
-      '<label>Horário<select data-p="agora">' + op("", "real") + op("2026-11-16T07:30:00-03:00", "16/11 07:30 (antes das 8h)") +
-      op("2026-11-16T10:00:00-03:00", "16/11 10:00") + op("2026-11-16T23:59:40-03:00", "16/11 23:59:40 (virada)") +
-      op("2026-11-17T12:00:00-03:00", "17/11 12:00") + op("2026-11-18T12:00:00-03:00", "18/11 12:00") +
-      op("2026-11-19T23:59:40-03:00", "19/11 23:59:40 (fim)") + "</select></label>" +
-      '<label><span><input type="checkbox" data-p="esgotar"' + (ESGOTAR.length ? " checked" : "") + "> esgotar Caixa de Pandora</span></label>" +
-      '<button type="button" data-p="limpar">Limpar pedido</button>';
-    document.body.appendChild(painel);
-    try { if (sessionStorage.getItem("bfa-painel") === "1") painel.setAttribute("data-recolhido", "1"); } catch (e) {}
-    painel.addEventListener("change", function (e) {
-      var k = e.target.getAttribute("data-p");
-      var p = new URLSearchParams(location.search);
-      if (k === "agora" || k === "cursos") { if (e.target.value) p.set(k, e.target.value); else p.delete(k); }
-      else if (k === "esgotar") { if (e.target.checked) p.set("esgotar", "caixa-pandora"); else p.delete("esgotar"); }
-      else { if (e.target.checked) p.set(k, "1"); else p.delete(k); }
-      location.search = p.toString();
-    });
-    painel.addEventListener("click", function (e) {
-      var k = e.target.getAttribute && e.target.getAttribute("data-p");
-      if (k === "rec") {
-        var r = painel.getAttribute("data-recolhido") === "1" ? "0" : "1";
-        painel.setAttribute("data-recolhido", r);
-        try { sessionStorage.setItem("bfa-painel", r); } catch (er) {}
-      } else if (k === "limpar") {
-        pedido = { itens: {}, fase: null, codigo: null }; salvar(); renderTudo(false);
-      }
-    });
-  }
+  // Simulação de testes (sem nada visível): ?previa=1&agora=...&esgotar=...
+  // só desliga o Pixel e muda o relógio; a página fica igual à do público.
 
   // ------------------------------------------------- esvaziar e desfazer --
   var reserva = null, timerDesfazer = null;
