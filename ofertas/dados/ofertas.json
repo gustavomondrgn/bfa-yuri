@@ -258,7 +258,7 @@
       "id": "a-cura",
       "secao": "voce",
       "nome": "A Cura",
-      "paraQuem": "Para quem quer entender hábitos e padrões pelo temperamento e pelo mapa.",
+      "paraQuem": "Para quem quer saber o que o próprio mapa diz sobre a saúde.",
       "formato": "Escrito",
       "detalhe": "40–60 páginas · 14 dias",
       "referencia": 997,
@@ -272,12 +272,12 @@
       "vagasIniciais": 5,
       "esgotado": false,
       "descricao": [
-        "Uma análise escrita e detalhada do seu temperamento e do seu mapa, voltada aos hábitos e comportamentos que você quer compreender, como o desânimo do dia a dia ou a procrastinação.",
+        "Um documento escrito de astrologia médica. Pelo seu mapa, Yuri mostra os tipos de doença que você já tem ou pode vir a ter e em que períodos eles podem surgir, até por volta dos 80 anos.",
         "É uma leitura astrológica. Não substitui diagnóstico, tratamento nem acompanhamento de saúde."
       ],
       "recebe": [
         "Documento escrito de cerca de 40 a 60 páginas",
-        "Leitura do temperamento e do mapa a partir do que você quer entender"
+        "Os tipos de doença indicados no mapa e os períodos em que podem surgir"
       ],
       "depoimento": "cura-1018"
     },
