@@ -186,24 +186,27 @@ ${cards}
 
 function mentoriaHtml(s) {
   const i = itens.mentoria;
+  const depos = (i.depoimentos || []).filter((id) => D.depoimentos && D.depoimentos[id]);
   return `<div class="faixa-mentoria escuro lux">
 <section class="secao" id="mentoria" aria-labelledby="h-mentoria">
 <div class="mentoria">
-<div class="mentoria__texto">
+<header class="mentoria__cab">
 <img class="mentoria__aguia" src="/bfa/assets/lux/aguia.webp?v=1" alt="Brasão da Lux et Directio: uma águia dourada" width="360" height="314" loading="lazy" decoding="async">
-<div class="secao__cab"><span class="secao__num mono">${num("mentoria")} · Formação individual</span><h2 id="h-mentoria">Mentoria <em>Lux et Directio</em></h2></div>
-<p class="mentoria__sub">${esc(i.subnome)} em 16 encontros, um a um com Yuri.</p>
+<div><span class="secao__num mono">${num("mentoria")} · Formação individual</span><h2 id="h-mentoria">Mentoria <em>Lux et Directio</em></h2><p class="mentoria__sub">${esc(i.subnome)} em 16 encontros, um a um com Yuri.</p></div>
+</header>
+<div class="mentoria__texto">
 ${i.descricao.map((p) => `<p>${esc(p)}</p>`).join("\n")}
 <ul class="mentoria__lista">${i.recebe.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>
-${(i.depoimentos || []).length ? `<div class="depos"><p class="mono depos__tit">Quem fez a mentoria</p>${i.depoimentos.map((id) => depoHtml(id, "grande")).join("")}</div>` : ""}
 </div>
 <article class="oferta oferta--mentoria" id="o-mentoria" data-id="mentoria" aria-labelledby="t-mentoria">
 <div class="oferta__corpo">
 <p class="tags"><span class="tag tag--fmt">${esc(i.formato)}</span><span class="tag">${esc(i.detalhe)}</span></p>
 <h3 id="t-mentoria">${esc(i.paraQuem)}</h3>
 ${rodapeHtml(i)}
+<p class="mentoria__nota">Depois do pagamento, você combina com Yuri o início dos encontros.</p>
 </div>
 </article>
+${depos.length ? `<div class="depos"><p class="mono depos__tit">Quem fez a mentoria</p>${depos.map((id) => depoHtml(id, "grande")).join("")}</div>` : ""}
 </div>
 </section>
 </div>`;

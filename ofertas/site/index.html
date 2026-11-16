@@ -443,6 +443,45 @@ html:not(.js) .atalhos a[aria-current="true"]{background:var(--creme)}
 @media (min-width:700px){.fita{margin:0 -2rem!important}}
 html{overflow-x:clip}
 
+/* ===================================== mentoria redistribuída + granulado == */
+:root{--grao:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .085 0 0 0 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E")}
+.abertura::before{background-image:var(--grao),radial-gradient(110% 70% at 90% 0%,rgba(255,138,61,.22),transparent 55%),radial-gradient(90% 60% at 0% 100%,rgba(200,20,12,.18),transparent 60%);background-size:180px 180px,auto,auto}
+.faixa-mentoria.lux::before{background-image:var(--grao),radial-gradient(70% 55% at 85% 10%,rgba(224,184,76,.16),transparent 60%),radial-gradient(60% 50% at 0% 100%,rgba(138,109,47,.18),transparent 60%);background-size:180px 180px,auto,auto}
+.topo{background-color:#0A0807;background-image:var(--grao);background-size:180px 180px}
+.atalhos{background:#1C1714;border-top:1px solid rgba(255,255,255,.07);box-shadow:inset 0 -1px 0 rgba(0,0,0,.5)}
+.atalhos ul{padding:.4rem var(--gutter) .4rem calc(var(--gutter) - .65rem)}
+.atalhos__marca{top:.4rem}
+.destaque{background-image:var(--grao),linear-gradient(160deg,#1E1712,#120E0B);background-size:180px 180px,auto}
+
+.mentoria{display:grid;grid-template-columns:minmax(0,1fr);gap:1.8rem}
+.mentoria__cab{display:grid;gap:.4rem;justify-items:start}
+.mentoria__cab .secao__num{display:block;margin-bottom:.45rem}
+.mentoria__cab .mentoria__sub{margin-top:.7rem}
+.mentoria__aguia{margin:0 0 0 -.5rem}
+.mentoria__texto p{color:var(--tinta-2)}
+.oferta--mentoria{align-self:center}
+.oferta--mentoria .oferta__corpo{padding:1.5rem 1.4rem 1.3rem;gap:.7rem}
+.oferta--mentoria h3{font-family:"Newsreader",Georgia,serif;font-weight:400;font-size:1.45rem;line-height:1.2;letter-spacing:-.005em}
+.mentoria__nota{font-size:.84rem;color:var(--tinta-3);text-align:center;margin-top:.2rem}
+.depos{margin-top:.4rem;display:grid;grid-template-columns:minmax(0,1fr);gap:1.1rem}
+.depos__tit{grid-column:1 / -1;margin-bottom:-.3rem}
+@media (min-width:700px){
+  .depos{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (min-width:1000px){
+  .mentoria{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);column-gap:3.5rem;row-gap:2.6rem;align-items:center}
+  .mentoria__cab{grid-column:1 / -1;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:1.8rem}
+  .mentoria__aguia{width:180px}
+  .depos{grid-column:1 / -1}
+  .faixa-mentoria .secao{padding-top:4rem;padding-bottom:4.4rem}
+}
+
+/* fundo da mentoria: gravura de astrolábio (gerada para a página) */
+.faixa-mentoria.lux{background:#08080A url(/bfa/assets/lux/fundo-astrolabio.webp?v=1) no-repeat 72% 0/240% auto}
+.faixa-mentoria.lux::after{display:none}
+@media (min-width:700px){.faixa-mentoria.lux{background-size:150% auto;background-position:85% 0}}
+@media (min-width:1000px){.faixa-mentoria.lux{background-size:cover;background-position:right center}}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
@@ -889,14 +928,14 @@ html{overflow-x:clip}
 <div class="faixa-mentoria escuro lux">
 <section class="secao" id="mentoria" aria-labelledby="h-mentoria">
 <div class="mentoria">
-<div class="mentoria__texto">
+<header class="mentoria__cab">
 <img class="mentoria__aguia" src="/bfa/assets/lux/aguia.webp?v=1" alt="Brasão da Lux et Directio: uma águia dourada" width="360" height="314" loading="lazy" decoding="async">
-<div class="secao__cab"><span class="secao__num mono">05 / 06 · Formação individual</span><h2 id="h-mentoria">Mentoria <em>Lux et Directio</em></h2></div>
-<p class="mentoria__sub">Formando astrólogos do zero em 16 encontros, um a um com Yuri.</p>
+<div><span class="secao__num mono">05 / 06 · Formação individual</span><h2 id="h-mentoria">Mentoria <em>Lux et Directio</em></h2><p class="mentoria__sub">Formando astrólogos do zero em 16 encontros, um a um com Yuri.</p></div>
+</header>
+<div class="mentoria__texto">
 <p>Uma formação individual com Yuri, do zero: simbolismo, técnica de leitura e prática. Você aprende leitura natal, horária, sinastria e revolução solar, com exercícios e acompanhamento direto.</p>
 <p>São 16 encontros semanais, de cerca de 1h a 1h30 cada, numa estimativa de quatro a seis meses. Você pratica no Placidus, o software de astrologia criado por Yuri, onde estão as técnicas ensinadas na mentoria.</p>
 <ul class="mentoria__lista"><li>16 encontros individuais e semanais com Yuri, de cerca de 1h a 1h30</li><li>Acesso ao Placidus, o software de astrologia criado por Yuri</li><li>Gravações, transcrições e slides de todas as aulas</li><li>Exercícios</li><li>Dúvidas com Yuri a qualquer momento, com resposta em até 24 horas</li></ul>
-<div class="depos"><p class="mono depos__tit">Quem fez a mentoria</p><button type="button" class="depo depo--grande" data-video="mentoria-01"><span class="depo__thumb"><img src="/bfa/assets/depoimentos/mentoria-01.webp?v=1" alt="" width="848" height="478" loading="lazy" decoding="async"><span class="depo__play" aria-hidden="true"></span></span><span class="depo__leg">Julio Pozzato, aluno da mentoria Lux et Directio <span class="mono">2 min 36 s</span></span></button><button type="button" class="depo depo--grande" data-video="mentoria-02"><span class="depo__thumb"><img src="/bfa/assets/depoimentos/mentoria-02.webp?v=1" alt="" width="848" height="478" loading="lazy" decoding="async"><span class="depo__play" aria-hidden="true"></span></span><span class="depo__leg">Gibran, aluno de Yuri, numa live no YouTube <span class="mono">2 min 12 s</span></span></button></div>
 </div>
 <article class="oferta oferta--mentoria" id="o-mentoria" data-id="mentoria" aria-labelledby="t-mentoria">
 <div class="oferta__corpo">
@@ -910,8 +949,10 @@ html{overflow-x:clip}
 <button type="button" data-mais aria-label="Mais um Mentoria Lux Et Directio">+</button>
 </div>
 </div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
+<p class="mentoria__nota">Depois do pagamento, você combina com Yuri o início dos encontros.</p>
 </div>
 </article>
+<div class="depos"><p class="mono depos__tit">Quem fez a mentoria</p><button type="button" class="depo depo--grande" data-video="mentoria-01"><span class="depo__thumb"><img src="/bfa/assets/depoimentos/mentoria-01.webp?v=1" alt="" width="848" height="478" loading="lazy" decoding="async"><span class="depo__play" aria-hidden="true"></span></span><span class="depo__leg">Julio Pozzato, aluno da mentoria Lux et Directio <span class="mono">2 min 36 s</span></span></button><button type="button" class="depo depo--grande" data-video="mentoria-02"><span class="depo__thumb"><img src="/bfa/assets/depoimentos/mentoria-02.webp?v=1" alt="" width="848" height="478" loading="lazy" decoding="async"><span class="depo__play" aria-hidden="true"></span></span><span class="depo__leg">Gibran, aluno de Yuri, numa live no YouTube <span class="mono">2 min 12 s</span></span></button></div>
 </div>
 </section>
 </div>
