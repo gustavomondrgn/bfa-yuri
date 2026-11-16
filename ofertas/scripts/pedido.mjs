@@ -63,6 +63,29 @@ async function enviarCrm(p) {
 }
 const linkCurto = (p) => "https://yuridosanjos.com.br/pg/" + p.codigo.replace(/^BFA-/, "");
 
+// cria o link na InfinitePay com aviso de pagamento (webhook) e volta do cliente para o CRM,
+// que confere no payment_check e marca "pago" sozinho
+async function criarLink(p) {
+  const corpo = {
+    handle: D.infinitepay,
+    order_nsu: p.codigo,
+    items: p.itens.map((i) => ({ quantity: i.qtd, price: i.preco * 100, description: `${i.nome} · Black Friday Apocalíptica` })),
+  };
+  if (process.env.CRM_URL && process.env.CRM_WEBHOOK_K) {
+    corpo.webhook_url = `${process.env.CRM_URL}/api/infinitepay?k=${encodeURIComponent(process.env.CRM_WEBHOOK_K)}`;
+    corpo.redirect_url = `${process.env.CRM_URL}/pago`;
+  }
+  if (p.nome || p.tel) corpo.customer = { name: p.nome, ...(p.tel ? { phone_number: "+" + String(p.tel).replace(/\D/g, "") } : {}) };
+  const r = await fetch("https://api.checkout.infinitepay.io/links", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
+  const txt = await r.text();
+  let json = null; try { json = JSON.parse(txt); } catch {}
+  const acharUrl = (o) => { if (!o || typeof o !== "object") return null; for (const v of Object.values(o)) { if (typeof v === "string" && /^https:\/\//.test(v)) return v; const n = acharUrl(v); if (n) return n; } return null; };
+  const link = acharUrl(json);
+  if (!r.ok || !link) { console.error(`InfinitePay respondeu ${r.status}:`, txt.slice(0, 500)); process.exitCode = 1; return false; }
+  p.link = link; p.respostaInfinitePay = json; p.comAviso = !!corpo.webhook_url;
+  return true;
+}
+
 function codigo() {
   const a = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let s; do { s = "BFA-" + Array.from({ length: 4 }, () => a[Math.floor(Math.random() * a.length)]).join(""); } while (crm.pedidos.some((p) => p.codigo === s));
@@ -86,19 +109,7 @@ if (cmd === "novo") {
   });
   const total = itens.reduce((s, i) => s + i.preco * i.qtd, 0);
   const p = { codigo: args.codigo || codigo(), status: "aguardando", criado: new Date().toISOString(), chamouEm: new Date(quando).toISOString(), nome: args.nome, tel: args.tel || "", fase: f.id, itens, total };
-  const corpo = {
-    handle: D.infinitepay,
-    order_nsu: p.codigo,
-    items: itens.map((i) => ({ quantity: i.qtd, price: i.preco * 100, description: `${i.nome} · Black Friday Apocalíptica` })),
-  };
-  if (args.nome || args.tel) corpo.customer = { name: args.nome, ...(args.tel ? { phone_number: "+" + args.tel.replace(/\D/g, "") } : {}) };
-  const r = await fetch("https://api.checkout.infinitepay.io/links", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
-  const txt = await r.text();
-  let json = null; try { json = JSON.parse(txt); } catch {}
-  const acharUrl = (o) => { if (!o || typeof o !== "object") return null; for (const v of Object.values(o)) { if (typeof v === "string" && /^https:\/\//.test(v)) return v; const n = acharUrl(v); if (n) return n; } return null; };
-  p.link = acharUrl(json);
-  p.respostaInfinitePay = json || txt;
-  if (!r.ok || !p.link) { console.error(`InfinitePay respondeu ${r.status}:`, txt.slice(0, 500)); process.exitCode = 1; }
+  await criarLink(p);
   crm.pedidos.push(p);
   await salvar();
   console.log(`\n${p.codigo} · ${p.nome} · ${f.rotulo}`);
@@ -121,6 +132,12 @@ if (cmd === "novo") {
   } else { p.status = "cancelado"; console.log(`${p.codigo} cancelado.`); }
   await salvar();
   await enviarCrm(p);
+} else if (cmd === "refazer-links") {
+  // troca o link da InfinitePay por um com aviso de pagamento; o link curto (/pg) continua o mesmo
+  for (const p of crm.pedidos.filter((x) => x.status === "aguardando" && (!args._?.length || args._.includes(x.codigo)))) {
+    if (await criarLink(p)) { console.log(`${p.codigo} · link novo com aviso`); await enviarCrm(p); }
+  }
+  await salvar();
 } else if (cmd === "sincronizar") {
   for (const p of crm.pedidos) await enviarCrm(p);
 } else if (cmd === "link") {
