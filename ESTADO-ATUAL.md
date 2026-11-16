@@ -52,6 +52,10 @@ Outros comandos: `pedido.mjs lista` · `cancelar BFA-XXXX` · `link BFA-XXXX` ·
 - Taxa do cartão: até 16/11 09h19 a InfinitePay repassava tudo ao cliente; depois, a conta absorve até 3x
   (1x 4,2% · 2x 6,09% · 3x+ 7,01%). Tabela em `crm/ui/app.js` (TAXA, TROCA_TAXA). Pix sem taxa.
   Pagamento confirmado à mão: escolher a forma na gaveta para o líquido sair certo.
+- **Vagas ao vivo (16/11):** a /bfa lê `/bfa-crm/api/vagas` (unidades pagas por oferta, sem dado de cliente) e mostra
+  vagas = `vagasIniciais` − pagas; atualiza ao abrir, a cada minuto e antes de enviar o pedido. Venda paga baixa a vaga
+  sozinha, sem deploy. Se o CRM não responder, vale o `vagas` do ofertas.json. Mudar o total de vagas = editar
+  `vagasIniciais` + deploy.
 - O `POST /api/pedidos` (pedido.mjs) nunca volta um status para trás, então `sincronizar` com o controle local
   desatualizado não desfaz pagamentos nem entregas.
 - Variáveis: `DATABASE_URL`, `CRM_USUARIO`, `CRM_SENHA`, `CRM_SEGREDO`, `CRM_CHAVE_API`, `CRM_WEBHOOK_K`,

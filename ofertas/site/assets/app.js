@@ -590,6 +590,7 @@
   var CENARIO = D.cenarioCursos; // decidido: dois pacotes (Astrologia e Religião)
   var CHAVE = "bfa-pedido-v1";
   var JSON_URL = "/bfa/ofertas.json";
+  var VAGAS_URL = "/bfa-crm/api/vagas"; // unidades pagas por oferta (CRM); vagas = vagasIniciais − pagas
   var REDUZIR = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   doc.setAttribute("data-cenario", CENARIO);
 
@@ -950,6 +951,9 @@
   function buscarDados(limiteMs) {
     var ctrl = window.AbortController ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, limiteMs || 4000);
+    var vendidos = fetch(VAGAS_URL + "?t=" + Date.now(), { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
     return fetch(JSON_URL + "?t=" + Date.now(), { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
       .then(function (r) {
         clearTimeout(timer);
@@ -963,9 +967,16 @@
       })
       .then(function (novo) {
         if (!novo || !novo.itens || !novo.fases) return;
-        D = novo; indexar(); ultimaBusca = Date.now();
-        tick(true);
-        renderTudo(false);
+        return vendidos.then(function (v) {
+          // sem resposta do CRM, vale o número do ofertas.json
+          if (v && v.vendidos) novo.itens.forEach(function (i) {
+            if (i.vagasIniciais == null || i.vagas == null) return;
+            i.vagas = Math.max(0, i.vagasIniciais - (Number(v.vendidos[i.id]) || 0));
+          });
+          D = novo; indexar(); ultimaBusca = Date.now();
+          tick(true);
+          renderTudo(false);
+        });
       })
       .catch(function () { clearTimeout(timer); });
   }
@@ -1080,6 +1091,8 @@
   }
 
   setInterval(tick, 1000);
+  // vagas e preços ao vivo enquanto a página está aberta
+  setInterval(function () { if (!document.hidden && Date.now() - ultimaBusca > 55000) buscarDados(); }, 60000);
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "visible") {
       tick();

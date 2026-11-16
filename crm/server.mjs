@@ -44,6 +44,21 @@ async function conferirPagamento({ order_nsu, transaction_nsu, slug }) {
   const j = await r.json().catch(() => ({}));
   return { paid: j && j.success === true && j.paid === true, ...j };
 }
+// ------------------------------------------------- vagas vendidas (público) --
+// A página /bfa calcula vagas = vagasIniciais − unidades pagas. Só contagens por oferta, sem cliente.
+let cacheVagas = { em: 0, dados: null };
+async function vendidos() {
+  if (cacheVagas.dados && Date.now() - cacheVagas.em < 15000) return cacheVagas.dados;
+  const r = await pool.query(
+    `SELECT i->>'id' AS id, SUM(GREATEST(1, COALESCE((i->>'qtd')::int, 1)))::int AS n
+       FROM pedidos, jsonb_array_elements(itens) i
+      WHERE status IN ('pago','producao','entregue') AND COALESCE(i->>'id','') <> '' GROUP BY 1`);
+  const dados = { vendidos: Object.fromEntries(r.rows.map((x) => [x.id, x.n])), em: new Date().toISOString() };
+  cacheVagas = { em: Date.now(), dados };
+  return dados;
+}
+const zerarVagas = () => { cacheVagas.em = 0; };
+
 async function registrarPagamento(dados, origem) {
   const codigo = String(dados.order_nsu || "").toUpperCase();
   const c = await conferirPagamento(dados);
@@ -56,6 +71,7 @@ async function registrarPagamento(dados, origem) {
        pago_valor = $4, atualizado = now() WHERE codigo = $1`,
     [codigo, String(dados.receipt_url || ""), metodo, Math.round(Number(c.paid_amount || c.amount || 0) / 100)],
   );
+  zerarVagas();
   return { ok: true, codigo };
 }
 
@@ -99,6 +115,7 @@ function linha(r) {
 
 // ------------------------------------------------------------------ dados --
 async function salvarPedido(p) {
+  zerarVagas();
   const codigo = String(p.codigo || codigoNovo()).toUpperCase().slice(0, 20);
   const status = STATUS.includes(p.status) ? p.status : "aguardando";
   const itens = Array.isArray(p.itens) ? p.itens.slice(0, 50).map((i) => ({ id: String(i.id || ""), nome: String(i.nome || "").slice(0, 120), qtd: Math.max(1, Number(i.qtd) || 1), preco: Number(i.preco) || 0, entregue: !!i.entregue })) : [];
@@ -120,6 +137,7 @@ async function salvarPedido(p) {
   return linha(r.rows[0]);
 }
 async function atualizar(codigo, mud) {
+  zerarVagas();
   const atual = (await pool.query("SELECT * FROM pedidos WHERE codigo=$1", [codigo])).rows[0];
   if (!atual) return null;
   const sets = [], vals = [];
@@ -245,6 +263,7 @@ http.createServer(async (req, res) => {
   const ip = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
   try {
     if (url.pathname === "/healthz") return json(res, 200, { ok: true });
+    if (url.pathname === "/api/vagas" && (req.method === "GET" || req.method === "HEAD")) return json(res, 200, await vendidos());
     if (url.pathname === "/favicon.svg" || url.pathname === "/favicon.ico") { res.writeHead(200, { "Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=86400", ...SEG }); return res.end(UI.ico); }
     // link curto de pagamento: yuridosanjos.com.br/pg/42SY -> link da InfinitePay do pedido BFA-42SY
     const curto = base === "/pg" ? /^\/([A-Za-z0-9]{3,8})\/?$/.exec(url.pathname) : /^\/p\/([A-Za-z0-9]{3,8})\/?$/.exec(url.pathname);

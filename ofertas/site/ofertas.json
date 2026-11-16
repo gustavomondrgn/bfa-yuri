@@ -1,5 +1,5 @@
 {
-  "atualizado": "2026-11-16T11:45:49.721Z",
+  "atualizado": "2026-11-16T12:47:12.698Z",
   "whatsapp": "5562999623961",
   "pixel": "549360853227105",
   "cenarioCursos": "dois",
@@ -99,7 +99,7 @@
         "d18": 1117,
         "d19": 1257
       },
-      "vagas": 4,
+      "vagas": 2,
       "vagasIniciais": 5,
       "esgotado": false,
       "selo": "Voltou depois de um ano",
@@ -295,7 +295,7 @@
         "d18": 97,
         "d19": 117
       },
-      "vagas": 19,
+      "vagas": 18,
       "vagasIniciais": 20,
       "esgotado": false,
       "descricao": [
@@ -321,7 +321,7 @@
         "d18": 97,
         "d19": 117
       },
-      "vagas": 18,
+      "vagas": 17,
       "vagasIniciais": 20,
       "esgotado": false,
       "descricao": [
@@ -404,7 +404,7 @@
         "d18": 97,
         "d19": 117
       },
-      "vagas": 16,
+      "vagas": 12,
       "vagasIniciais": 20,
       "esgotado": false,
       "descricao": [
