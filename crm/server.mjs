@@ -183,7 +183,7 @@ dialog form{display:grid;gap:.6rem}dialog label{display:grid;gap:.25rem;font-wei
 <div class="filtros" role="group" aria-label="Filtrar pedidos"><button data-f="todos" aria-pressed="true">Todos</button><button data-f="aguardando" aria-pressed="false">Aguardando</button><button data-f="pago" aria-pressed="false">A entregar</button><button data-f="entregue" aria-pressed="false">Entregues</button><button data-f="cancelado" aria-pressed="false">Cancelados</button><input id="busca" type="search" placeholder="Buscar nome, telefone ou código" aria-label="Buscar"></div></header>
 <main id="lista" aria-live="polite"></main>
 <dialog id="dlg"><form method="dialog" id="form-novo"><p class="marca" style="margin:0">Novo pedido</p>
-<label>Nome<input name="nome" required></label><label>WhatsApp (com DDD)<input name="tel" inputmode="tel" required></label>
+<label>Nome<input name="nome" required></label><label>WhatsApp (com DDD; de fora do Brasil, com o código do país)<input name="tel" inputmode="tel" required></label>
 <label>Itens (um por linha, ex.: 2x Bússola do Destino)<textarea name="itens" required></textarea></label><label>Total (R$)<input name="total" inputmode="numeric" required></label>
 <label>Link de pagamento (opcional)<input name="link"></label><label>Status<select name="status"><option value="aguardando">Aguardando pagamento</option><option value="pago">Pago</option></select></label>
 <div class="acoes"><button class="btn" value="ok">Salvar</button><button class="btn btn--sec" value="cancelar" formnovalidate>Cancelar</button></div></form></dialog>
@@ -195,7 +195,7 @@ const dt=s=>s?new Date(s).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",
 const ROT={aguardando:"Aguardando pagamento",pago:"Pago · a entregar",entregue:"Entregue",cancelado:"Cancelado"};
 async function api(m,u,b){const r=await fetch(BASE+u,{method:m,headers:{"Content-Type":"application/json"},body:b?JSON.stringify(b):undefined});if(r.status===401){location.href=BASE+"/";throw 0}if(!r.ok)throw new Error(await r.text());return r.json()}
 async function carregar(){PED=(await api("GET","/api/pedidos")).pedidos;desenhar()}
-function zap(p){const t=String(p.tel||"").replace(/\\D/g,"");const n=t.length<=11?"55"+t:t;const msg="Olá, "+(p.nome||"").split(" ")[0]+"! Aqui é do atendimento do Yuri dos Anjos, sobre o seu pedido "+p.codigo+" da Black Friday Apocalíptica.";return "https://wa.me/"+n+"?text="+encodeURIComponent(msg)}
+function zap(p){const t=String(p.tel||"").replace(/\\D/g,"");const n=t;const msg="Olá, "+(p.nome||"").split(" ")[0]+"! Aqui é do atendimento do Yuri dos Anjos, sobre o seu pedido "+p.codigo+" da Black Friday Apocalíptica.";return "https://wa.me/"+n+"?text="+encodeURIComponent(msg)}
 function desenhar(){
  const q=document.getElementById("busca").value.trim().toLowerCase();
  const c={aguardando:0,pago:0,entregue:0};let fat=0;
@@ -228,7 +228,7 @@ document.getElementById("busca").addEventListener("input",desenhar);
 const dlg=document.getElementById("dlg");document.getElementById("novo").onclick=()=>dlg.showModal();
 dlg.addEventListener("close",async()=>{if(dlg.returnValue!=="ok")return;const f=new FormData(document.getElementById("form-novo"));
  const itens=String(f.get("itens")).split("\\n").map(s=>s.trim()).filter(Boolean).map(s=>{const m=/^(\\d+)\\s*[x×]\\s*(.+)$/i.exec(s);return m?{qtd:+m[1],nome:m[2]}:{qtd:1,nome:s}});
- await api("POST","/api/pedidos",{nome:f.get("nome"),tel:f.get("tel"),itens,total:+String(f.get("total")).replace(/\\D/g,""),link:f.get("link"),status:f.get("status")});document.getElementById("form-novo").reset();carregar()});
+ const dig=String(f.get("tel")).replace(/\\D/g,"");await api("POST","/api/pedidos",{nome:f.get("nome"),tel:(dig.length===10||dig.length===11)?"55"+dig:dig,itens,total:+String(f.get("total")).replace(/\\D/g,""),link:f.get("link"),status:f.get("status")});document.getElementById("form-novo").reset();carregar()});
 carregar();setInterval(()=>{if(!document.querySelector("textarea:focus"))carregar()},30000);
 </script></body></html>`;
 }
