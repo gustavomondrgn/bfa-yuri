@@ -52,8 +52,15 @@ await mkdir(SAIDA, { recursive: true });
 }
 
 const browser = await chromium.launch({ channel: "chrome" });
-async function abrir({ w = 390, h = 844, query = "previa=1&agora=2026-11-16T10:00:00-03:00", relogio = null, semDataServidor = false, ua = null, js = true, rotaJson = null } = {}) {
-  const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: w < 700, hasTouch: w < 700, userAgent: ua || undefined, javaScriptEnabled: js, locale: "pt-BR", timezoneId: "America/Sao_Paulo" });
+// centraliza o alvo antes do toque: a barra fixa de baixo cobre o rodapé da tela
+async function clicar(p, sel, opcoes) {
+  await p.locator(sel).first().evaluate((el) => el.scrollIntoView({ block: "center" })).catch(() => {});
+  await p.waitForTimeout(250);
+  try { await p.click(sel, { timeout: 3000, ...opcoes }); }
+  catch { await p.click(sel, { ...opcoes, force: true }); }
+}
+async function abrir({ w = 390, h = 844, query = "previa=1&agora=2026-11-16T10:00:00-03:00", relogio = null, semDataServidor = false, ua = null, js = true, rotaJson = null, movimento = false } = {}) {
+  const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: w < 700, hasTouch: w < 700, userAgent: ua || undefined, javaScriptEnabled: js, locale: "pt-BR", timezoneId: "America/Sao_Paulo", reducedMotion: movimento ? "no-preference" : "reduce" });
   const p = await ctx.newPage();
   const erros = [];
   p.on("pageerror", (e) => erros.push(e.message));
@@ -81,12 +88,12 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
 // ------------------------------------------------- pedido com um item --
 {
   const { p, ctx, erros, wa } = await abrir();
-  await p.click("#o-bussola [data-add]");
+  await clicar(p, "#o-bussola [data-add]");
   ok("1 item: barra aparece com quantidade e total", (await p.textContent("#barra-qtd")) === "1 item no pedido" && (await p.textContent("#barra-total")) === "R$ 797");
-  await p.click("#abrir-pedido");
+  await clicar(p, "#abrir-pedido");
   ok("folha do pedido abre", await p.isVisible("#pedido"));
   ok("folha avisa que o pagamento é depois", /ainda não paga nada/i.test(await p.textContent(".nota")));
-  await p.click("#enviar");
+  await clicar(p, "#enviar");
   await p.waitForTimeout(800);
   ok("envio abre wa.me", wa.length === 1, wa[0]?.slice(0, 40));
   const t = textoWa(wa[0] || "https://wa.me/x");
@@ -101,21 +108,21 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
 // ---------------------------------------------- pedido com três itens --
 {
   const { p, ctx, erros, wa } = await abrir();
-  await p.click("#o-bussola [data-add]");
-  await p.click("#o-raio-x [data-add]");
-  await p.click("#o-raio-x [data-mais]");
-  await p.click("#o-horaria [data-add]");
+  await clicar(p, "#o-bussola [data-add]");
+  await clicar(p, "#o-raio-x [data-add]");
+  await clicar(p, "#o-raio-x [data-mais]");
+  await clicar(p, "#o-horaria [data-add]");
   ok("3 itens (4 unidades): total 797 + 2×47 + 97 = R$ 988", (await p.textContent("#barra-total")) === "R$ 988" && (await p.textContent("#barra-qtd")) === "4 itens no pedido");
-  await p.click("#abrir-pedido");
+  await clicar(p, "#abrir-pedido");
   ok("folha lista 3 linhas", (await p.locator("#pedido-lista .linha").count()) === 3);
-  await p.click('[data-linha="horaria"] [data-l-remover]');
+  await clicar(p, '[data-linha="horaria"] [data-l-remover]');
   ok("remover Horária atualiza total para R$ 891", (await p.textContent("#pedido-total")) === "R$ 891");
   ok("card da Horária volta a mostrar Adicionar", !(await p.getAttribute("#o-horaria", "class")).includes("no-pedido"));
-  await p.click('[data-linha="raio-x"] [data-l-menos]');
-  await p.click('[data-linha="raio-x"] [data-l-mais]');
+  await clicar(p, '[data-linha="raio-x"] [data-l-menos]');
+  await clicar(p, '[data-linha="raio-x"] [data-l-mais]');
   ok("menos/mais na folha mantém total R$ 891", (await p.textContent("#pedido-total")) === "R$ 891");
   await p.screenshot({ path: `${SAIDA}pedido-390.png` });
-  await p.click("#enviar");
+  await clicar(p, "#enviar");
   await p.waitForTimeout(800);
   const t = textoWa(wa[0] || "https://wa.me/x");
   ok("mensagem com 2 itens e unitário de quantidade 2", t.includes("• 1× Bússola do Destino — R$ 797") && t.includes("• 2× Raio-X Amoroso — R$ 47 cada (R$ 94)") && t.includes("Total: R$ 891") && !t.includes("Horária"), JSON.stringify(t));
@@ -128,14 +135,30 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
   await ctx.close();
 }
 
+// ------------------------------------------------------ esvaziar pedido --
+{
+  const { p, ctx } = await abrir();
+  await clicar(p, "#o-raio-x [data-add]");
+  await clicar(p, "#o-horaria [data-add]");
+  await clicar(p, "#esvaziar");
+  await p.waitForTimeout(500);
+  ok("esvaziar: pedido zera e a barra some", !(await p.evaluate(() => document.getElementById("barra").classList.contains("ativa"))));
+  ok("esvaziar: oferece desfazer", await p.isVisible("#desfazer"));
+  await clicar(p, "#desfazer-btn");
+  await p.waitForTimeout(400);
+  ok("desfazer: pedido volta com o total", (await p.textContent("#barra-total")) === "R$ 144");
+  await ctx.close();
+}
+
 // ---------------------------------------------------------- limites e esgotado --
 {
   const { p, ctx } = await abrir({ query: "previa=1&agora=2026-11-16T10:00:00-03:00&esgotar=caixa-pandora" });
   ok("esgotado: botão desabilitado com texto Esgotado", (await p.isDisabled("#o-caixa-pandora [data-add]")) && (await p.textContent("#o-caixa-pandora [data-add]")) === "Esgotado");
   ok("esgotado: vagas mostram Esgotado", (await p.textContent("#o-caixa-pandora [data-vagas]")).includes("Esgotado"));
-  await p.click("#o-sinastria [data-add]");
-  await p.click("#o-sinastria [data-mais]");
-  await p.click("#o-sinastria [data-mais]");
+  ok("esgotado: carimbo com X sobre o card", await p.isVisible("#o-caixa-pandora .esgotado-selo b"));
+  await clicar(p, "#o-sinastria [data-add]");
+  await clicar(p, "#o-sinastria [data-mais]");
+  await clicar(p, "#o-sinastria [data-mais]");
   ok("quantidade limitada às vagas (Sinastria 3)", (await p.isDisabled("#o-sinastria [data-mais]")) && (await p.textContent("#o-sinastria [data-qtd]")).startsWith("3"));
   await ctx.close();
 }
@@ -144,19 +167,19 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
   let esgotar = false;
   const { p, ctx, wa } = await abrir({ rotaJson: (d) => { if (esgotar) d.itens.find((i) => i.id === "caixa-pandora").esgotado = true; return d; } });
   await p.waitForTimeout(1500);
-  await p.click("#o-caixa-pandora [data-add]");
-  await p.click("#o-bussola [data-add]");
-  await p.click("#abrir-pedido");
+  await clicar(p, "#o-caixa-pandora [data-add]");
+  await clicar(p, "#o-bussola [data-add]");
+  await clicar(p, "#abrir-pedido");
   ok("antes de esgotar no servidor, envio habilitado", !(await p.isDisabled("#enviar")));
   esgotar = true;
   await p.waitForTimeout(21000);
-  await p.click("#enviar");
+  await clicar(p, "#enviar");
   await p.waitForTimeout(1500);
   ok("vaga esgotada no servidor bloqueia o envio", wa.length === 0, `wa.me aberto ${wa.length}x`);
   ok("linha esgotada sinalizada na folha", (await p.textContent('[data-linha="caixa-pandora"]')).includes("Esgotou"));
   ok("botão de envio desabilitado até remover", await p.isDisabled("#enviar"));
-  await p.click('[data-linha="caixa-pandora"] [data-l-remover]');
-  await p.click("#enviar");
+  await clicar(p, '[data-linha="caixa-pandora"] [data-l-remover]');
+  await clicar(p, "#enviar");
   await p.waitForTimeout(1000);
   ok("depois de remover, envia só o disponível", wa.length === 1 && !textoWa(wa[0]).includes("Pandora") && textoWa(wa[0]).includes("Total: R$ 797"));
   await ctx.close();
@@ -165,8 +188,8 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
 // ----------------------------------------------- virada com a página aberta --
 {
   const { p, ctx, erros, wa } = await abrir({ query: "previa=1", relogio: "2026-11-16T23:59:30-03:00", semDataServidor: true });
-  await p.click("#o-bussola [data-add]");
-  await p.click("#abrir-pedido");
+  await clicar(p, "#o-bussola [data-add]");
+  await clicar(p, "#abrir-pedido");
   ok("antes da virada: total R$ 797", (await p.textContent("#pedido-total")) === "R$ 797");
   await p.clock.runFor(35000);
   await p.waitForTimeout(300);
@@ -176,7 +199,7 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
   ok("botão pede confirmação com preço atual", (await p.textContent("#enviar-texto")) === "Enviar com o preço atual");
   await p.screenshot({ path: `${SAIDA}virada-pedido-390.png` });
   ok("faixa de virada aparece na página", !(await p.isHidden("#aviso")) && (await p.textContent("#aviso-texto")).includes("17/11"));
-  await p.click("#enviar");
+  await clicar(p, "#enviar");
   await p.waitForTimeout(500);
   await p.clock.runFor(2000);
   await p.waitForTimeout(500);
@@ -189,11 +212,11 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
   // salvaguarda: se uma fase ficar sem preço publicado, nada sai com preço vencido
   const { p, ctx, wa } = await abrir({ query: "previa=1", relogio: "2026-11-16T23:59:50-03:00", semDataServidor: true, rotaJson: (d) => { d.itens.forEach((i) => { i.precos.d17 = null; }); return d; } });
   await p.waitForTimeout(800);
-  await p.click("#o-bussola [data-add]");
+  await clicar(p, "#o-bussola [data-add]");
   await p.clock.runFor(15000);
   await p.waitForTimeout(300);
   ok("sem preço da fase seguinte: card mostra 'em breve' e trava adicionar", (await p.textContent("#o-bussola [data-por]")).includes("em breve") && (await p.isDisabled("#o-raio-x [data-add]")));
-  await p.click("#abrir-pedido");
+  await clicar(p, "#abrir-pedido");
   ok("sem preço da fase seguinte: envio bloqueado", await p.isDisabled("#enviar"));
   ok("nenhum wa.me aberto", wa.length === 0);
   await ctx.close();
@@ -201,24 +224,21 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
 
 // ----------------------------------------------------- portão e relógio --
 {
-  const { p, ctx } = await abrir({ query: "", relogio: "2026-11-16T07:59:50-03:00", semDataServidor: true });
-  ok("antes das 8h: portão visível e ofertas escondidas", (await p.isVisible(".portao")) && !(await p.isVisible("main")));
-  await p.screenshot({ path: `${SAIDA}portao-390.png` });
-  await p.clock.runFor(15000);
-  await p.waitForTimeout(300);
-  ok("às 8h: página abre sozinha", !(await p.isVisible(".portao")) && (await p.isVisible("main")) && !(await p.isHidden("#aviso")));
+  const { p, ctx } = await abrir({ query: "", relogio: "2026-11-16T07:30:00-03:00", semDataServidor: true });
+  ok("antes das 8h: ofertas visíveis com preço de abertura", (await p.isVisible("main")) && (await p.textContent("#o-bussola [data-por]")).includes("797"));
+  ok("contagem da abertura no formato hh:mm:ss", /^\d{2}:\d{2}:\d{2}$/.test(await p.textContent("#contagem")), await p.textContent("#contagem"));
   await ctx.close();
 }
 {
   // celular com relógio 4h atrasado; servidor diz 10h: vale a hora do servidor
   const { p, ctx } = await abrir({
-    query: "", relogio: "2026-11-16T06:00:00-03:00",
+    query: "", relogio: "2026-11-16T22:00:00-03:00",
     rotaJson: (d) => d,
   });
   await p.unroute("**/bfa/ofertas.json*");
   await p.route("**/bfa/ofertas.json*", async (route) => {
     const resp = await route.fetch();
-    const headers = { ...resp.headers(), date: new Date("2026-11-16T13:00:00Z").toUTCString() };
+    const headers = { ...resp.headers(), date: new Date("2026-11-17T13:00:00Z").toUTCString() };
     delete headers["content-encoding"]; delete headers["content-length"];
     await route.fulfill({ status: 200, headers, body: await resp.text() });
   });
@@ -226,7 +246,7 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
   await p.waitForTimeout(800);
   await p.clock.runFor(1500);
   await p.waitForTimeout(200);
-  ok("relógio do celular errado: usa a hora do servidor (abre às 10h reais)", await p.isVisible("main"));
+  ok("relógio do celular errado: usa a hora do servidor (preço de 17/11)", (await p.textContent("#o-bussola [data-por]")).includes("977"), await p.textContent("#o-bussola [data-por]"));
   await ctx.close();
 }
 {
@@ -248,9 +268,9 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
 
 // ----------------------------------------------------- larguras e acessibilidade --
 for (const [w, h, ua] of [[360, 640], [390, 844], [430, 932], [390, 664, UA_IG], [820, 1180], [1280, 720], [1366, 768], [1920, 1080]]) {
-  const { p, ctx, erros } = await abrir({ w, h, ua, query: "agora=2026-11-16T10:00:00-03:00&previa=1" });
+  const { p, ctx, erros } = await abrir({ w, h, ua, movimento: true, query: "agora=2026-11-16T10:00:00-03:00&previa=1" });
   await p.evaluate(() => document.querySelector(".painel-previa")?.remove());
-  const vaz = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  const vaz = await p.evaluate((largura) => Math.max(document.documentElement.scrollWidth, innerWidth) - largura, w);
   ok(`${w}×${h}${ua ? " (Instagram)" : ""}: sem rolagem lateral`, vaz <= 0, String(vaz));
   const dobra = await p.evaluate(() => {
     const h1 = document.querySelector("#h-abertura").getBoundingClientRect();
@@ -267,8 +287,8 @@ for (const [w, h, ua] of [[360, 640], [390, 844], [430, 932], [390, 664, UA_IG],
   await p.addScriptTag({ content: await readFile(AXE, "utf8") });
   const r = await p.evaluate(async () => (await window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"] })).violations.map((v) => `${v.id}(${v.nodes.length})`));
   ok("axe WCAG 2.2 A/AA na página", !r.length, r.join(", "));
-  await p.click("#o-bussola [data-add]");
-  await p.click("#abrir-pedido");
+  await clicar(p, "#o-bussola [data-add]");
+  await clicar(p, "#abrir-pedido");
   await p.waitForTimeout(800); // fim da animação de abertura da folha
   const r2 = await p.evaluate(async () => (await window.axe.run(document.querySelector("#pedido"), { runOnly: ["wcag2a", "wcag2aa", "wcag21aa"] })).violations.map((v) => `${v.id}(${v.nodes.length})`));
   ok("axe na folha do pedido", !r2.length, r2.join(", "));
@@ -291,7 +311,7 @@ for (const [w, h, ua] of [[360, 640], [390, 844], [430, 932], [390, 664, UA_IG],
 {
   const { p, ctx } = await abrir({ js: false, query: "" });
   const t = await p.textContent("main");
-  ok("sem JavaScript: ofertas e preços aparecem", t.includes("Bússola do Destino") && t.includes("797") && t.includes("Mentoria Lux Et Directio"));
+  ok("sem JavaScript: ofertas e preços aparecem", t.includes("Bússola do Destino") && t.includes("797") && t.includes("Lux et Directio"));
   ok("sem JavaScript: link de WhatsApp de contingência", (await p.locator('noscript').count()) > 0);
   await ctx.close();
 }

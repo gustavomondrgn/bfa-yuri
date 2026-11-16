@@ -8,9 +8,9 @@
   var Q = new URLSearchParams(location.search);
   var PREVIA = Q.has("previa");
   var PROPOSTA = PREVIA && Q.get("proposta") === "1";
-  var PORTAO = !PREVIA || Q.get("portao") === "1";
+  var PORTAO = false;
   var ESGOTAR = PREVIA && Q.get("esgotar") ? Q.get("esgotar").split(",") : [];
-  var VICENTE = PREVIA && Q.get("vicente") === "1";
+  var VICENTE = false;
   var CENARIO = (PREVIA && Q.get("cursos")) || D.cenarioCursos;
   var CHAVE = "bfa-pedido-v1";
   var JSON_URL = "/bfa/ofertas.json";
@@ -199,6 +199,7 @@
       var p = D.provas && D.provas[b.getAttribute("data-prova")];
       b.hidden = !((p && p.ativo) || VICENTE);
     });
+    $$(".fita [data-validade]").forEach(function (s) { s.textContent = atual.estado === "encerrada" ? "Encerrada" : "Só " + fase.validade; });
     renderBarra();
     if ($("#pedido").open) renderPedido();
   }
@@ -210,8 +211,11 @@
     barra.classList.toggle("ativa", ativa);
     barra.setAttribute("aria-hidden", ativa ? "false" : "true");
     $("#abrir-pedido").tabIndex = ativa ? 0 : -1;
+    $("#esvaziar").tabIndex = ativa ? 0 : -1;
     $("#barra-qtd").textContent = t.qtd + (t.qtd === 1 ? " item no pedido" : " itens no pedido");
-    $("#barra-total").textContent = t.faltaPreco ? "—" : brl(t.total);
+    var bt = $("#barra-total"), novoT = t.faltaPreco ? "—" : brl(t.total);
+    if (bt.textContent !== novoT && !REDUZIR) { bt.classList.toggle("pulo", false); void bt.offsetWidth; bt.classList.add("pulo"); }
+    bt.textContent = novoT;
   }
 
   // ------------------------------------------------------- folha pedido --
@@ -465,12 +469,14 @@
     doc.classList.toggle("encerrada", atual.estado === "encerrada");
     var rot = $("#relogio-rotulo"), tempo = $("#relogio-tempo"), brasa = $("#anel-brasa");
     var txt, frac = 0;
+    var fimFase = null;
     if (atual.estado === "antes") {
-      var f = faltam(atual.prox - t);
-      rot.textContent = "Abre às 8h, faltam";
-      txt = f.curto;
-      $("#portao-tempo").textContent = f.longo;
+      fimFase = Date.parse(atual.fase.fim);
+      rot.textContent = "Preço vale por mais";
+      txt = faltam(fimFase - t).curto;
+      frac = 1;
     } else if (atual.estado === "ativa") {
+      fimFase = atual.fim;
       var r = faltam(atual.fim - t);
       rot.textContent = "Preço vale por mais";
       txt = r.curto;
@@ -480,6 +486,8 @@
       txt = "Encerrada";
     }
     if (txt !== ultimoTexto) { tempo.textContent = txt; ultimoTexto = txt; }
+    var cg = $("#contagem");
+    if (cg) cg.textContent = fimFase ? faltam(fimFase - t).longo : "encerrada";
     brasa.setAttribute("stroke-dashoffset", (75.4 * (1 - frac)).toFixed(2));
     if (mudou && !silencioso) aoVirar(antiga, atual);
   }
@@ -543,14 +551,12 @@
     var op = function (v, t) { return '<option value="' + v + '"' + (hora === v ? " selected" : "") + ">" + t + "</option>"; };
     painel.innerHTML =
       '<button type="button" data-p="rec">Prévia ▾</button>' +
-      '<label>Horário<select data-p="agora">' + op("", "real") + op("2026-11-16T07:59:50-03:00", "16/11 07:59:50 (portão)") +
+      '<label>Horário<select data-p="agora">' + op("", "real") + op("2026-11-16T07:30:00-03:00", "16/11 07:30 (antes das 8h)") +
       op("2026-11-16T10:00:00-03:00", "16/11 10:00") + op("2026-11-16T23:59:40-03:00", "16/11 23:59:40 (virada)") +
       op("2026-11-17T12:00:00-03:00", "17/11 12:00") + op("2026-11-18T12:00:00-03:00", "18/11 12:00") +
       op("2026-11-19T23:59:40-03:00", "19/11 23:59:40 (fim)") + "</select></label>" +
       '<label>Cursos<select data-p="cursos"><option value="dois"' + (CENARIO === "dois" ? " selected" : "") + '>dois pacotes</option><option value="unico"' + (CENARIO === "unico" ? " selected" : "") + ">pacote único</option></select></label>" +
-      '<label><span><input type="checkbox" data-p="vicente"' + (VICENTE ? " checked" : "") + "> citação do Vicente</span></label>" +
       '<label><span><input type="checkbox" data-p="esgotar"' + (ESGOTAR.length ? " checked" : "") + "> esgotar Caixa de Pandora</span></label>" +
-      '<label><span><input type="checkbox" data-p="portao"' + (Q.get("portao") === "1" ? " checked" : "") + "> mostrar portão antes das 8h</span></label>" +
       '<button type="button" data-p="limpar">Limpar pedido</button>';
     document.body.appendChild(painel);
     try { if (sessionStorage.getItem("bfa-painel") === "1") painel.setAttribute("data-recolhido", "1"); } catch (e) {}
@@ -572,6 +578,84 @@
         pedido = { itens: {}, fase: null, codigo: null }; salvar(); renderTudo(false);
       }
     });
+  }
+
+  // ------------------------------------------------- esvaziar e desfazer --
+  var reserva = null, timerDesfazer = null;
+  $("#esvaziar").addEventListener("click", function () {
+    if (!linhas().length) return;
+    reserva = JSON.parse(JSON.stringify(pedido));
+    pedido = { itens: {}, fase: null, codigo: null }; salvar();
+    renderTudo(false);
+    var d = $("#desfazer"); d.hidden = false;
+    $("#desfazer-btn").focus();
+    clearTimeout(timerDesfazer);
+    timerDesfazer = setTimeout(function () { d.hidden = true; reserva = null; }, 7000);
+    anunciar("Pedido esvaziado.");
+  });
+  $("#desfazer-btn").addEventListener("click", function () {
+    if (reserva) { pedido = reserva; reserva = null; salvar(); renderTudo(false); anunciar("Pedido recuperado."); }
+    $("#desfazer").hidden = true;
+    if ($("#barra").classList.contains("ativa")) $("#abrir-pedido").focus();
+  });
+
+  // ------------------------------------------------- marcador do menu --
+  var marca = $(".atalhos__marca");
+  function moverMarca() {
+    var ativo = $('.atalhos a[aria-current="true"]');
+    if (!marca) return;
+    if (!ativo) { marca.classList.toggle("on", false); return; }
+    marca.style.width = ativo.offsetWidth + "px";
+    marca.style.transform = "translateX(" + ativo.parentNode.offsetLeft + "px)";
+    marca.classList.add("on");
+  }
+  if (window.MutationObserver) new MutationObserver(moverMarca).observe($(".atalhos ul"), { attributes: true, subtree: true, attributeFilter: ["aria-current"] });
+  window.addEventListener("resize", moverMarca);
+
+  // ------------------------------------------- revelação suave na rolagem --
+  if (!REDUZIR && "IntersectionObserver" in window) {
+    var alvos = [];
+    $$(".secao__cab, .horizonte, .grade, .grade--cursos, .mentoria").forEach(function (el) {
+      var filhos = el.matches(".grade, .grade--cursos, .mentoria, .horizonte") ? Array.prototype.slice.call(el.children) : [el];
+      filhos.forEach(function (f, k) { f.setAttribute("data-revela", ""); f.style.setProperty("--atraso", Math.min(k, 5) * 0.08 + "s"); alvos.push(f); });
+    });
+    doc.classList.add("revelar");
+    var obsR = new IntersectionObserver(function (ents) {
+      ents.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("visto"); obsR.unobserve(e.target); } });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    alvos.forEach(function (el) { obsR.observe(el); });
+  }
+
+  // ---------------------------------------------------- vídeo de depoimento --
+  var dlgV = $("#video"), vid = dlgV ? $("video", dlgV) : null, origemVideo = null, videoEmpurrou = false;
+  function abrirVideo(id, botao) {
+    var d = D.depoimentos && D.depoimentos[id];
+    if (!d || !dlgV) return;
+    origemVideo = botao;
+    vid.poster = d.poster; vid.src = d.mp4;
+    dlgV.classList.toggle("vertical", !!d.vertical);
+    $("#video-leg").textContent = d.titulo;
+    try { dlgV.showModal(); } catch (e) { dlgV.setAttribute("open", ""); }
+    try { history.pushState({ bfaVideo: 1 }, ""); videoEmpurrou = true; } catch (e) {}
+    var pr = vid.play(); if (pr && pr.catch) pr.catch(function () {});
+  }
+  function fecharVideo(viaHistorico) {
+    if (!dlgV || !dlgV.open) return;
+    vid.pause(); vid.setAttribute("src", ""); vid.load();
+    dlgV.close();
+    if (videoEmpurrou && !viaHistorico) { try { history.back(); } catch (e) {} }
+    videoEmpurrou = false;
+    if (origemVideo) origemVideo.focus();
+  }
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest && ev.target.closest("[data-video]");
+    if (b) { ev.preventDefault(); abrirVideo(b.getAttribute("data-video"), b); }
+  });
+  if (dlgV) {
+    $("#fechar-video").addEventListener("click", function () { fecharVideo(false); });
+    dlgV.addEventListener("cancel", function (e) { e.preventDefault(); fecharVideo(false); });
+    dlgV.addEventListener("click", function (e) { if (e.target === dlgV) fecharVideo(false); });
+    window.addEventListener("popstate", function () { if (dlgV.open) fecharVideo(true); });
   }
 
   // ---------------------------------------------------------------- início --

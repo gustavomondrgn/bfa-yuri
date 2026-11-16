@@ -1,5 +1,5 @@
 {
-  "atualizado": "2026-11-16T05:45:00-03:00",
+  "atualizado": "2026-11-16T06:05:00-03:00",
   "whatsapp": "5562999623961",
   "pixel": "549360853227105",
   "cenarioCursos": "dois",
@@ -46,37 +46,38 @@
     {
       "id": "prever",
       "nome": "Prever o que vem",
-      "atalho": "Previsão"
+      "atalho": "Prever",
+      "icone": "prever"
     },
     {
       "id": "voce",
       "nome": "Entender quem você é",
-      "atalho": "Quem você é"
+      "atalho": "Quem você é",
+      "icone": "voce"
     },
     {
       "id": "amor",
       "nome": "Amor e relações",
-      "atalho": "Amor"
+      "atalho": "Amor",
+      "icone": "amor"
     },
     {
-      "id": "trabalho",
-      "nome": "Trabalho e dinheiro",
-      "atalho": "Trabalho"
-    },
-    {
-      "id": "pergunta",
-      "nome": "Uma pergunta específica",
-      "atalho": "Uma pergunta"
+      "id": "prosperar",
+      "nome": "Prosperar",
+      "atalho": "Prosperar",
+      "icone": "prosperar"
     },
     {
       "id": "mentoria",
       "nome": "Mentoria Lux Et Directio",
-      "atalho": "Mentoria"
+      "atalho": "Mentoria",
+      "icone": "mentoria"
     },
     {
       "id": "cursos",
       "nome": "Cursos",
-      "atalho": "Cursos"
+      "atalho": "Cursos",
+      "icone": "cursos"
     }
   ],
   "destaques": [
@@ -110,7 +111,8 @@
         "Leitura mês a mês dos próximos 12 meses",
         "Mais espaço para os temas que você escolher"
       ],
-      "prova": "vicente"
+      "prova": "vicente",
+      "depoimento": "vicente"
     },
     {
       "id": "revolucao-solar",
@@ -165,6 +167,32 @@
         "Leitura ano a ano dos próximos 10 anos",
         "Gravação e transcrição completa",
         "A transcrição no NotebookLM, para você fazer perguntas sobre o que foi dito"
+      ]
+    },
+    {
+      "id": "horaria",
+      "secao": "prever",
+      "nome": "Consulta Horária",
+      "paraQuem": "Para quem tem uma pergunta específica e quer uma resposta direta.",
+      "formato": "Áudio",
+      "detalhe": "2–5 min · 24 a 48 h",
+      "referencia": 297,
+      "precos": {
+        "d16": 97,
+        "d17": 147,
+        "d18": 187,
+        "d19": 227
+      },
+      "vagas": 12,
+      "vagasIniciais": 12,
+      "esgotado": false,
+      "descricao": [
+        "Você faz uma pergunta e Yuri responde pela Astrologia Horária. Alguns exemplos: a chance de aprovação num concurso, o andamento de um negócio, uma questão afetiva, o retorno de um pagamento.",
+        "Cada consulta responde uma pergunta. Para duas perguntas, coloque duas no pedido."
+      ],
+      "recebe": [
+        "Resposta em áudio de cerca de 2 a 5 minutos",
+        "Uma pergunta por consulta"
       ]
     },
     {
@@ -328,7 +356,7 @@
     },
     {
       "id": "compre-tempo",
-      "secao": "trabalho",
+      "secao": "prosperar",
       "nome": "Compre Tempo",
       "paraQuem": "Para quem quer clareza sobre vocação, trabalho e dinheiro.",
       "formato": "Vídeo ao vivo",
@@ -356,7 +384,7 @@
     },
     {
       "id": "potencial-riqueza",
-      "secao": "trabalho",
+      "secao": "prosperar",
       "nome": "Potencial de Riqueza",
       "paraQuem": "Para quem quer uma leitura escrita da área financeira do mapa.",
       "formato": "Escrito",
@@ -383,7 +411,7 @@
     },
     {
       "id": "formula-felicidade",
-      "secao": "trabalho",
+      "secao": "prosperar",
       "nome": "Fórmula da Felicidade",
       "paraQuem": "Para quem quer descobrir que tipo de atividade traz satisfação.",
       "formato": "Áudio",
@@ -404,32 +432,6 @@
       "recebe": [
         "Áudios de cerca de 5 a 10 minutos",
         "A sua Motivação Primária explicada"
-      ]
-    },
-    {
-      "id": "horaria",
-      "secao": "pergunta",
-      "nome": "Consulta Horária",
-      "paraQuem": "Para quem tem uma pergunta específica e quer uma resposta direta.",
-      "formato": "Áudio",
-      "detalhe": "2–5 min · 24 a 48 h",
-      "referencia": 297,
-      "precos": {
-        "d16": 97,
-        "d17": 147,
-        "d18": 187,
-        "d19": 227
-      },
-      "vagas": 12,
-      "vagasIniciais": 12,
-      "esgotado": false,
-      "descricao": [
-        "Você faz uma pergunta e Yuri responde pela Astrologia Horária. Alguns exemplos: a chance de aprovação num concurso, o andamento de um negócio, uma questão afetiva, o retorno de um pagamento.",
-        "Cada consulta responde uma pergunta. Para duas perguntas, coloque duas no pedido."
-      ],
-      "recebe": [
-        "Resposta em áudio de cerca de 2 a 5 minutos",
-        "Uma pergunta por consulta"
       ]
     },
     {
@@ -603,7 +605,7 @@
       "curso": true,
       "avulso": true,
       "nome": "Por que Astrologia Funciona?",
-      "subnome": "curso avulso",
+      "subnome": "sozinho",
       "paraQuem": "Para começar pelos fundamentos, numa aula só.",
       "formato": "Curso gravado",
       "detalhe": "Cerca de 3 horas · com Marcos Monteiro",
@@ -617,14 +619,14 @@
       "vagas": null,
       "esgotado": false,
       "descricao": [
-        "Aula de cerca de três horas que Yuri fez com Marcos Monteiro, um dos astrólogos mais conhecidos do Brasil, sobre os fundamentos que explicam por que a astrologia funciona. Vem com guia da aula, resumo e versão em áudio.",
-        "Este curso também faz parte do Pacote Astrologia."
+        "Aula de cerca de três horas que Yuri fez com Marcos Monteiro, um dos astrólogos mais conhecidos do Brasil, sobre os fundamentos que explicam por que a astrologia funciona. Vem com guia da aula, resumo e versão em áudio. Faz parte do Pacote Astrologia e também sai sozinho, para quem quer começar por ele."
       ],
       "recebe": [
         "Aula gravada de cerca de 3 horas",
         "Guia da aula e resumo",
         "Versão em áudio"
-      ]
+      ],
+      "anexoDe": "pacote-astrologia"
     },
     {
       "id": "mentoria",
@@ -654,6 +656,9 @@
         "Gravações, transcrições e slides de todas as aulas",
         "Exercícios",
         "Dúvidas com Yuri a qualquer momento, com resposta em até 24 horas"
+      ],
+      "depoimentos": [
+        "mentoria-01"
       ]
     }
   ],
@@ -666,5 +671,22 @@
     }
   },
   "regraAprovada": "Aprovada por Gustavo em 16/11 ~05h: serviços voltam 25/45/65% da diferença até o preço atual, final 7; pacotes fixos 497/297 até 19/11; mentoria 2.750/3.350/3.950.",
-  "infinitepay": "yuri-alan-vmj"
+  "infinitepay": "yuri-alan-vmj",
+  "depoimentos": {
+    "vicente": {
+      "mp4": "/bfa/assets/depoimentos/vicente.mp4?v=2",
+      "poster": "/bfa/assets/depoimentos/vicente.webp?v=2",
+      "titulo": "Vicente, sobre as leituras anuais de Yuri",
+      "duracao": "1 min 10 s",
+      "vertical": true,
+      "trecho": "Todo mês aquilo ali dá uma salvada em algum aspecto da minha vida."
+    },
+    "mentoria-01": {
+      "mp4": "/bfa/assets/depoimentos/mentoria-01.mp4?v=1",
+      "poster": "/bfa/assets/depoimentos/mentoria-01.webp?v=1",
+      "titulo": "Julio Pozzato, aluno da mentoria Lux et Directio",
+      "duracao": "2 min 36 s",
+      "vertical": false
+    }
+  }
 }

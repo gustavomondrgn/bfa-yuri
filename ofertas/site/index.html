@@ -312,6 +312,137 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
   .abertura h1{font-size:clamp(2.8rem,4.6vw,4rem)}
   .abertura{padding-bottom:2.2rem}
 }
+/* ===================================================== refino 16/11 06h == */
+/* cards não esticam quando o vizinho abre os detalhes */
+.grade,.grade--cursos{align-items:start}
+.oferta.esgotada{opacity:1}
+
+/* menu: trilho com marcador deslizante */
+.atalhos ul{position:relative;gap:.15rem;padding:.15rem var(--gutter) .6rem}
+.atalhos li{position:relative;z-index:1}
+.atalhos a{gap:.4rem;padding:.35rem .8rem .35rem .65rem;min-height:38px;border-radius:999px;color:#CFC6BA;font-weight:650;letter-spacing:-.005em}
+.atalhos a svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.85;transition:transform .35s var(--ease)}
+.atalhos a[aria-current="true"]{background:transparent;color:#1A140C}
+.atalhos a[aria-current="true"] svg{transform:rotate(-12deg) scale(1.08)}
+.atalhos a[data-atalho="mentoria"]{color:#FF9A55}
+.atalhos__marca{position:absolute!important;z-index:0!important;left:0;top:.15rem;height:38px;width:0;border-radius:999px;background:var(--creme);box-shadow:0 6px 18px -6px rgba(246,227,180,.55);opacity:0;transition:transform .45s var(--ease),width .45s var(--ease),opacity .3s;pointer-events:none}
+.atalhos__marca.on{opacity:1}
+html:not(.js) .atalhos a[aria-current="true"]{background:var(--creme)}
+
+/* contagem da abertura */
+.contagem{margin-top:1.3rem;display:inline-grid;gap:.25rem;padding:.65rem .9rem;border:1px solid rgba(255,138,61,.35);border-radius:12px;background:rgba(255,138,61,.07)}
+.contagem span{color:var(--tinta-3)}
+.contagem b{font-family:var(--mono);font-size:clamp(1.7rem,7vw,2.2rem);font-weight:600;color:var(--creme);letter-spacing:.02em;font-variant-numeric:tabular-nums;line-height:1}
+
+/* eclipse respira */
+.eclipse{animation:eclipse 1.6s var(--ease) both,respira 7s ease-in-out 1.6s infinite}
+@keyframes respira{50%{box-shadow:0 0 0 2px rgba(255,190,110,1),0 0 26px 9px rgba(255,138,61,.7),0 0 110px 40px rgba(255,90,30,.32),inset 0 0 36px 8px rgba(255,120,40,.24)}}
+
+/* fita de Black Friday */
+.fita{position:relative;z-index:5;overflow:hidden;background:var(--vermelho);color:#fff;transform:rotate(-1.6deg);margin:-1.3rem -1rem 0;padding:.55rem 0;box-shadow:0 10px 30px -10px rgba(200,20,12,.6)}
+.fita__trilho{display:flex;width:max-content;animation:fita 38s linear infinite}
+.fita span{display:inline-flex;align-items:center;gap:1.1rem;padding-right:1.1rem;font-weight:900;text-transform:uppercase;letter-spacing:.02em;font-size:.95rem;white-space:nowrap}
+.fita span::after{content:"";width:.5rem;height:.5rem;border-radius:50%;border:2px solid #FFD7B0}
+@keyframes fita{to{transform:translateX(-50%)}}
+
+/* carimbo de esgotado */
+.esgotado-selo{display:none}
+.oferta.esgotada .esgotado-selo{display:flex;position:absolute;inset:0;z-index:3;align-items:center;justify-content:center;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(to top right,transparent calc(50% - 2px),rgba(200,20,12,.55) calc(50% - 2px),rgba(200,20,12,.55) calc(50% + 2px),transparent calc(50% + 2px)),
+             linear-gradient(to bottom right,transparent calc(50% - 2px),rgba(200,20,12,.55) calc(50% - 2px),rgba(200,20,12,.55) calc(50% + 2px),transparent calc(50% + 2px))}
+.esgotado-selo b{font-size:clamp(1.5rem,6vw,2rem);font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#C8140C;background:rgba(255,255,255,.93);border:4px solid #C8140C;border-radius:8px;padding:.25rem .8rem;transform:rotate(-14deg);box-shadow:0 10px 30px -10px rgba(0,0,0,.4);animation:carimbo-esg .5s var(--ease) both}
+@keyframes carimbo-esg{0%{opacity:0;transform:rotate(-14deg) scale(1.6)}70%{opacity:1;transform:rotate(-14deg) scale(.95)}100%{transform:rotate(-14deg) scale(1)}}
+.oferta.esgotada .preco,.oferta.esgotada h3,.oferta.esgotada h2{opacity:.75}
+
+/* cursos: pacote de Astrologia com o curso de entrada anexo */
+.pacote-bloco{display:flex;flex-direction:column}
+.pacote-bloco > .oferta--pacote{border-radius:14px 14px 0 0;border-bottom:0}
+.oferta--anexo{border-radius:0 0 14px 14px;border-top:1px dashed var(--linha-forte);background:#FFF6E8}
+.anexo{padding:1rem 1.1rem 1.1rem;display:grid;gap:.6rem}
+.anexo__txt .mono{color:var(--brasa-txt)}
+.anexo__txt h3{font-size:1.1rem;margin-top:.2rem}
+.anexo__txt p:last-child{font-size:.88rem;color:var(--tinta-3)}
+.anexo .preco__por{font-size:1.7rem}
+.anexo .oferta__rodape{padding-top:0}
+
+/* barra: esvaziar e desfazer */
+.esvaziar{appearance:none;flex:none;width:46px;height:46px;border-radius:10px;border:1px solid #3A3029;background:transparent;color:#CFC6BA;display:grid;place-items:center;cursor:pointer;transition:background-color .2s,color .2s}
+.esvaziar:hover{background:#2A221C;color:#fff}
+.desfazer{position:fixed;left:50%;bottom:calc(1rem + env(safe-area-inset-bottom));z-index:45;transform:translateX(-50%);display:flex;align-items:center;gap:1rem;background:#17130F;color:#F4EFE7;border-radius:12px;padding:.6rem .6rem .6rem 1rem;box-shadow:0 18px 40px -12px rgba(0,0,0,.55);animation:entra .4s var(--ease) both;white-space:nowrap}
+.desfazer[hidden]{display:none}
+.desfazer button{appearance:none;border:0;background:var(--creme);color:#1A140C;font-weight:800;border-radius:8px;min-height:40px;padding:0 .9rem;cursor:pointer}
+.barra__resumo b.pulo{animation:pulo .5s var(--ease)}
+@keyframes pulo{40%{transform:scale(1.12)}}
+.barra__resumo b{display:inline-block;transform-origin:left center}
+
+/* revelação suave na rolagem (só quando o app.js roda) */
+.revelar [data-revela]{opacity:0;transform:translateY(18px);transition:opacity .8s var(--ease),transform .8s var(--ease);transition-delay:var(--atraso,0s)}
+.revelar [data-revela].visto{opacity:1;transform:none}
+@media (hover:hover){
+  .oferta{transition:border-color .3s,box-shadow .35s var(--ease),transform .35s var(--ease)}
+  .grade .oferta:hover,.grade--cursos .oferta--pacote:hover{transform:translateY(-3px);box-shadow:0 2px 4px rgba(23,19,15,.05),0 22px 40px -18px rgba(23,19,15,.3)}
+}
+@media (min-width:700px){.fita{margin:-1.6rem -2rem 0}.fita span{font-size:1.05rem}}
+
+/* ============================ mentoria com a identidade Lux et Directio == */
+@font-face{font-family:"Newsreader";font-style:normal;font-weight:200 800;font-display:swap;src:url(/bfa/assets/lux/newsreader.woff2) format("woff2")}
+@font-face{font-family:"Newsreader";font-style:italic;font-weight:200 800;font-display:swap;src:url(/bfa/assets/lux/newsreader-italico.woff2) format("woff2")}
+.faixa-mentoria.lux{--fundo:#08080A;--cartao:#100E0A;--cartao-2:#17140E;--linha:#2A2418;--linha-forte:#4A3F27;
+  --brasa:#E0B84C;--brasa-txt:#E0B84C;--preco:#F6E3A6;--creme:#F6E3A6;--btn:#E0B84C;--sobre-btn:#140F05;--btn-hover:#F6E3A6;--foco:#F6E3A6}
+.faixa-mentoria.lux::before{background:radial-gradient(70% 55% at 85% 10%,rgba(224,184,76,.16),transparent 60%),radial-gradient(60% 50% at 0% 100%,rgba(138,109,47,.18),transparent 60%)}
+.faixa-mentoria.lux::after{box-shadow:0 0 0 1px rgba(224,184,76,.45),0 0 50px 14px rgba(224,184,76,.10)}
+.lux .secao h2,.lux h2{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:-.015em;font-size:clamp(2.5rem,10vw,4rem);line-height:.98;text-transform:none}
+.lux h2 em{font-style:italic;color:#E0B84C}
+.lux .mentoria__sub{font-family:"Newsreader",Georgia,serif;font-style:italic;font-weight:400;font-size:1.4rem;color:#F6E3A6}
+.mentoria__aguia{width:min(52vw,210px);height:auto;margin:0 0 .4rem -.5rem;filter:drop-shadow(0 18px 30px rgba(224,184,76,.28));animation:paira 7s ease-in-out infinite}
+@keyframes paira{50%{transform:translateY(-7px) rotate(-1deg)}}
+.lux .oferta--mentoria{background:linear-gradient(160deg,#17130B,#0B0A07);border-color:rgba(224,184,76,.55);box-shadow:0 30px 60px -30px rgba(224,184,76,.35)}
+.lux .mentoria__lista li::before{box-shadow:0 0 0 2px #E0B84C,0 0 8px 1px rgba(224,184,76,.5)}
+.lux .tag--fmt{color:#E0B84C}
+.atalhos a[data-atalho="mentoria"]{color:#E0B84C}
+
+/* ============================================================ depoimentos == */
+.depo{appearance:none;border:0;background:none;padding:0;text-align:left;cursor:pointer;color:inherit;font:inherit}
+.depo__thumb{position:relative;display:block;overflow:hidden;border-radius:10px;background:#000;flex:none}
+.depo__thumb img{width:100%;height:100%;object-fit:cover;transition:transform .6s var(--ease),filter .6s var(--ease);filter:saturate(.9) brightness(.85)}
+.depo:hover .depo__thumb img{transform:scale(1.05);filter:saturate(1) brightness(.95)}
+.depo__play{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 8px 24px rgba(0,0,0,.4);animation:pulsa 2.6s ease-in-out infinite}
+.depo__play::after{content:"";position:absolute;left:17px;top:13px;border-left:14px solid #17130F;border-top:9px solid transparent;border-bottom:9px solid transparent}
+@keyframes pulsa{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.45),0 8px 24px rgba(0,0,0,.4)}50%{box-shadow:0 0 0 10px rgba(255,255,255,0),0 8px 24px rgba(0,0,0,.4)}}
+.depo--compacto{display:flex;gap:.85rem;align-items:center;margin-top:.9rem;width:100%;border-radius:12px;padding:.5rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,138,61,.25)}
+.depo--compacto .depo__thumb{width:64px;height:96px}
+.depo--compacto .depo__thumb--vertical{width:64px;height:100px}
+.depo--compacto .depo__play{width:32px;height:32px;margin:-16px 0 0 -16px}
+.depo--compacto .depo__play::after{left:12px;top:9px;border-left-width:11px;border-top-width:7px;border-bottom-width:7px}
+.depo__txt{display:grid;gap:.3rem;min-width:0}
+.depo__txt q{font-style:italic;color:var(--tinta);font-size:.95rem;line-height:1.35}
+.depo__txt small{font-size:.8rem;color:var(--brasa);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.depo-chip{appearance:none;display:inline-flex;align-items:center;gap:.45rem;align-self:flex-start;border:1px solid var(--linha);background:var(--cartao-2);color:var(--tinta);font:inherit;font-size:.84rem;font-weight:700;border-radius:999px;padding:.3rem .75rem .3rem .35rem;min-height:36px;cursor:pointer}
+.depo-chip .mono{font-size:.68rem;color:var(--tinta-3)}
+.depo-chip__play{position:relative;width:24px;height:24px;border-radius:50%;background:var(--tinta)}
+.depo-chip__play::after{content:"";position:absolute;left:9px;top:7px;border-left:8px solid var(--cartao);border-top:5px solid transparent;border-bottom:5px solid transparent}
+.depos{margin-top:1.6rem;display:grid;gap:.8rem}
+.depos__tit{color:#E0B84C}
+.depo--grande{display:grid;gap:.5rem}
+.depo--grande .depo__thumb{aspect-ratio:16/9;border:1px solid rgba(224,184,76,.35)}
+.depo--grande .depo__play{width:58px;height:58px;margin:-29px 0 0 -29px}
+.depo--grande .depo__play::after{left:22px;top:17px;border-left-width:18px;border-top-width:12px;border-bottom-width:12px}
+.depo__leg{font-size:.88rem;color:var(--tinta-2)}
+.depo__leg .mono{font-size:.68rem;color:var(--tinta-3);margin-left:.35rem}
+.video-dlg{border:0;padding:0;margin:auto;background:transparent;max-width:min(92vw,960px);max-height:92vh;overflow:visible}
+.video-dlg::backdrop{background:rgba(8,8,10,.86)}
+.video-dlg__caixa{position:relative;display:grid;gap:.6rem;animation:entra .35s var(--ease) both}
+.video-dlg video{display:block;width:min(92vw,960px);max-height:80vh;background:#000;border-radius:12px}
+.video-dlg.vertical video{width:auto;height:min(80vh,760px);max-width:92vw;margin:0 auto}
+.video-dlg__leg{color:#CFC6BA;font-size:.9rem;text-align:center}
+.video-dlg__fechar{position:absolute;top:-3.2rem;right:0;background:#17130F;color:#fff;border-color:#3A3029}
+
+/* a faixa inclinada não pode alargar a página no celular */
+.fita-moldura{position:relative;z-index:5;overflow:hidden;margin-top:-2.6rem;padding:1.5rem 0 1rem;pointer-events:none}
+.fita{margin:0 -1rem!important}
+@media (min-width:700px){.fita{margin:0 -2rem!important}}
+html{overflow-x:clip}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
@@ -329,24 +460,15 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 </div>
 </div>
 <nav class="atalhos" aria-label="Categorias de ofertas"><ul>
-<li><a href="#prever" data-atalho="prever">Previsão</a></li>
-<li><a href="#voce" data-atalho="voce">Quem você é</a></li>
-<li><a href="#amor" data-atalho="amor">Amor</a></li>
-<li><a href="#trabalho" data-atalho="trabalho">Trabalho</a></li>
-<li><a href="#pergunta" data-atalho="pergunta">Uma pergunta</a></li>
-<li><a href="#mentoria" data-atalho="mentoria">Mentoria</a></li>
-<li><a href="#cursos" data-atalho="cursos">Cursos</a></li>
+<li><a href="#prever" data-atalho="prever"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><circle cx="13" cy="3.5" r="1.6" fill="currentColor" stroke="none"/></svg><span>Prever</span></a></li>
+<li><a href="#voce" data-atalho="voce"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.5" r="2.8"/><path d="M2.8 14c.8-2.7 2.9-4 5.2-4s4.4 1.3 5.2 4"/></svg><span>Quem você é</span></a></li>
+<li><a href="#amor" data-atalho="amor"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="8" r="3.8"/><circle cx="10" cy="8" r="3.8"/></svg><span>Amor</span></a></li>
+<li><a href="#prosperar" data-atalho="prosperar"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12.5l4-4 3 2.2 5-6"/><path d="M10.2 4.5H14v3.8"/></svg><span>Prosperar</span></a></li>
+<li><a href="#mentoria" data-atalho="mentoria"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.7 4.8 4.8 1.7-4.8 1.7L8 14.5l-1.7-4.8L1.5 8l4.8-1.7z"/></svg><span>Mentoria</span></a></li>
+<li><a href="#cursos" data-atalho="cursos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3.5h4.3A1.7 1.7 0 0 1 8 5.2v8.3a1.6 1.6 0 0 0-1.6-1.5H2zM14 3.5H9.7A1.7 1.7 0 0 0 8 5.2v8.3a1.6 1.6 0 0 1 1.6-1.5H14z"/></svg><span>Cursos</span></a></li>
+<li class="atalhos__marca" aria-hidden="true"></li>
 </ul></nav>
 </header>
-
-<section class="portao escuro" aria-labelledby="h-portao">
-<div class="portao__caixa">
-<p class="sobretitulo mono">Black Friday Apocalíptica</p>
-<h1 id="h-portao">As ofertas abrem hoje às 8h.</h1>
-<p class="portao__hora" id="portao-tempo">--:--:--</p>
-<p>A página se atualiza sozinha na hora da abertura. O link continua o mesmo.</p>
-</div>
-</section>
 
 <section class="abertura escuro" aria-labelledby="h-abertura">
 <div class="eclipse" aria-hidden="true"></div>
@@ -355,12 +477,13 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="sobretitulo mono entra"><span id="sobre-fase">Abertura no grupo</span></p>
 <h1 id="h-abertura" class="entra entra-2">Os <em>maiores</em> descontos que eu já dei</h1>
 <p class="abertura__sub entra entra-3">Até <strong><span id="max-off">80</span>% de desconto</strong> em consultas, cursos e mentoria. <span id="validade">Esta condição vale até 23h59 de 16/11.</span></p>
+<p class="contagem entra entra-4"><span class="mono">Este preço termina em</span><b id="contagem">--:--:--</b></p>
 </div>
 <article class="oferta destaque escuro entra entra-3" id="d-bussola" data-id="bussola" aria-labelledby="t-d-bussola">
 <span class="destaque__selo">Voltou</span>
 <h2 id="t-d-bussola">Bússola do Destino</h2>
 <p class="destaque__linha">Os seus próximos 12 meses, mês a mês, pela Revolução Lunar. Fechada desde novembro de 2025.</p>
-<blockquote data-prova="vicente"><p>“Todo mês eu leio, às vezes duas vezes por mês, e todo mês aquilo ali dá uma salvada em algum aspecto da minha vida.”</p><footer>Vicente</footer></blockquote>
+<button type="button" class="depo depo--compacto" data-video="vicente"><span class="depo__thumb depo__thumb--vertical"><img src="/bfa/assets/depoimentos/vicente.webp?v=2" alt="" width="270" height="480" loading="lazy" decoding="async"><span class="depo__play" aria-hidden="true"></span></span><span class="depo__txt"><q>Todo mês aquilo ali dá uma salvada em algum aspecto da minha vida.</q><small>Vicente · assistir o depoimento (1 min 10 s)</small></span></button>
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;1.500</s> por</span><strong class="preco__por" data-por><small>R$</small>797</strong><span class="preco__off" data-off>−47%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>5</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de Bússola do Destino">
@@ -368,18 +491,19 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um Bússola do Destino">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 <a class="ir" href="#o-bussola" data-ir="bussola" data-abrir>Ver detalhes da Bússola</a>
 </article>
 </div>
 </section>
 
+<div class="fita-moldura" aria-hidden="true"><div class="fita"><div class="fita__trilho"><span>Black Friday Apocalíptica</span><span>Até 80% de desconto</span><span data-validade>Só até 23h59 de 16/11</span><span>Black Friday Apocalíptica</span><span>Até 80% de desconto</span><span data-validade>Só até 23h59 de 16/11</span><span>Black Friday Apocalíptica</span><span>Até 80% de desconto</span><span data-validade>Só até 23h59 de 16/11</span><span>Black Friday Apocalíptica</span><span>Até 80% de desconto</span><span data-validade>Só até 23h59 de 16/11</span></div></div></div>
 <div class="aviso" id="aviso" role="status" aria-live="polite" hidden><div class="aviso__caixa"><p id="aviso-texto"></p><button type="button" id="aviso-fechar" aria-label="Fechar aviso">×</button></div></div>
 <noscript><div class="aviso"><div class="aviso__caixa"><p>Para montar o pedido, ative o JavaScript ou <a href="https://wa.me/5562999623961?text=Ol%C3%A1!%20Quero%20fazer%20um%20pedido%20da%20Black%20Friday%20Apocal%C3%ADptica.">fale com o atendimento pelo WhatsApp</a>.</p></div></div></noscript>
 
 <main id="ofertas" tabindex="-1">
 <section class="secao" id="prever" aria-labelledby="h-prever">
-<div class="secao__cab"><span class="secao__num mono">01 / 07</span><h2 id="h-prever">Prever o que vem</h2><p class="secao__intro">Escolha pelo tamanho do período que você quer enxergar.</p></div>
+<div class="secao__cab"><span class="secao__num mono">01 / 06</span><h2 id="h-prever">Prever o que vem</h2><p class="secao__intro">Do próximo ano à próxima década, ou a resposta para uma pergunta só.</p></div>
 <dl class="horizonte" aria-label="Comparação de horizontes"><div><dt>Revolução Solar</dt><div class="regua" aria-hidden="true"><i style="background:repeating-linear-gradient(90deg,var(--brasa) 0 calc(100% / 1 - 2px),transparent calc(100% / 1 - 2px) calc(100% / 1))"></i></div><dd>1 ano, do aniversário em diante</dd></div><div><dt>Bússola do Destino</dt><div class="regua" aria-hidden="true"><i style="background:repeating-linear-gradient(90deg,var(--brasa) 0 calc(100% / 12 - 2px),transparent calc(100% / 12 - 2px) calc(100% / 12))"></i></div><dd>12 meses, mês a mês</dd></div><div><dt>Caixa de Pandora</dt><div class="regua" aria-hidden="true"><i style="background:repeating-linear-gradient(90deg,var(--brasa) 0 calc(100% / 10 - 2px),transparent calc(100% / 10 - 2px) calc(100% / 10))"></i></div><dd>10 anos, ano a ano</dd></div></dl>
 <div class="grade">
 <article class="oferta" id="o-bussola" data-id="bussola" aria-labelledby="t-bussola">
@@ -388,6 +512,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="tags"><span class="tag tag--fmt">Escrito</span><span class="tag">40–50 páginas · 14 dias</span></p>
 <h3 id="t-bussola">Bússola do Destino</h3>
 <p class="oferta__para">Para quem quer se orientar nos próximos 12 meses, mês a mês.</p>
+<button type="button" class="depo-chip" data-video="vicente"><span class="depo-chip__play" aria-hidden="true"></span>Ver depoimento <span class="mono">1 min 10 s</span></button>
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;1.500</s> por</span><strong class="preco__por" data-por><small>R$</small>797</strong><span class="preco__off" data-off>−47%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>5</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de Bússola do Destino">
@@ -395,7 +520,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um Bússola do Destino">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 <details class="mais">
 <summary>Ver detalhes<span class="sr"> de Bússola do Destino</span></summary>
@@ -415,6 +540,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="tags"><span class="tag tag--fmt">Vídeo ao vivo</span><span class="tag">Consulta agendada · gravação</span></p>
 <h3 id="t-revolucao-solar">Revolução Solar</h3>
 <p class="oferta__para">Para quem quer entender o ano que começa no próprio aniversário.</p>
+
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;800</s> por</span><strong class="preco__por" data-por><small>R$</small>397</strong><span class="preco__off" data-off>−50%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>5</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de Revolução Solar">
@@ -422,7 +548,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um Revolução Solar">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 <details class="mais">
 <summary>Ver detalhes<span class="sr"> de Revolução Solar</span></summary>
@@ -441,6 +567,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="tags"><span class="tag tag--fmt">Vídeo ao vivo</span><span class="tag">Cerca de 2 a 3 horas · gravação</span></p>
 <h3 id="t-caixa-pandora">Caixa de Pandora</h3>
 <p class="oferta__para">Para quem quer enxergar a próxima década, ano a ano.</p>
+
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;3.000</s> por</span><strong class="preco__por" data-por><small>R$</small>1.297</strong><span class="preco__off" data-off>−57%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>3</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de Caixa de Pandora">
@@ -448,7 +575,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um Caixa de Pandora">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 <details class="mais">
 <summary>Ver detalhes<span class="sr"> de Caixa de Pandora</span></summary>
@@ -462,10 +589,38 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 </div>
 </details>
 </article>
+<article class="oferta" id="o-horaria" data-id="horaria" aria-labelledby="t-horaria">
+
+<div class="oferta__corpo">
+<p class="tags"><span class="tag tag--fmt">Áudio</span><span class="tag">2–5 min · 24 a 48 h</span></p>
+<h3 id="t-horaria">Consulta Horária</h3>
+<p class="oferta__para">Para quem tem uma pergunta específica e quer uma resposta direta.</p>
+
+<div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;297</s> por</span><strong class="preco__por" data-por><small>R$</small>97</strong><span class="preco__off" data-off>−67%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>12</b> vagas nesta Black Friday</span></p><div class="acoes">
+<button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
+<div class="qtd" role="group" aria-label="Quantidade de Consulta Horária">
+<button type="button" data-menos aria-label="Tirar um Consulta Horária">−</button>
+<output data-qtd>1<span>no pedido</span></output>
+<button type="button" data-mais aria-label="Mais um Consulta Horária">+</button>
+</div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
+</div>
+<details class="mais">
+<summary>Ver detalhes<span class="sr"> de Consulta Horária</span></summary>
+<div class="mais__corpo">
+<p>Você faz uma pergunta e Yuri responde pela Astrologia Horária. Alguns exemplos: a chance de aprovação num concurso, o andamento de um negócio, uma questão afetiva, o retorno de um pagamento.</p>
+<p>Cada consulta responde uma pergunta. Para duas perguntas, coloque duas no pedido.</p>
+
+<div><h4 class="mono">O que você recebe</h4><ul class="recebe"><li>Resposta em áudio de cerca de 2 a 5 minutos</li><li>Uma pergunta por consulta</li></ul></div>
+
+<div><h4 class="mono">Depois do pedido</h4><ol class="depois"><li>Você envia o pedido pelo WhatsApp, com os itens e o total já escritos.</li><li>O atendimento confere a vaga e manda o link de pagamento, que vale para o mesmo dia.</li><li>Depois do pagamento, o atendimento pede seus dados de nascimento e o que você quer ver na leitura.</li></ol></div>
+</div>
+</details>
+</article>
 </div>
 </section>
 <section class="secao" id="voce" aria-labelledby="h-voce">
-<div class="secao__cab"><span class="secao__num mono">02 / 07</span><h2 id="h-voce">Entender quem você é</h2><p class="secao__intro">Leituras do seu mapa de nascimento: conversa ao vivo, documento ou áudio.</p></div>
+<div class="secao__cab"><span class="secao__num mono">02 / 06</span><h2 id="h-voce">Entender quem você é</h2><p class="secao__intro">Leituras do seu mapa de nascimento: conversa ao vivo, documento ou áudio.</p></div>
 
 <div class="grade">
 <article class="oferta" id="o-consulta-natal" data-id="consulta-natal" aria-labelledby="t-consulta-natal">
@@ -474,6 +629,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="tags"><span class="tag tag--fmt">Vídeo ao vivo</span><span class="tag">Cerca de 1 a 2 horas · gravação</span></p>
 <h3 id="t-consulta-natal">Consulta Natal</h3>
 <p class="oferta__para">Para quem quer entender os próprios padrões e levar perguntas concretas.</p>
+
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;1.000</s> por</span><strong class="preco__por" data-por><small>R$</small>597</strong><span class="preco__off" data-off>−40%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>5</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de Consulta Natal">
@@ -481,7 +637,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um Consulta Natal">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 <details class="mais">
 <summary>Ver detalhes<span class="sr"> de Consulta Natal</span></summary>
@@ -501,6 +657,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="tags"><span class="tag tag--fmt">Escrito</span><span class="tag">30–50 páginas · 14 dias</span></p>
 <h3 id="t-natal-escrita">Consulta Natal Escrita</h3>
 <p class="oferta__para">Para quem prefere a leitura natal em documento, para reler com calma.</p>
+
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;700</s> por</span><strong class="preco__por" data-por><small>R$</small>447</strong><span class="preco__off" data-off>−36%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>10</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de Consulta Natal Escrita">
@@ -508,7 +665,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um Consulta Natal Escrita">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 <details class="mais">
 <summary>Ver detalhes<span class="sr"> de Consulta Natal Escrita</span></summary>
@@ -527,6 +684,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="tags"><span class="tag tag--fmt">Escrito</span><span class="tag">40–60 páginas · 14 dias</span></p>
 <h3 id="t-a-cura">A Cura</h3>
 <p class="oferta__para">Para quem quer entender hábitos e padrões pelo temperamento e pelo mapa.</p>
+
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;997</s> por</span><strong class="preco__por" data-por><small>R$</small>397</strong><span class="preco__off" data-off>−60%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>5</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de A Cura">
@@ -534,7 +692,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um A Cura">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 <details class="mais">
 <summary>Ver detalhes<span class="sr"> de A Cura</span></summary>
@@ -554,6 +712,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="tags"><span class="tag tag--fmt">Áudio</span><span class="tag">5–10 min · 24 a 48 h</span></p>
 <h3 id="t-temperamento">O seu real temperamento</h3>
 <p class="oferta__para">Para quem quer saber o próprio temperamento e como lidar com ele.</p>
+
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;147</s> por</span><strong class="preco__por" data-por><small>R$</small>47</strong><span class="preco__off" data-off>−68%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>20</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de O seu real temperamento">
@@ -561,7 +720,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um O seu real temperamento">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 <details class="mais">
 <summary>Ver detalhes<span class="sr"> de O seu real temperamento</span></summary>
@@ -577,7 +736,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 </div>
 </section>
 <section class="secao" id="amor" aria-labelledby="h-amor">
-<div class="secao__cab"><span class="secao__num mono">03 / 07</span><h2 id="h-amor">Amor e relações</h2><p class="secao__intro">A sua vida afetiva no seu mapa, ou a relação entre dois mapas.</p></div>
+<div class="secao__cab"><span class="secao__num mono">03 / 06</span><h2 id="h-amor">Amor e relações</h2><p class="secao__intro">A sua vida afetiva no seu mapa, ou a relação entre dois mapas.</p></div>
 
 <div class="grade">
 <article class="oferta" id="o-raio-x" data-id="raio-x" aria-labelledby="t-raio-x">
@@ -586,6 +745,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="tags"><span class="tag tag--fmt">Escrito</span><span class="tag">10–20 páginas · 7 dias</span></p>
 <h3 id="t-raio-x">Raio-X Amoroso</h3>
 <p class="oferta__para">Para quem quer entender a própria vida afetiva, solteiro ou numa relação.</p>
+
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;147</s> por</span><strong class="preco__por" data-por><small>R$</small>47</strong><span class="preco__off" data-off>−68%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>20</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de Raio-X Amoroso">
@@ -593,7 +753,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um Raio-X Amoroso">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 <details class="mais">
 <summary>Ver detalhes<span class="sr"> de Raio-X Amoroso</span></summary>
@@ -613,6 +773,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="tags"><span class="tag tag--fmt">Vídeo ao vivo</span><span class="tag">Consulta agendada · gravação</span></p>
 <h3 id="t-sinastria">Sinastria</h3>
 <p class="oferta__para">Para entender a dinâmica entre duas pessoas.</p>
+
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;1.297</s> por</span><strong class="preco__por" data-por><small>R$</small>497</strong><span class="preco__off" data-off>−62%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>3</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de Sinastria">
@@ -620,7 +781,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um Sinastria">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 <details class="mais">
 <summary>Ver detalhes<span class="sr"> de Sinastria</span></summary>
@@ -636,8 +797,8 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 </article>
 </div>
 </section>
-<section class="secao" id="trabalho" aria-labelledby="h-trabalho">
-<div class="secao__cab"><span class="secao__num mono">04 / 07</span><h2 id="h-trabalho">Trabalho e dinheiro</h2><p class="secao__intro">Vocação, satisfação e dinheiro no mapa.</p></div>
+<section class="secao" id="prosperar" aria-labelledby="h-prosperar">
+<div class="secao__cab"><span class="secao__num mono">04 / 06</span><h2 id="h-prosperar">Prosperar</h2><p class="secao__intro">Vocação, satisfação e dinheiro no mapa.</p></div>
 
 <div class="grade">
 <article class="oferta" id="o-compre-tempo" data-id="compre-tempo" aria-labelledby="t-compre-tempo">
@@ -646,6 +807,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="tags"><span class="tag tag--fmt">Vídeo ao vivo</span><span class="tag">Com Datas Propícias de 3 anos</span></p>
 <h3 id="t-compre-tempo">Compre Tempo</h3>
 <p class="oferta__para">Para quem quer clareza sobre vocação, trabalho e dinheiro.</p>
+
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;1.000</s> por</span><strong class="preco__por" data-por><small>R$</small>397</strong><span class="preco__off" data-off>−60%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>5</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de Compre Tempo">
@@ -653,7 +815,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um Compre Tempo">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 <details class="mais">
 <summary>Ver detalhes<span class="sr"> de Compre Tempo</span></summary>
@@ -673,6 +835,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="tags"><span class="tag tag--fmt">Escrito</span><span class="tag">Cerca de 20 páginas · 7 dias</span></p>
 <h3 id="t-potencial-riqueza">Potencial de Riqueza</h3>
 <p class="oferta__para">Para quem quer uma leitura escrita da área financeira do mapa.</p>
+
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;147</s> por</span><strong class="preco__por" data-por><small>R$</small>47</strong><span class="preco__off" data-off>−68%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>20</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de Potencial de Riqueza">
@@ -680,7 +843,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um Potencial de Riqueza">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 <details class="mais">
 <summary>Ver detalhes<span class="sr"> de Potencial de Riqueza</span></summary>
@@ -700,6 +863,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <p class="tags"><span class="tag tag--fmt">Áudio</span><span class="tag">5–10 min · 24 a 48 h</span></p>
 <h3 id="t-formula-felicidade">Fórmula da Felicidade</h3>
 <p class="oferta__para">Para quem quer descobrir que tipo de atividade traz satisfação.</p>
+
 <div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;147</s> por</span><strong class="preco__por" data-por><small>R$</small>47</strong><span class="preco__off" data-off>−68%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>20</b> vagas nesta Black Friday</span></p><div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de Fórmula da Felicidade">
@@ -707,7 +871,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um Fórmula da Felicidade">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 <details class="mais">
 <summary>Ver detalhes<span class="sr"> de Fórmula da Felicidade</span></summary>
@@ -722,48 +886,17 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 </article>
 </div>
 </section>
-<section class="secao" id="pergunta" aria-labelledby="h-pergunta">
-<div class="secao__cab"><span class="secao__num mono">05 / 07</span><h2 id="h-pergunta">Uma pergunta específica</h2><p class="secao__intro">Uma pergunta, uma resposta em áudio.</p></div>
-
-<div class="grade">
-<article class="oferta" id="o-horaria" data-id="horaria" aria-labelledby="t-horaria">
-
-<div class="oferta__corpo">
-<p class="tags"><span class="tag tag--fmt">Áudio</span><span class="tag">2–5 min · 24 a 48 h</span></p>
-<h3 id="t-horaria">Consulta Horária</h3>
-<p class="oferta__para">Para quem tem uma pergunta específica e quer uma resposta direta.</p>
-<div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;297</s> por</span><strong class="preco__por" data-por><small>R$</small>97</strong><span class="preco__off" data-off>−67%</span></div><p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span><b>12</b> vagas nesta Black Friday</span></p><div class="acoes">
-<button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
-<div class="qtd" role="group" aria-label="Quantidade de Consulta Horária">
-<button type="button" data-menos aria-label="Tirar um Consulta Horária">−</button>
-<output data-qtd>1<span>no pedido</span></output>
-<button type="button" data-mais aria-label="Mais um Consulta Horária">+</button>
-</div>
-</div></div>
-</div>
-<details class="mais">
-<summary>Ver detalhes<span class="sr"> de Consulta Horária</span></summary>
-<div class="mais__corpo">
-<p>Você faz uma pergunta e Yuri responde pela Astrologia Horária. Alguns exemplos: a chance de aprovação num concurso, o andamento de um negócio, uma questão afetiva, o retorno de um pagamento.</p>
-<p>Cada consulta responde uma pergunta. Para duas perguntas, coloque duas no pedido.</p>
-
-<div><h4 class="mono">O que você recebe</h4><ul class="recebe"><li>Resposta em áudio de cerca de 2 a 5 minutos</li><li>Uma pergunta por consulta</li></ul></div>
-
-<div><h4 class="mono">Depois do pedido</h4><ol class="depois"><li>Você envia o pedido pelo WhatsApp, com os itens e o total já escritos.</li><li>O atendimento confere a vaga e manda o link de pagamento, que vale para o mesmo dia.</li><li>Depois do pagamento, o atendimento pede seus dados de nascimento e o que você quer ver na leitura.</li></ol></div>
-</div>
-</details>
-</article>
-</div>
-</section>
-<div class="faixa-mentoria escuro">
+<div class="faixa-mentoria escuro lux">
 <section class="secao" id="mentoria" aria-labelledby="h-mentoria">
 <div class="mentoria">
 <div class="mentoria__texto">
-<div class="secao__cab"><span class="secao__num mono">06 / 07 · Formação individual</span><h2 id="h-mentoria">Mentoria Lux Et Directio</h2></div>
+<img class="mentoria__aguia" src="/bfa/assets/lux/aguia.webp?v=1" alt="Brasão da Lux et Directio: uma águia dourada" width="360" height="314" loading="lazy" decoding="async">
+<div class="secao__cab"><span class="secao__num mono">05 / 06 · Formação individual</span><h2 id="h-mentoria">Mentoria <em>Lux et Directio</em></h2></div>
 <p class="mentoria__sub">Formando astrólogos do zero em 16 encontros, um a um com Yuri.</p>
 <p>Uma formação individual com Yuri, do zero: simbolismo, técnica de leitura e prática. Você aprende leitura natal, horária, sinastria e revolução solar, com exercícios e acompanhamento direto.</p>
 <p>São 16 encontros semanais, de cerca de 1h a 1h30 cada, numa estimativa de quatro a seis meses. Você pratica no Placidus, o software de astrologia criado por Yuri, onde estão as técnicas ensinadas na mentoria.</p>
 <ul class="mentoria__lista"><li>16 encontros individuais e semanais com Yuri, de cerca de 1h a 1h30</li><li>Acesso ao Placidus, o software de astrologia criado por Yuri</li><li>Gravações, transcrições e slides de todas as aulas</li><li>Exercícios</li><li>Dúvidas com Yuri a qualquer momento, com resposta em até 24 horas</li></ul>
+<div class="depos"><p class="mono depos__tit">Quem fez a mentoria</p><button type="button" class="depo depo--grande" data-video="mentoria-01"><span class="depo__thumb"><img src="/bfa/assets/depoimentos/mentoria-01.webp?v=1" alt="" width="848" height="478" loading="lazy" decoding="async"><span class="depo__play" aria-hidden="true"></span></span><span class="depo__leg">Julio Pozzato, aluno da mentoria Lux et Directio <span class="mono">2 min 36 s</span></span></button></div>
 </div>
 <article class="oferta oferta--mentoria" id="o-mentoria" data-id="mentoria" aria-labelledby="t-mentoria">
 <div class="oferta__corpo">
@@ -776,16 +909,16 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um Mentoria Lux Et Directio">+</button>
 </div>
-</div></div>
+</div><span class="esgotado-selo" aria-hidden="true"><b>Esgotado</b></span></div>
 </div>
 </article>
 </div>
 </section>
 </div>
 <section class="secao" id="cursos" aria-labelledby="h-cursos">
-<div class="secao__cab"><span class="secao__num mono">07 / 07</span><h2 id="h-cursos">Cursos</h2><p class="secao__intro">Dois pacotes gravados, para estudar no seu ritmo, sem limite de vagas.</p></div>
+<div class="secao__cab"><span class="secao__num mono">06 / 06</span><h2 id="h-cursos">Cursos</h2><p class="secao__intro">Dois pacotes gravados, para estudar no seu ritmo, sem limite de vagas.</p></div>
 <div class="grade--cursos">
-<article class="oferta oferta--pacote" id="o-pacote-astrologia" data-id="pacote-astrologia" data-so-cenario="dois" aria-labelledby="t-pacote-astrologia">
+<div class="pacote-bloco" data-so-cenario="dois"><article class="oferta oferta--pacote" id="o-pacote-astrologia" data-id="pacote-astrologia" data-so-cenario="dois" aria-labelledby="t-pacote-astrologia">
 <div class="oferta__corpo">
 <p class="tags"><span class="tag tag--fmt">9 cursos</span><span class="tag">Gravados · no seu ritmo</span></p>
 <h3 id="t-pacote-astrologia">Pacote Astrologia</h3>
@@ -810,7 +943,19 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <div><h4 class="mono">Depois do pedido</h4><ol class="depois"><li>Você envia o pedido pelo WhatsApp, com os itens e o total já escritos.</li><li>O atendimento confere a vaga e manda o link de pagamento, que vale para o mesmo dia.</li><li>O acesso aos cursos, pela Kiwify, é liberado depois do fim da Black Friday, a partir de 20/11.</li></ol></div>
 </div>
 </details>
-</article>
+</article><article class="oferta oferta--anexo" id="o-curso-fundamentos" data-id="curso-fundamentos" aria-labelledby="t-curso-fundamentos">
+<div class="anexo">
+<div class="anexo__txt"><p class="mono">Ou comece por um curso só</p><h3 id="t-curso-fundamentos">Por que Astrologia Funciona?</h3><p>Cerca de 3 horas · com Marcos Monteiro</p></div>
+<div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;297</s> por</span><strong class="preco__por" data-por><small>R$</small>59</strong><span class="preco__off" data-off>−80%</span></div><div class="acoes">
+<button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
+<div class="qtd" role="group" aria-label="Quantidade de Por que Astrologia Funciona?">
+<button type="button" data-menos aria-label="Tirar um Por que Astrologia Funciona?">−</button>
+<output data-qtd>1<span>no pedido</span></output>
+<button type="button" data-mais aria-label="Mais um Por que Astrologia Funciona?">+</button>
+</div>
+</div></div>
+</div>
+</article></div>
 <article class="oferta oferta--pacote" id="o-pacote-religiao" data-id="pacote-religiao" data-so-cenario="dois" aria-labelledby="t-pacote-religiao">
 <div class="oferta__corpo">
 <p class="tags"><span class="tag tag--fmt">8 cursos</span><span class="tag">Gravados · no seu ritmo</span></p>
@@ -864,35 +1009,6 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 </details>
 </article>
 </div>
-<div class="avulso">
-<article class="oferta" id="o-curso-fundamentos" data-id="curso-fundamentos" aria-labelledby="t-curso-fundamentos">
-
-<div class="oferta__corpo">
-<p class="tags"><span class="tag tag--fmt">Curso gravado</span><span class="tag">Cerca de 3 horas · com Marcos Monteiro</span></p>
-<h3 id="t-curso-fundamentos">Por que Astrologia Funciona?<small>curso avulso</small></h3>
-<p class="oferta__para">Para começar pelos fundamentos, numa aula só.</p>
-<div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>De <s>R$&nbsp;297</s> por</span><strong class="preco__por" data-por><small>R$</small>59</strong><span class="preco__off" data-off>−80%</span></div><p class="vagas" data-vagas data-estado="livre"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="0.00"/></svg><span>Sem limite de vagas</span></p><div class="acoes">
-<button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
-<div class="qtd" role="group" aria-label="Quantidade de Por que Astrologia Funciona?">
-<button type="button" data-menos aria-label="Tirar um Por que Astrologia Funciona?">−</button>
-<output data-qtd>1<span>no pedido</span></output>
-<button type="button" data-mais aria-label="Mais um Por que Astrologia Funciona?">+</button>
-</div>
-</div></div>
-</div>
-<details class="mais">
-<summary>Ver detalhes<span class="sr"> de Por que Astrologia Funciona?</span></summary>
-<div class="mais__corpo">
-<p>Aula de cerca de três horas que Yuri fez com Marcos Monteiro, um dos astrólogos mais conhecidos do Brasil, sobre os fundamentos que explicam por que a astrologia funciona. Vem com guia da aula, resumo e versão em áudio.</p>
-<p>Este curso também faz parte do Pacote Astrologia.</p>
-
-<div><h4 class="mono">O que você recebe</h4><ul class="recebe"><li>Aula gravada de cerca de 3 horas</li><li>Guia da aula e resumo</li><li>Versão em áudio</li></ul></div>
-
-<div><h4 class="mono">Depois do pedido</h4><ol class="depois"><li>Você envia o pedido pelo WhatsApp, com os itens e o total já escritos.</li><li>O atendimento confere a vaga e manda o link de pagamento, que vale para o mesmo dia.</li><li>O acesso aos cursos, pela Kiwify, é liberado depois do fim da Black Friday, a partir de 20/11.</li></ol></div>
-</div>
-</details>
-</article>
-</div>
 <p class="entrega-cursos">O acesso aos cursos é pela Kiwify e é liberado depois do fim da Black Friday, a partir de 20/11.</p>
 </section>
 </main>
@@ -917,9 +1033,20 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 <div class="barra" id="barra" aria-hidden="true">
 <div class="barra__dentro">
 <p class="barra__resumo"><span id="barra-qtd">0 itens no pedido</span><b id="barra-total">R$ 0</b></p>
+<button type="button" class="esvaziar" id="esvaziar" aria-label="Esvaziar pedido"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M4 6h12M8 6V4.5h4V6M6 6l.8 10h6.4L14 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <button type="button" class="btn" id="abrir-pedido">Finalizar pedido</button>
 </div>
 </div>
+
+<div class="desfazer" id="desfazer" role="status" hidden><span>Pedido esvaziado.</span><button type="button" id="desfazer-btn">Desfazer</button></div>
+
+<dialog class="video-dlg" id="video" aria-label="Depoimento em vídeo">
+<div class="video-dlg__caixa">
+<button type="button" class="fechar video-dlg__fechar" id="fechar-video" aria-label="Fechar vídeo">×</button>
+<video controls playsinline preload="none"></video>
+<p class="video-dlg__leg" id="video-leg"></p>
+</div>
+</dialog>
 
 <dialog class="pedido" id="pedido" aria-labelledby="h-pedido">
 <div class="pedido__folha">
@@ -937,7 +1064,7 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 </dialog>
 <p class="sr" id="anuncio" aria-live="polite"></p>
 
-<script type="application/json" id="dados">{"atualizado":"2026-11-16T05:45:00-03:00","whatsapp":"5562999623961","pixel":"549360853227105","cenarioCursos":"dois","fases":[{"id":"d16","rotulo":"Abertura no grupo","curto":"16/11","inicio":"2026-11-16T08:00:00-03:00","fim":"2026-11-17T00:00:00-03:00","validade":"até 23h59 de 16/11"},{"id":"d17","rotulo":"Dia 17/11","curto":"17/11","inicio":"2026-11-17T00:00:00-03:00","fim":"2026-11-18T00:00:00-03:00","validade":"até 23h59 de 17/11"},{"id":"d18","rotulo":"Dia 18/11","curto":"18/11","inicio":"2026-11-18T00:00:00-03:00","fim":"2026-11-19T00:00:00-03:00","validade":"até 23h59 de 18/11"},{"id":"d19","rotulo":"Último dia, 19/11","curto":"19/11","inicio":"2026-11-19T00:00:00-03:00","fim":"2026-11-20T00:00:00-03:00","validade":"até 23h59 de 19/11"}],"regraProposta":{"d17":0.25,"d18":0.45,"d19":0.65},"secoes":[{"id":"prever","nome":"Prever o que vem","atalho":"Previsão"},{"id":"voce","nome":"Entender quem você é","atalho":"Quem você é"},{"id":"amor","nome":"Amor e relações","atalho":"Amor"},{"id":"trabalho","nome":"Trabalho e dinheiro","atalho":"Trabalho"},{"id":"pergunta","nome":"Uma pergunta específica","atalho":"Uma pergunta"},{"id":"mentoria","nome":"Mentoria Lux Et Directio","atalho":"Mentoria"},{"id":"cursos","nome":"Cursos","atalho":"Cursos"}],"destaques":["bussola"],"itens":[{"id":"bussola","secao":"prever","nome":"Bússola do Destino","paraQuem":"Para quem quer se orientar nos próximos 12 meses, mês a mês.","formato":"Escrito","detalhe":"40–50 páginas · 14 dias","referencia":1500,"precos":{"d16":797,"d17":977,"d18":1117,"d19":1257},"vagas":5,"vagasIniciais":5,"esgotado":false,"selo":"Reaberta","descricao":["Yuri lê os seus próximos 12 meses pela Revolução Lunar, um mês de cada vez: as oportunidades, os desafios e as áreas da vida que pedem atenção em cada período.","Antes de começar, você conta quais assuntos mais importam agora. Eles ganham espaço na análise. A Bússola é uma consulta autoral do Yuri, fechada desde novembro de 2025, que reabre nesta Black Friday."],"recebe":["Documento escrito de 40 a 50 páginas","Leitura mês a mês dos próximos 12 meses","Mais espaço para os temas que você escolher"],"prova":"vicente"},{"id":"revolucao-solar","secao":"prever","nome":"Revolução Solar","paraQuem":"Para quem quer entender o ano que começa no próprio aniversário.","formato":"Vídeo ao vivo","detalhe":"Consulta agendada · gravação","referencia":800,"precos":{"d16":397,"d17":507,"d18":587,"d19":667},"vagas":5,"vagasIniciais":5,"esgotado":false,"descricao":["A Revolução Solar é o mapa do seu aniversário. Yuri lê nele os principais temas do ano que começa ali: oportunidades, desafios e as áreas da vida com mais destaque nesse ciclo."],"recebe":["Consulta em vídeo agendada com Yuri","Gravação da consulta","Transcrição completa","A transcrição no NotebookLM, para você fazer perguntas sobre o que foi dito"]},{"id":"caixa-pandora","secao":"prever","nome":"Caixa de Pandora","paraQuem":"Para quem quer enxergar a próxima década, ano a ano.","formato":"Vídeo ao vivo","detalhe":"Cerca de 2 a 3 horas · gravação","referencia":3000,"precos":{"d16":1297,"d17":1727,"d18":2067,"d19":2407},"vagas":3,"vagasIniciais":3,"esgotado":false,"descricao":["Yuri aplica a Revolução Solar a cada um dos próximos 10 anos. Em cada ano, você vê os grandes temas, as oportunidades para aproveitar e as dificuldades para as quais vale se preparar, nas diferentes áreas da vida.","É uma consulta autoral do Yuri e a mais longa do catálogo, com cerca de duas a três horas."],"recebe":["Consulta em vídeo agendada com Yuri, de cerca de 2 a 3 horas","Leitura ano a ano dos próximos 10 anos","Gravação e transcrição completa","A transcrição no NotebookLM, para você fazer perguntas sobre o que foi dito"]},{"id":"consulta-natal","secao":"voce","nome":"Consulta Natal","paraQuem":"Para quem quer entender os próprios padrões e levar perguntas concretas.","formato":"Vídeo ao vivo","detalhe":"Cerca de 1 a 2 horas · gravação","referencia":1000,"precos":{"d16":597,"d17":707,"d18":787,"d19":867},"vagas":5,"vagasIniciais":5,"esgotado":false,"descricao":["A consulta clássica sobre o seu mapa de nascimento. Você traz as perguntas e escolhe os temas: vocação, talentos, a forma de trabalhar que combina com você, padrões afetivos, o tipo de parceria, dificuldades que se repetem.","A conversa dura de uma a duas horas, então vale chegar com as prioridades definidas."],"recebe":["Consulta em vídeo agendada com Yuri, de cerca de 1 a 2 horas","Gravação da consulta","Transcrição completa","A transcrição no NotebookLM, para você fazer perguntas sobre o que foi dito"]},{"id":"natal-escrita","secao":"voce","nome":"Consulta Natal Escrita","paraQuem":"Para quem prefere a leitura natal em documento, para reler com calma.","formato":"Escrito","detalhe":"30–50 páginas · 14 dias","referencia":700,"precos":{"d16":447,"d17":517,"d18":567,"d19":617},"vagas":10,"vagasIniciais":10,"esgotado":false,"descricao":["A mesma abrangência da Consulta Natal, por escrito. Você envia as perguntas que quiser, sobre as áreas da vida que quiser, e Yuri organiza a análise do seu mapa em torno delas."],"recebe":["Documento escrito de 30 a 50 páginas","Análise organizada a partir das suas perguntas"]},{"id":"a-cura","secao":"voce","nome":"A Cura","paraQuem":"Para quem quer entender hábitos e padrões pelo temperamento e pelo mapa.","formato":"Escrito","detalhe":"40–60 páginas · 14 dias","referencia":997,"precos":{"d16":397,"d17":547,"d18":667,"d19":787},"vagas":5,"vagasIniciais":5,"esgotado":false,"descricao":["Uma análise escrita e detalhada do seu temperamento e do seu mapa, voltada aos hábitos e comportamentos que você quer compreender, como o desânimo do dia a dia ou a procrastinação.","É uma leitura astrológica. Não substitui diagnóstico, tratamento nem acompanhamento de saúde."],"recebe":["Documento escrito de cerca de 40 a 60 páginas","Leitura do temperamento e do mapa a partir do que você quer entender"]},{"id":"temperamento","secao":"voce","nome":"O seu real temperamento","paraQuem":"Para quem quer saber o próprio temperamento e como lidar com ele.","formato":"Áudio","detalhe":"5–10 min · 24 a 48 h","referencia":147,"precos":{"d16":47,"d17":77,"d18":97,"d19":117},"vagas":20,"vagasIniciais":20,"esgotado":false,"descricao":["Yuri identifica o seu temperamento e grava orientações em áudio sobre as suas tendências, hábitos e convivência, e sobre maneiras de lidar com os próprios padrões no dia a dia."],"recebe":["Áudios de cerca de 5 a 10 minutos","O seu temperamento identificado no mapa","Orientações para o dia a dia"]},{"id":"raio-x","secao":"amor","nome":"Raio-X Amoroso","paraQuem":"Para quem quer entender a própria vida afetiva, solteiro ou numa relação.","formato":"Escrito","detalhe":"10–20 páginas · 7 dias","referencia":147,"precos":{"d16":47,"d17":77,"d18":97,"d19":117},"vagas":20,"vagasIniciais":20,"esgotado":false,"descricao":["Uma leitura escrita só da sua vida amorosa, a partir do seu mapa: padrões, afinidades, as dificuldades que se repetem e o que observar nos relacionamentos.","O Raio-X olha o seu mapa. Para comparar o seu mapa com o de outra pessoa, a consulta certa é a Sinastria."],"recebe":["PDF de cerca de 10 a 20 páginas","Leitura da vida afetiva no seu mapa"]},{"id":"sinastria","secao":"amor","nome":"Sinastria","paraQuem":"Para entender a dinâmica entre duas pessoas.","formato":"Vídeo ao vivo","detalhe":"Consulta agendada · gravação","referencia":1297,"precos":{"d16":497,"d17":697,"d18":857,"d19":1017},"vagas":3,"vagasIniciais":3,"esgotado":false,"descricao":["Yuri compara os mapas de duas pessoas e mostra afinidades, tensões, padrões de conflito e caminhos para melhorar a convivência.","O casal pode participar junto, ou uma pessoa pode fazer a consulta sozinha."],"recebe":["Consulta em vídeo agendada com Yuri","Comparação entre os dois mapas","Gravação e transcrição completa","A transcrição no NotebookLM, para você fazer perguntas sobre o que foi dito"]},{"id":"compre-tempo","secao":"trabalho","nome":"Compre Tempo","paraQuem":"Para quem quer clareza sobre vocação, trabalho e dinheiro.","formato":"Vídeo ao vivo","detalhe":"Com Datas Propícias de 3 anos","referencia":1000,"precos":{"d16":397,"d17":557,"d18":677,"d19":797},"vagas":5,"vagasIniciais":5,"esgotado":false,"descricao":["Uma leitura da sua vida profissional e financeira no mapa: vocação, talentos, o que traz satisfação, as formas de trabalho que combinam com você e as oportunidades e dificuldades ligadas a trabalho e dinheiro.","Inclui as Datas Propícias dos próximos três anos: períodos para considerar quando você planejar o que já tem em mente. É uma leitura astrológica, sem promessa de renda ou de retorno."],"recebe":["Consulta em vídeo agendada com Yuri","Datas Propícias dos próximos 3 anos","Gravação e transcrição completa","A transcrição no NotebookLM, para você fazer perguntas sobre o que foi dito"]},{"id":"potencial-riqueza","secao":"trabalho","nome":"Potencial de Riqueza","paraQuem":"Para quem quer uma leitura escrita da área financeira do mapa.","formato":"Escrito","detalhe":"Cerca de 20 páginas · 7 dias","referencia":147,"precos":{"d16":47,"d17":77,"d18":97,"d19":117},"vagas":20,"vagasIniciais":20,"esgotado":false,"descricao":["Yuri analisa a área financeira do seu mapa: talentos, caminhos profissionais, fontes de renda possíveis e pontos de atenção.","No fim, você recebe um índice astrológico de 0 a 100%, com orientações para a sua faixa, de 20 em 20 pontos. O índice faz parte do método de Yuri: é uma leitura do mapa, não uma probabilidade financeira."],"recebe":["Documento escrito de cerca de 20 páginas","Índice astrológico de 0 a 100%","Orientações para a sua faixa"]},{"id":"formula-felicidade","secao":"trabalho","nome":"Fórmula da Felicidade","paraQuem":"Para quem quer descobrir que tipo de atividade traz satisfação.","formato":"Áudio","detalhe":"5–10 min · 24 a 48 h","referencia":147,"precos":{"d16":47,"d17":77,"d18":97,"d19":117},"vagas":20,"vagasIniciais":20,"esgotado":false,"descricao":["Yuri calcula a sua Motivação Primária, técnica astrológica que aponta o tipo de atividade e o jeito de agir que tendem a trazer satisfação. Daí saem ideias de profissão e de como deixar o trabalho mais parecido com o que você gosta de fazer."],"recebe":["Áudios de cerca de 5 a 10 minutos","A sua Motivação Primária explicada"]},{"id":"horaria","secao":"pergunta","nome":"Consulta Horária","paraQuem":"Para quem tem uma pergunta específica e quer uma resposta direta.","formato":"Áudio","detalhe":"2–5 min · 24 a 48 h","referencia":297,"precos":{"d16":97,"d17":147,"d18":187,"d19":227},"vagas":12,"vagasIniciais":12,"esgotado":false,"descricao":["Você faz uma pergunta e Yuri responde pela Astrologia Horária. Alguns exemplos: a chance de aprovação num concurso, o andamento de um negócio, uma questão afetiva, o retorno de um pagamento.","Cada consulta responde uma pergunta. Para duas perguntas, coloque duas no pedido."],"recebe":["Resposta em áudio de cerca de 2 a 5 minutos","Uma pergunta por consulta"]},{"id":"pacote-astrologia","secao":"cursos","cenario":"dois","curso":true,"nome":"Pacote Astrologia","subnome":"9 cursos","paraQuem":"Para quem quer estudar astrologia no próprio ritmo.","formato":"Cursos gravados","detalhe":"9 títulos · sem limite de vagas","referencia":2273,"referenciaTexto":"Separados, somam","precos":{"d16":497,"d17":497,"d18":497,"d19":497},"vagas":null,"esgotado":false,"descricao":["Os nove cursos de astrologia do Yuri num pacote só: temperamentos, relações, Júpiter, Saturno, dinheiro no mapa e as formações em Sinastria e em Astrologia Horária."],"cursos":[["Formação em Astrologia Horária",497,"Do zero à leitura de perguntas específicas, com exemplos de trabalho, negócios, relacionamentos e pagamentos."],["A Chave das Relações · Formação em Sinastria",397,"Do zero à comparação entre dois mapas, para casais, familiares e outras relações."],["Temperamento é Doença",297,"Aulão sobre os quatro temperamentos, com guia de cada um e versão em áudio."],["Por que Astrologia Funciona?",297,"Aula de cerca de três horas com Marcos Monteiro sobre os fundamentos da astrologia, com guia, resumo e áudio."],["Santuário do Amor",197,"Fundamentos astrológicos para relações duradouras, para solteiros, namorados, noivos e casados."],["Masterclass A Pérola",147,"Júpiter nos 12 signos e nas 12 casas, para explorar talentos e caminhos."],["O Jardim Secreto",147,"Vênus e Lua nos 12 signos: afinidades, vínculos e formas de demonstrar afeto."],["Masterclass O Carrasco: Dominando Saturno",147,"Saturno nos 12 signos e nas 12 casas, e os desafios que se repetem."],["Masterclass: Pagando as Contas",147,"Os pontos do mapa ligados a talentos, trabalho e formas de renda."]]},{"id":"pacote-religiao","secao":"cursos","cenario":"dois","curso":true,"nome":"Pacote Religião","subnome":"8 cursos","paraQuem":"Para quem quer aprofundar a vida de fé com as aulas do Yuri.","formato":"Cursos gravados","detalhe":"8 títulos · sem limite de vagas","referencia":1226,"referenciaTexto":"Separados, somam","precos":{"d16":297,"d17":297,"d18":297,"d19":297},"vagas":null,"esgotado":false,"descricao":["Oito cursos e aulões de Yuri, catequista há 15 anos, sobre oração, santidade, estudo e os mundos que não vemos."],"cursos":[["Igrejas e Raízes da Modernidade",297,"A crise na Igreja à luz do advento da modernidade."],["O Boi Mudo",197,"Uma metodologia prática de estudo inspirada em Santo Tomás de Aquino."],["Escada do Paraíso",197,"O passo a passo da santidade segundo São João da Cruz."],["Aulão · As 3 grandes orações do Cristianismo",147,"Pai Nosso, Ave Maria e Oração de Jesus."],["Mundos Desconhecidos · A alma após a morte",97,"Morte, preparação, luto, corpo e alma, e o itinerário da alma após a morte."],["Mundos Desconhecidos · Mundo Sutil",97,"O mundo sutil, suas criaturas e como lidar com esse conhecimento."],["O Mínimo que você precisa para viver bem a sua religião",97,"O passo a passo para começar a viver a própria religião na prática."],["Aulão · Como ouvir a voz de Deus?",97,"Cerca de duas a três horas, com o relato de Yuri sobre a doença grave que enfrentou em 2022."]]},{"id":"pacote-tudo","secao":"cursos","cenario":"unico","curso":true,"nome":"Todos os cursos","subnome":"17 cursos","paraQuem":"Para quem quer a biblioteca inteira do Yuri: astrologia e fé.","formato":"Cursos gravados","detalhe":"17 títulos · sem limite de vagas","referencia":3499,"referenciaTexto":"Separados, somam","precos":{"d16":497,"d17":497,"d18":497,"d19":497},"vagas":null,"esgotado":false,"descricao":["Os nove cursos de astrologia e os oito de religião do Yuri num pacote só."],"cursosDe":["pacote-astrologia","pacote-religiao"]},{"id":"curso-fundamentos","secao":"cursos","curso":true,"avulso":true,"nome":"Por que Astrologia Funciona?","subnome":"curso avulso","paraQuem":"Para começar pelos fundamentos, numa aula só.","formato":"Curso gravado","detalhe":"Cerca de 3 horas · com Marcos Monteiro","referencia":297,"precos":{"d16":59,"d17":59,"d18":59,"d19":59},"vagas":null,"esgotado":false,"descricao":["Aula de cerca de três horas que Yuri fez com Marcos Monteiro, um dos astrólogos mais conhecidos do Brasil, sobre os fundamentos que explicam por que a astrologia funciona. Vem com guia da aula, resumo e versão em áudio.","Este curso também faz parte do Pacote Astrologia."],"recebe":["Aula gravada de cerca de 3 horas","Guia da aula e resumo","Versão em áudio"]},{"id":"mentoria","secao":"mentoria","nome":"Mentoria Lux Et Directio","subnome":"Formando astrólogos do zero","paraQuem":"Para quem parte do zero e quer se formar astrólogo, com Yuri ao lado.","formato":"Individual · ao vivo","detalhe":"16 encontros semanais · 4 a 6 meses","referencia":5000,"precos":{"d16":2000,"d17":2750,"d18":3350,"d19":3950},"vagas":5,"vagasIniciais":5,"esgotado":false,"descricao":["Uma formação individual com Yuri, do zero: simbolismo, técnica de leitura e prática. Você aprende leitura natal, horária, sinastria e revolução solar, com exercícios e acompanhamento direto.","São 16 encontros semanais, de cerca de 1h a 1h30 cada, numa estimativa de quatro a seis meses. Você pratica no Placidus, o software de astrologia criado por Yuri, onde estão as técnicas ensinadas na mentoria."],"recebe":["16 encontros individuais e semanais com Yuri, de cerca de 1h a 1h30","Acesso ao Placidus, o software de astrologia criado por Yuri","Gravações, transcrições e slides de todas as aulas","Exercícios","Dúvidas com Yuri a qualquer momento, com resposta em até 24 horas"]}],"provas":{"vicente":{"ativo":true,"citacao":"Todo mês eu leio, às vezes duas vezes por mês, e todo mês aquilo ali dá uma salvada em algum aspecto da minha vida.","autor":"Vicente","contexto":"sobre as leituras anuais que Yuri fez para ele em 2025 e 2026"}},"regraAprovada":"Aprovada por Gustavo em 16/11 ~05h: serviços voltam 25/45/65% da diferença até o preço atual, final 7; pacotes fixos 497/297 até 19/11; mentoria 2.750/3.350/3.950.","infinitepay":"yuri-alan-vmj"}</script>
-<script src="/bfa/assets/app.js?v=d1134c36" defer></script>
+<script type="application/json" id="dados">{"atualizado":"2026-11-16T06:05:00-03:00","whatsapp":"5562999623961","pixel":"549360853227105","cenarioCursos":"dois","fases":[{"id":"d16","rotulo":"Abertura no grupo","curto":"16/11","inicio":"2026-11-16T08:00:00-03:00","fim":"2026-11-17T00:00:00-03:00","validade":"até 23h59 de 16/11"},{"id":"d17","rotulo":"Dia 17/11","curto":"17/11","inicio":"2026-11-17T00:00:00-03:00","fim":"2026-11-18T00:00:00-03:00","validade":"até 23h59 de 17/11"},{"id":"d18","rotulo":"Dia 18/11","curto":"18/11","inicio":"2026-11-18T00:00:00-03:00","fim":"2026-11-19T00:00:00-03:00","validade":"até 23h59 de 18/11"},{"id":"d19","rotulo":"Último dia, 19/11","curto":"19/11","inicio":"2026-11-19T00:00:00-03:00","fim":"2026-11-20T00:00:00-03:00","validade":"até 23h59 de 19/11"}],"regraProposta":{"d17":0.25,"d18":0.45,"d19":0.65},"secoes":[{"id":"prever","nome":"Prever o que vem","atalho":"Prever","icone":"prever"},{"id":"voce","nome":"Entender quem você é","atalho":"Quem você é","icone":"voce"},{"id":"amor","nome":"Amor e relações","atalho":"Amor","icone":"amor"},{"id":"prosperar","nome":"Prosperar","atalho":"Prosperar","icone":"prosperar"},{"id":"mentoria","nome":"Mentoria Lux Et Directio","atalho":"Mentoria","icone":"mentoria"},{"id":"cursos","nome":"Cursos","atalho":"Cursos","icone":"cursos"}],"destaques":["bussola"],"itens":[{"id":"bussola","secao":"prever","nome":"Bússola do Destino","paraQuem":"Para quem quer se orientar nos próximos 12 meses, mês a mês.","formato":"Escrito","detalhe":"40–50 páginas · 14 dias","referencia":1500,"precos":{"d16":797,"d17":977,"d18":1117,"d19":1257},"vagas":5,"vagasIniciais":5,"esgotado":false,"selo":"Reaberta","descricao":["Yuri lê os seus próximos 12 meses pela Revolução Lunar, um mês de cada vez: as oportunidades, os desafios e as áreas da vida que pedem atenção em cada período.","Antes de começar, você conta quais assuntos mais importam agora. Eles ganham espaço na análise. A Bússola é uma consulta autoral do Yuri, fechada desde novembro de 2025, que reabre nesta Black Friday."],"recebe":["Documento escrito de 40 a 50 páginas","Leitura mês a mês dos próximos 12 meses","Mais espaço para os temas que você escolher"],"prova":"vicente","depoimento":"vicente"},{"id":"revolucao-solar","secao":"prever","nome":"Revolução Solar","paraQuem":"Para quem quer entender o ano que começa no próprio aniversário.","formato":"Vídeo ao vivo","detalhe":"Consulta agendada · gravação","referencia":800,"precos":{"d16":397,"d17":507,"d18":587,"d19":667},"vagas":5,"vagasIniciais":5,"esgotado":false,"descricao":["A Revolução Solar é o mapa do seu aniversário. Yuri lê nele os principais temas do ano que começa ali: oportunidades, desafios e as áreas da vida com mais destaque nesse ciclo."],"recebe":["Consulta em vídeo agendada com Yuri","Gravação da consulta","Transcrição completa","A transcrição no NotebookLM, para você fazer perguntas sobre o que foi dito"]},{"id":"caixa-pandora","secao":"prever","nome":"Caixa de Pandora","paraQuem":"Para quem quer enxergar a próxima década, ano a ano.","formato":"Vídeo ao vivo","detalhe":"Cerca de 2 a 3 horas · gravação","referencia":3000,"precos":{"d16":1297,"d17":1727,"d18":2067,"d19":2407},"vagas":3,"vagasIniciais":3,"esgotado":false,"descricao":["Yuri aplica a Revolução Solar a cada um dos próximos 10 anos. Em cada ano, você vê os grandes temas, as oportunidades para aproveitar e as dificuldades para as quais vale se preparar, nas diferentes áreas da vida.","É uma consulta autoral do Yuri e a mais longa do catálogo, com cerca de duas a três horas."],"recebe":["Consulta em vídeo agendada com Yuri, de cerca de 2 a 3 horas","Leitura ano a ano dos próximos 10 anos","Gravação e transcrição completa","A transcrição no NotebookLM, para você fazer perguntas sobre o que foi dito"]},{"id":"horaria","secao":"prever","nome":"Consulta Horária","paraQuem":"Para quem tem uma pergunta específica e quer uma resposta direta.","formato":"Áudio","detalhe":"2–5 min · 24 a 48 h","referencia":297,"precos":{"d16":97,"d17":147,"d18":187,"d19":227},"vagas":12,"vagasIniciais":12,"esgotado":false,"descricao":["Você faz uma pergunta e Yuri responde pela Astrologia Horária. Alguns exemplos: a chance de aprovação num concurso, o andamento de um negócio, uma questão afetiva, o retorno de um pagamento.","Cada consulta responde uma pergunta. Para duas perguntas, coloque duas no pedido."],"recebe":["Resposta em áudio de cerca de 2 a 5 minutos","Uma pergunta por consulta"]},{"id":"consulta-natal","secao":"voce","nome":"Consulta Natal","paraQuem":"Para quem quer entender os próprios padrões e levar perguntas concretas.","formato":"Vídeo ao vivo","detalhe":"Cerca de 1 a 2 horas · gravação","referencia":1000,"precos":{"d16":597,"d17":707,"d18":787,"d19":867},"vagas":5,"vagasIniciais":5,"esgotado":false,"descricao":["A consulta clássica sobre o seu mapa de nascimento. Você traz as perguntas e escolhe os temas: vocação, talentos, a forma de trabalhar que combina com você, padrões afetivos, o tipo de parceria, dificuldades que se repetem.","A conversa dura de uma a duas horas, então vale chegar com as prioridades definidas."],"recebe":["Consulta em vídeo agendada com Yuri, de cerca de 1 a 2 horas","Gravação da consulta","Transcrição completa","A transcrição no NotebookLM, para você fazer perguntas sobre o que foi dito"]},{"id":"natal-escrita","secao":"voce","nome":"Consulta Natal Escrita","paraQuem":"Para quem prefere a leitura natal em documento, para reler com calma.","formato":"Escrito","detalhe":"30–50 páginas · 14 dias","referencia":700,"precos":{"d16":447,"d17":517,"d18":567,"d19":617},"vagas":10,"vagasIniciais":10,"esgotado":false,"descricao":["A mesma abrangência da Consulta Natal, por escrito. Você envia as perguntas que quiser, sobre as áreas da vida que quiser, e Yuri organiza a análise do seu mapa em torno delas."],"recebe":["Documento escrito de 30 a 50 páginas","Análise organizada a partir das suas perguntas"]},{"id":"a-cura","secao":"voce","nome":"A Cura","paraQuem":"Para quem quer entender hábitos e padrões pelo temperamento e pelo mapa.","formato":"Escrito","detalhe":"40–60 páginas · 14 dias","referencia":997,"precos":{"d16":397,"d17":547,"d18":667,"d19":787},"vagas":5,"vagasIniciais":5,"esgotado":false,"descricao":["Uma análise escrita e detalhada do seu temperamento e do seu mapa, voltada aos hábitos e comportamentos que você quer compreender, como o desânimo do dia a dia ou a procrastinação.","É uma leitura astrológica. Não substitui diagnóstico, tratamento nem acompanhamento de saúde."],"recebe":["Documento escrito de cerca de 40 a 60 páginas","Leitura do temperamento e do mapa a partir do que você quer entender"]},{"id":"temperamento","secao":"voce","nome":"O seu real temperamento","paraQuem":"Para quem quer saber o próprio temperamento e como lidar com ele.","formato":"Áudio","detalhe":"5–10 min · 24 a 48 h","referencia":147,"precos":{"d16":47,"d17":77,"d18":97,"d19":117},"vagas":20,"vagasIniciais":20,"esgotado":false,"descricao":["Yuri identifica o seu temperamento e grava orientações em áudio sobre as suas tendências, hábitos e convivência, e sobre maneiras de lidar com os próprios padrões no dia a dia."],"recebe":["Áudios de cerca de 5 a 10 minutos","O seu temperamento identificado no mapa","Orientações para o dia a dia"]},{"id":"raio-x","secao":"amor","nome":"Raio-X Amoroso","paraQuem":"Para quem quer entender a própria vida afetiva, solteiro ou numa relação.","formato":"Escrito","detalhe":"10–20 páginas · 7 dias","referencia":147,"precos":{"d16":47,"d17":77,"d18":97,"d19":117},"vagas":20,"vagasIniciais":20,"esgotado":false,"descricao":["Uma leitura escrita só da sua vida amorosa, a partir do seu mapa: padrões, afinidades, as dificuldades que se repetem e o que observar nos relacionamentos.","O Raio-X olha o seu mapa. Para comparar o seu mapa com o de outra pessoa, a consulta certa é a Sinastria."],"recebe":["PDF de cerca de 10 a 20 páginas","Leitura da vida afetiva no seu mapa"]},{"id":"sinastria","secao":"amor","nome":"Sinastria","paraQuem":"Para entender a dinâmica entre duas pessoas.","formato":"Vídeo ao vivo","detalhe":"Consulta agendada · gravação","referencia":1297,"precos":{"d16":497,"d17":697,"d18":857,"d19":1017},"vagas":3,"vagasIniciais":3,"esgotado":false,"descricao":["Yuri compara os mapas de duas pessoas e mostra afinidades, tensões, padrões de conflito e caminhos para melhorar a convivência.","O casal pode participar junto, ou uma pessoa pode fazer a consulta sozinha."],"recebe":["Consulta em vídeo agendada com Yuri","Comparação entre os dois mapas","Gravação e transcrição completa","A transcrição no NotebookLM, para você fazer perguntas sobre o que foi dito"]},{"id":"compre-tempo","secao":"prosperar","nome":"Compre Tempo","paraQuem":"Para quem quer clareza sobre vocação, trabalho e dinheiro.","formato":"Vídeo ao vivo","detalhe":"Com Datas Propícias de 3 anos","referencia":1000,"precos":{"d16":397,"d17":557,"d18":677,"d19":797},"vagas":5,"vagasIniciais":5,"esgotado":false,"descricao":["Uma leitura da sua vida profissional e financeira no mapa: vocação, talentos, o que traz satisfação, as formas de trabalho que combinam com você e as oportunidades e dificuldades ligadas a trabalho e dinheiro.","Inclui as Datas Propícias dos próximos três anos: períodos para considerar quando você planejar o que já tem em mente. É uma leitura astrológica, sem promessa de renda ou de retorno."],"recebe":["Consulta em vídeo agendada com Yuri","Datas Propícias dos próximos 3 anos","Gravação e transcrição completa","A transcrição no NotebookLM, para você fazer perguntas sobre o que foi dito"]},{"id":"potencial-riqueza","secao":"prosperar","nome":"Potencial de Riqueza","paraQuem":"Para quem quer uma leitura escrita da área financeira do mapa.","formato":"Escrito","detalhe":"Cerca de 20 páginas · 7 dias","referencia":147,"precos":{"d16":47,"d17":77,"d18":97,"d19":117},"vagas":20,"vagasIniciais":20,"esgotado":false,"descricao":["Yuri analisa a área financeira do seu mapa: talentos, caminhos profissionais, fontes de renda possíveis e pontos de atenção.","No fim, você recebe um índice astrológico de 0 a 100%, com orientações para a sua faixa, de 20 em 20 pontos. O índice faz parte do método de Yuri: é uma leitura do mapa, não uma probabilidade financeira."],"recebe":["Documento escrito de cerca de 20 páginas","Índice astrológico de 0 a 100%","Orientações para a sua faixa"]},{"id":"formula-felicidade","secao":"prosperar","nome":"Fórmula da Felicidade","paraQuem":"Para quem quer descobrir que tipo de atividade traz satisfação.","formato":"Áudio","detalhe":"5–10 min · 24 a 48 h","referencia":147,"precos":{"d16":47,"d17":77,"d18":97,"d19":117},"vagas":20,"vagasIniciais":20,"esgotado":false,"descricao":["Yuri calcula a sua Motivação Primária, técnica astrológica que aponta o tipo de atividade e o jeito de agir que tendem a trazer satisfação. Daí saem ideias de profissão e de como deixar o trabalho mais parecido com o que você gosta de fazer."],"recebe":["Áudios de cerca de 5 a 10 minutos","A sua Motivação Primária explicada"]},{"id":"pacote-astrologia","secao":"cursos","cenario":"dois","curso":true,"nome":"Pacote Astrologia","subnome":"9 cursos","paraQuem":"Para quem quer estudar astrologia no próprio ritmo.","formato":"Cursos gravados","detalhe":"9 títulos · sem limite de vagas","referencia":2273,"referenciaTexto":"Separados, somam","precos":{"d16":497,"d17":497,"d18":497,"d19":497},"vagas":null,"esgotado":false,"descricao":["Os nove cursos de astrologia do Yuri num pacote só: temperamentos, relações, Júpiter, Saturno, dinheiro no mapa e as formações em Sinastria e em Astrologia Horária."],"cursos":[["Formação em Astrologia Horária",497,"Do zero à leitura de perguntas específicas, com exemplos de trabalho, negócios, relacionamentos e pagamentos."],["A Chave das Relações · Formação em Sinastria",397,"Do zero à comparação entre dois mapas, para casais, familiares e outras relações."],["Temperamento é Doença",297,"Aulão sobre os quatro temperamentos, com guia de cada um e versão em áudio."],["Por que Astrologia Funciona?",297,"Aula de cerca de três horas com Marcos Monteiro sobre os fundamentos da astrologia, com guia, resumo e áudio."],["Santuário do Amor",197,"Fundamentos astrológicos para relações duradouras, para solteiros, namorados, noivos e casados."],["Masterclass A Pérola",147,"Júpiter nos 12 signos e nas 12 casas, para explorar talentos e caminhos."],["O Jardim Secreto",147,"Vênus e Lua nos 12 signos: afinidades, vínculos e formas de demonstrar afeto."],["Masterclass O Carrasco: Dominando Saturno",147,"Saturno nos 12 signos e nas 12 casas, e os desafios que se repetem."],["Masterclass: Pagando as Contas",147,"Os pontos do mapa ligados a talentos, trabalho e formas de renda."]]},{"id":"pacote-religiao","secao":"cursos","cenario":"dois","curso":true,"nome":"Pacote Religião","subnome":"8 cursos","paraQuem":"Para quem quer aprofundar a vida de fé com as aulas do Yuri.","formato":"Cursos gravados","detalhe":"8 títulos · sem limite de vagas","referencia":1226,"referenciaTexto":"Separados, somam","precos":{"d16":297,"d17":297,"d18":297,"d19":297},"vagas":null,"esgotado":false,"descricao":["Oito cursos e aulões de Yuri, catequista há 15 anos, sobre oração, santidade, estudo e os mundos que não vemos."],"cursos":[["Igrejas e Raízes da Modernidade",297,"A crise na Igreja à luz do advento da modernidade."],["O Boi Mudo",197,"Uma metodologia prática de estudo inspirada em Santo Tomás de Aquino."],["Escada do Paraíso",197,"O passo a passo da santidade segundo São João da Cruz."],["Aulão · As 3 grandes orações do Cristianismo",147,"Pai Nosso, Ave Maria e Oração de Jesus."],["Mundos Desconhecidos · A alma após a morte",97,"Morte, preparação, luto, corpo e alma, e o itinerário da alma após a morte."],["Mundos Desconhecidos · Mundo Sutil",97,"O mundo sutil, suas criaturas e como lidar com esse conhecimento."],["O Mínimo que você precisa para viver bem a sua religião",97,"O passo a passo para começar a viver a própria religião na prática."],["Aulão · Como ouvir a voz de Deus?",97,"Cerca de duas a três horas, com o relato de Yuri sobre a doença grave que enfrentou em 2022."]]},{"id":"pacote-tudo","secao":"cursos","cenario":"unico","curso":true,"nome":"Todos os cursos","subnome":"17 cursos","paraQuem":"Para quem quer a biblioteca inteira do Yuri: astrologia e fé.","formato":"Cursos gravados","detalhe":"17 títulos · sem limite de vagas","referencia":3499,"referenciaTexto":"Separados, somam","precos":{"d16":497,"d17":497,"d18":497,"d19":497},"vagas":null,"esgotado":false,"descricao":["Os nove cursos de astrologia e os oito de religião do Yuri num pacote só."],"cursosDe":["pacote-astrologia","pacote-religiao"]},{"id":"curso-fundamentos","secao":"cursos","curso":true,"avulso":true,"nome":"Por que Astrologia Funciona?","subnome":"sozinho","paraQuem":"Para começar pelos fundamentos, numa aula só.","formato":"Curso gravado","detalhe":"Cerca de 3 horas · com Marcos Monteiro","referencia":297,"precos":{"d16":59,"d17":59,"d18":59,"d19":59},"vagas":null,"esgotado":false,"descricao":["Aula de cerca de três horas que Yuri fez com Marcos Monteiro, um dos astrólogos mais conhecidos do Brasil, sobre os fundamentos que explicam por que a astrologia funciona. Vem com guia da aula, resumo e versão em áudio. Faz parte do Pacote Astrologia e também sai sozinho, para quem quer começar por ele."],"recebe":["Aula gravada de cerca de 3 horas","Guia da aula e resumo","Versão em áudio"],"anexoDe":"pacote-astrologia"},{"id":"mentoria","secao":"mentoria","nome":"Mentoria Lux Et Directio","subnome":"Formando astrólogos do zero","paraQuem":"Para quem parte do zero e quer se formar astrólogo, com Yuri ao lado.","formato":"Individual · ao vivo","detalhe":"16 encontros semanais · 4 a 6 meses","referencia":5000,"precos":{"d16":2000,"d17":2750,"d18":3350,"d19":3950},"vagas":5,"vagasIniciais":5,"esgotado":false,"descricao":["Uma formação individual com Yuri, do zero: simbolismo, técnica de leitura e prática. Você aprende leitura natal, horária, sinastria e revolução solar, com exercícios e acompanhamento direto.","São 16 encontros semanais, de cerca de 1h a 1h30 cada, numa estimativa de quatro a seis meses. Você pratica no Placidus, o software de astrologia criado por Yuri, onde estão as técnicas ensinadas na mentoria."],"recebe":["16 encontros individuais e semanais com Yuri, de cerca de 1h a 1h30","Acesso ao Placidus, o software de astrologia criado por Yuri","Gravações, transcrições e slides de todas as aulas","Exercícios","Dúvidas com Yuri a qualquer momento, com resposta em até 24 horas"],"depoimentos":["mentoria-01"]}],"provas":{"vicente":{"ativo":true,"citacao":"Todo mês eu leio, às vezes duas vezes por mês, e todo mês aquilo ali dá uma salvada em algum aspecto da minha vida.","autor":"Vicente","contexto":"sobre as leituras anuais que Yuri fez para ele em 2025 e 2026"}},"regraAprovada":"Aprovada por Gustavo em 16/11 ~05h: serviços voltam 25/45/65% da diferença até o preço atual, final 7; pacotes fixos 497/297 até 19/11; mentoria 2.750/3.350/3.950.","infinitepay":"yuri-alan-vmj","depoimentos":{"vicente":{"mp4":"/bfa/assets/depoimentos/vicente.mp4?v=2","poster":"/bfa/assets/depoimentos/vicente.webp?v=2","titulo":"Vicente, sobre as leituras anuais de Yuri","duracao":"1 min 10 s","vertical":true,"trecho":"Todo mês aquilo ali dá uma salvada em algum aspecto da minha vida."},"mentoria-01":{"mp4":"/bfa/assets/depoimentos/mentoria-01.mp4?v=1","poster":"/bfa/assets/depoimentos/mentoria-01.webp?v=1","titulo":"Julio Pozzato, aluno da mentoria Lux et Directio","duracao":"2 min 36 s","vertical":false}}}</script>
+<script src="/bfa/assets/app.js?v=fab65178" defer></script>
 </body>
 </html>
