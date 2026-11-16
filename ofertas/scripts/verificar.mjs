@@ -242,7 +242,7 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
   ok("pacote único: chamada passa para até 86%", (await p.textContent("#max-off")) === "86");
   await ctx.close();
   const b = await abrir();
-  ok("dois pacotes: chamada é até 78%", (await b.p.textContent("#max-off")) === "78");
+  ok("dois pacotes + curso avulso: chamada é até 80%", (await b.p.textContent("#max-off")) === "80");
   await b.ctx.close();
 }
 
@@ -254,7 +254,7 @@ for (const [w, h, ua] of [[360, 640], [390, 844], [430, 932], [390, 664, UA_IG],
   ok(`${w}×${h}${ua ? " (Instagram)" : ""}: sem rolagem lateral`, vaz <= 0, String(vaz));
   const dobra = await p.evaluate(() => {
     const h1 = document.querySelector("#h-abertura").getBoundingClientRect();
-    const mini = document.querySelector(".mini").getBoundingClientRect();
+    const mini = document.querySelector("#d-bussola h2").getBoundingClientRect();
     return { h1: h1.bottom < innerHeight, mini: mini.top < innerHeight };
   });
   ok(`${w}×${h}: título e primeira oferta na primeira tela`, dobra.h1 && dobra.mini, JSON.stringify(dobra));

@@ -329,7 +329,7 @@
       if (n === 0) $("[data-add]", card).focus();
     } else if (alvo.hasAttribute("data-ir")) {
       ev.preventDefault();
-      irPara(alvo.getAttribute("data-ir"));
+      irPara(alvo.getAttribute("data-ir"), alvo.hasAttribute("data-abrir"));
     } else {
       var li = alvo.closest("[data-linha]");
       if (li) {
@@ -344,9 +344,11 @@
     }
   });
 
-  function irPara(id) {
+  function irPara(id, abrir) {
     var card = $("#o-" + id);
     if (!card) return;
+    var det = $(".mais", card);
+    if (abrir && det) det.open = true;
     card.scrollIntoView({ behavior: REDUZIR ? "auto" : "smooth", block: "start" });
     card.classList.remove("realce"); void card.offsetWidth; card.classList.add("realce");
     try { history.replaceState(history.state, "", "#o-" + id); } catch (e) {}

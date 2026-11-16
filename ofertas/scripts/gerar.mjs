@@ -19,177 +19,189 @@ const brl = (n) => n.toLocaleString("pt-BR");
 const off = (ref, v) => Math.round((1 - v / ref) * 100);
 const F0 = D.fases[0];
 const itens = Object.fromEntries(D.itens.map((i) => [i.id, i]));
+const C = 2 * Math.PI * 7;
 
-function precoHtml(i, classe = "") {
+function precoHtml(i) {
   const v = i.precos[F0.id];
-  const de = i.curso
+  const de = i.curso && !i.avulso
     ? `${esc(i.referenciaTexto || "Separados, somam")} <s>R$&nbsp;${brl(i.referencia)}</s>`
     : `De <s>R$&nbsp;${brl(i.referencia)}</s> por`;
-  return `<div class="preco ${classe}" data-preco>
-<span class="preco__de" data-de>${de}</span>
-<strong class="preco__por" data-por><small>R$</small>${brl(v)}</strong>
-<span class="preco__off" data-off>−${off(i.referencia, v)}%</span>
-</div>`;
+  return `<div class="preco" data-preco><span class="preco__de" data-de>${de}</span><strong class="preco__por" data-por><small>R$</small>${brl(v)}</strong><span class="preco__off" data-off>−${off(i.referencia, v)}%</span></div>`;
 }
 
-const C = 2 * Math.PI * 7;
 function vagasHtml(i) {
-  if (i.vagas == null) {
-    return `<p class="vagas" data-vagas data-estado="livre"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="0"/></svg><span>Sem limite de vagas</span></p>`;
-  }
-  const frac = i.vagas / i.vagasIniciais;
-  return `<p class="vagas" data-vagas data-estado="ok"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${(C * (1 - frac)).toFixed(2)}"/></svg><span><b>${i.vagas}</b> vagas nesta Black Friday</span></p>`;
+  const livre = i.vagas == null;
+  const frac = livre ? 1 : i.vagas / i.vagasIniciais;
+  const txt = livre ? "Sem limite de vagas" : `<b>${i.vagas}</b> vagas nesta Black Friday`;
+  return `<p class="vagas" data-vagas data-estado="${livre ? "livre" : "ok"}"><svg viewBox="0 0 18 18" aria-hidden="true"><circle class="v-fundo" cx="9" cy="9" r="7"/><circle class="v-arco" cx="9" cy="9" r="7" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${(C * (1 - frac)).toFixed(2)}"/></svg><span>${txt}</span></p>`;
 }
 
-function depoisDe(i) {
-  const base = ["Você envia o pedido pelo WhatsApp, com os itens e o total já escritos.", "O atendimento confere a vaga e manda o link de pagamento."];
-  if (i.curso) return [...base, "O acesso aos cursos, pela Kiwify, é liberado depois do fim da Black Friday, a partir de 20/11."];
-  if (i.id === "mentoria") return [...base, "Depois do pagamento, vocês combinam o início dos encontros."];
-  if (/Vídeo/.test(i.formato)) return [...base, "Depois do pagamento, vocês combinam o dia da consulta e você conta o que quer priorizar."];
-  return [...base, "Depois do pagamento, o atendimento pede seus dados de nascimento e o que você quer ver na leitura."];
-}
-
-function cursosHtml(i) {
-  const grupos = i.cursosDe ? i.cursosDe.map((id) => itens[id]) : [i];
-  return grupos
-    .map((g) => {
-      const titulo = i.cursosDe ? `<p class="cursos__grupo mono">${esc(g.nome.replace("Pacote ", ""))} · ${g.cursos.length} cursos</p>` : "";
-      const lis = g.cursos.map(([n, v, t]) => `<li><b>${esc(n)}</b><em>R$&nbsp;${brl(v)}</em><span>${esc(t)}</span></li>`).join("");
-      return `${titulo}<ul class="cursos">${lis}</ul>`;
-    })
-    .join("") + `<p class="cursos__soma"><span>Somando os preços separados</span><b>R$&nbsp;${brl(i.referencia)}</b></p>`;
-}
-
-function provaHtml(i) {
-  if (!i.prova || !D.provas[i.prova]) return "";
-  const p = D.provas[i.prova];
-  return `<blockquote class="citacao" data-prova="${esc(i.prova)}" hidden><p>“${esc(p.citacao)}”</p><footer>${esc(p.autor)}, ${esc(p.contexto)}</footer></blockquote>`;
-}
-
-function cardHtml(i) {
-  const cen = i.cenario ? ` data-so-cenario="${i.cenario}"` : "";
-  const recebe = i.recebe ? `<div><h4 class="mono">O que você recebe</h4><ul class="recebe">${i.recebe.map((r) => `<li>${esc(r)}</li>`).join("")}</ul></div>` : "";
-  const cursos = i.curso ? `<div><h4 class="mono">Cursos do pacote</h4>${cursosHtml(i)}</div>` : "";
-  return `<article class="oferta" id="o-${i.id}" data-id="${i.id}"${cen} aria-labelledby="t-${i.id}">
-${i.selo ? `<span class="selo">${esc(i.selo)}</span>` : ""}
-<div class="oferta__etiqueta mono"><span class="fmt">${esc(i.formato)}</span><span>${esc(i.detalhe)}</span></div>
-<div class="oferta__corpo">
-<h3 id="t-${i.id}">${esc(i.nome)}${i.subnome ? `<small>${esc(i.subnome)}</small>` : ""}</h3>
-<p class="oferta__para">${esc(i.paraQuem)}</p>
-${precoHtml(i)}
-${vagasHtml(i)}
-<div class="acoes">
+function acoesHtml(i) {
+  return `<div class="acoes">
 <button type="button" class="btn btn-add" data-add>Adicionar ao pedido</button>
 <div class="qtd" role="group" aria-label="Quantidade de ${esc(i.nome)}">
 <button type="button" data-menos aria-label="Tirar um ${esc(i.nome)}">−</button>
 <output data-qtd>1<span>no pedido</span></output>
 <button type="button" data-mais aria-label="Mais um ${esc(i.nome)}">+</button>
 </div>
-</div>
-</div>
-<details class="mais">
-<summary>Saiba mais<span class="sr"> sobre ${esc(i.nome)}</span></summary>
+</div>`;
+}
+
+function rodapeHtml(i, comVagas = true) {
+  return `<div class="oferta__rodape">${precoHtml(i)}${comVagas ? vagasHtml(i) : ""}${acoesHtml(i)}</div>`;
+}
+
+function depoisDe(i) {
+  const base = ["Você envia o pedido pelo WhatsApp, com os itens e o total já escritos.", "O atendimento confere a vaga e manda o link de pagamento, que vale para o mesmo dia."];
+  if (i.curso) return [...base, "O acesso aos cursos, pela Kiwify, é liberado depois do fim da Black Friday, a partir de 20/11."];
+  if (i.id === "mentoria") return [...base, "Depois do pagamento, vocês combinam o início dos encontros."];
+  if (/Vídeo/.test(i.formato)) return [...base, "Depois do pagamento, vocês combinam o dia da consulta e você conta o que quer priorizar."];
+  return [...base, "Depois do pagamento, o atendimento pede seus dados de nascimento e o que você quer ver na leitura."];
+}
+
+function provaHtml(i) {
+  if (!i.prova || !D.provas[i.prova]) return "";
+  const p = D.provas[i.prova];
+  return `<blockquote class="citacao" data-prova="${esc(i.prova)}"${p.ativo ? "" : " hidden"}><p>“${esc(p.citacao)}”</p><footer>${esc(p.autor)}, ${esc(p.contexto)}</footer></blockquote>`;
+}
+
+function detalhesHtml(i, extra = "") {
+  const recebe = i.recebe ? `<div><h4 class="mono">O que você recebe</h4><ul class="recebe">${i.recebe.map((r) => `<li>${esc(r)}</li>`).join("")}</ul></div>` : "";
+  return `<details class="mais">
+<summary>Ver detalhes<span class="sr"> de ${esc(i.nome)}</span></summary>
 <div class="mais__corpo">
 ${i.descricao.map((p) => `<p>${esc(p)}</p>`).join("\n")}
 ${provaHtml(i)}
 ${recebe}
-${cursos}
+${extra}
 <div><h4 class="mono">Depois do pedido</h4><ol class="depois">${depoisDe(i).map((p) => `<li>${esc(p)}</li>`).join("")}</ol></div>
 </div>
-</details>
+</details>`;
+}
+
+function tagsHtml(i) {
+  return `<p class="tags"><span class="tag tag--fmt">${esc(i.formato)}</span><span class="tag">${esc(i.detalhe)}</span></p>`;
+}
+
+function cardHtml(i) {
+  const cen = i.cenario ? ` data-so-cenario="${i.cenario}"` : "";
+  return `<article class="oferta" id="o-${i.id}" data-id="${i.id}"${cen} aria-labelledby="t-${i.id}">
+${i.selo ? `<span class="oferta__marca">${esc(i.selo)}</span>` : ""}
+<div class="oferta__corpo">
+${tagsHtml(i)}
+<h3 id="t-${i.id}">${esc(i.nome)}${i.subnome ? `<small>${esc(i.subnome)}</small>` : ""}</h3>
+<p class="oferta__para">${esc(i.paraQuem)}</p>
+${rodapeHtml(i)}
+</div>
+${detalhesHtml(i)}
 </article>`;
 }
 
-function miniHtml(id) {
-  const i = itens[id];
-  if (!i) return "";
+// ------------------------------------------------------------------ cursos --
+function grupos(i) { return i.cursosDe ? i.cursosDe.map((id) => itens[id]) : [i]; }
+function reciboHtml(i) {
+  const gs = grupos(i);
+  const lis = gs.map((g) => `${i.cursosDe ? `<li class="recibo__grupo mono">${esc(g.nome.replace("Pacote ", ""))}</li>` : ""}${g.cursos.map(([n, v]) => `<li><span>${esc(n)}</span><em>R$&nbsp;${brl(v)}</em></li>`).join("")}`).join("");
+  return `<ul class="recibo" aria-label="Cursos do ${esc(i.nome)}">${lis}<li class="recibo__soma"><span>Separados</span><s>R$&nbsp;${brl(i.referencia)}</s></li></ul>`;
+}
+function cursosDescHtml(i) {
+  return `<div><h4 class="mono">O que tem em cada curso</h4><ul class="cursos-desc">${grupos(i).flatMap((g) => g.cursos).map(([n, , t]) => `<li><b>${esc(n)}</b><span>${esc(t)}</span></li>`).join("")}</ul></div>`;
+}
+function pacoteHtml(i) {
   const cen = i.cenario ? ` data-so-cenario="${i.cenario}"` : "";
-  return `<li class="mini" data-id="${i.id}"${cen}>
-<span class="mini__nome">${esc(i.nome)}${i.subnome ? ` <span class="nobr">· ${esc(i.subnome)}</span>` : ""}</span>
-<p class="mini__para">${esc(i.paraQuem)}</p>
-${precoHtml(i)}
-<a href="#o-${i.id}" data-ir="${i.id}"><span>Ver</span><span class="sr">${esc(i.nome)}</span></a>
-</li>`;
+  return `<article class="oferta oferta--pacote" id="o-${i.id}" data-id="${i.id}"${cen} aria-labelledby="t-${i.id}">
+<div class="oferta__corpo">
+<p class="tags"><span class="tag tag--fmt">${esc(i.subnome)}</span><span class="tag">Gravados · no seu ritmo</span></p>
+<h3 id="t-${i.id}">${esc(i.nome)}</h3>
+<p class="oferta__para">${esc(i.paraQuem)}</p>
+${reciboHtml(i)}
+<div class="oferta__rodape"><div class="preco" data-preco><span class="preco__de" data-de>No pacote, todos por</span><strong class="preco__por" data-por><small>R$</small>${brl(i.precos[F0.id])}</strong><span class="preco__off" data-off>−${off(i.referencia, i.precos[F0.id])}%</span></div>${acoesHtml(i)}</div>
+</div>
+${detalhesHtml({ ...i, recebe: null }, cursosDescHtml(i))}
+</article>`;
 }
 
-const COMPARA = {
-  prever: {
-    titulo: "Três horizontes de tempo",
-    itens: [
-      ["Revolução Solar", "1 ano, a partir do aniversário · vídeo", 1],
-      ["Bússola do Destino", "12 meses, mês a mês · escrito", 12],
-      ["Caixa de Pandora", "10 anos, ano a ano · vídeo", 10],
-    ],
-  },
-  voce: {
-    titulo: "Natal em vídeo ou por escrito",
-    itens: [
-      ["Consulta Natal", "Conversa ao vivo de 1 a 2 horas, com gravação"],
-      ["Natal Escrita", "Documento de 30 a 50 páginas, para reler"],
-    ],
-  },
-  amor: {
-    titulo: "Um mapa ou dois",
-    itens: [
-      ["Raio-X Amoroso", "O seu mapa · escrito, em 7 dias"],
-      ["Sinastria", "Dois mapas comparados · vídeo"],
-    ],
-  },
-  trabalho: {
-    titulo: "Três jeitos de olhar o trabalho",
-    itens: [
-      ["Compre Tempo", "Consulta em vídeo + Datas Propícias de 3 anos"],
-      ["Potencial de Riqueza", "Documento com índice de 0 a 100%"],
-      ["Fórmula da Felicidade", "Áudio sobre o que traz satisfação"],
-    ],
-  },
-  aprender: {
-    titulo: "Estudar sozinho ou com Yuri",
-    itens: [
-      ["Cursos", "Gravados, no seu ritmo, sem limite de vagas"],
-      ["Mentoria", "16 encontros individuais com Yuri, 5 vagas"],
-    ],
-  },
-};
+// ---------------------------------------------------------------- seções --
 const INTRO = {
   prever: "Escolha pelo tamanho do período que você quer enxergar.",
   voce: "Leituras do seu mapa de nascimento: conversa ao vivo, documento ou áudio.",
   amor: "A sua vida afetiva no seu mapa, ou a relação entre dois mapas.",
   trabalho: "Vocação, satisfação e dinheiro no mapa.",
   pergunta: "Uma pergunta, uma resposta em áudio.",
-  aprender: "Cursos gravados para estudar no seu ritmo, ou formação individual com Yuri.",
+  cursos: "Dois pacotes gravados, para estudar no seu ritmo, sem limite de vagas.",
 };
-
-function comparaHtml(id) {
-  const c = COMPARA[id];
-  if (!c) return "";
-  const linhas = c.itens
-    .map(([n, t, seg]) => {
-      const regua = seg
-        ? `<div class="regua" aria-hidden="true"><i style="background:repeating-linear-gradient(90deg,var(--brasa) 0 calc(100% / ${seg} - 2px),transparent calc(100% / ${seg} - 2px) calc(100% / ${seg}))"></i></div>`
-        : "";
-      return `<div><dt>${esc(n)}</dt>${regua}<dd>${esc(t)}</dd></div>`;
-    })
-    .join("");
-  return `<div class="compara"><p class="compara__titulo mono">${esc(c.titulo)}</p><dl class="compara__linhas" style="--n:${c.itens.length}">${linhas}</dl></div>`;
+const HORIZONTE = [["Revolução Solar", "1 ano, do aniversário em diante", 1], ["Bússola do Destino", "12 meses, mês a mês", 12], ["Caixa de Pandora", "10 anos, ano a ano", 10]];
+function horizonteHtml() {
+  return `<dl class="horizonte" aria-label="Comparação de horizontes">${HORIZONTE.map(([n, t, seg]) => `<div><dt>${esc(n)}</dt><div class="regua" aria-hidden="true"><i style="background:repeating-linear-gradient(90deg,var(--brasa) 0 calc(100% / ${seg} - 2px),transparent calc(100% / ${seg} - 2px) calc(100% / ${seg}))"></i></div><dd>${esc(t)}</dd></div>`).join("")}</dl>`;
+}
+const total = D.secoes.length;
+const num = (id) => String(D.secoes.findIndex((s) => s.id === id) + 1).padStart(2, "0") + " / " + String(total).padStart(2, "0");
+function cabHtml(s, intro) {
+  return `<div class="secao__cab"><span class="secao__num mono">${num(s.id)}</span><h2 id="h-${s.id}">${esc(s.nome)}</h2>${intro ? `<p class="secao__intro">${esc(intro)}</p>` : ""}</div>`;
 }
 
-const secoesHtml = D.secoes
-  .map((s, n) => {
-    const cards = D.itens.filter((i) => i.secao === s.id).map(cardHtml).join("\n");
-    return `<section class="secao" id="${s.id}" aria-labelledby="h-${s.id}">
-<div class="secao__cab"><span class="secao__num mono">${String(n + 1).padStart(2, "0")} / ${String(D.secoes.length).padStart(2, "0")}</span>
-<h2 id="h-${s.id}">${esc(s.nome)}</h2><p class="secao__intro">${esc(INTRO[s.id] || "")}</p></div>
-${comparaHtml(s.id)}
+function secaoHtml(s) {
+  if (s.id === "mentoria") return mentoriaHtml(s);
+  if (s.id === "cursos") {
+    const pacotes = D.itens.filter((i) => i.secao === "cursos" && !i.avulso);
+    const avulsos = D.itens.filter((i) => i.secao === "cursos" && i.avulso);
+    return `<section class="secao" id="cursos" aria-labelledby="h-cursos">
+${cabHtml(s, INTRO.cursos)}
+<div class="grade--cursos">
+${pacotes.map(pacoteHtml).join("\n")}
+</div>
+<div class="avulso">
+${avulsos.map(cardHtml).join("\n")}
+</div>
+<p class="entrega-cursos">O acesso aos cursos é pela Kiwify e é liberado depois do fim da Black Friday, a partir de 20/11.</p>
+</section>`;
+  }
+  const cards = D.itens.filter((i) => i.secao === s.id).map(cardHtml).join("\n");
+  return `<section class="secao" id="${s.id}" aria-labelledby="h-${s.id}">
+${cabHtml(s, INTRO[s.id])}
+${s.id === "prever" ? horizonteHtml() : ""}
 <div class="grade">
 ${cards}
 </div>
 </section>`;
-  })
-  .join("\n");
+}
+
+function mentoriaHtml(s) {
+  const i = itens.mentoria;
+  return `<div class="faixa-mentoria escuro">
+<section class="secao" id="mentoria" aria-labelledby="h-mentoria">
+<div class="mentoria">
+<div class="mentoria__texto">
+<div class="secao__cab"><span class="secao__num mono">${num("mentoria")} · Formação individual</span><h2 id="h-mentoria">${esc(i.nome)}</h2></div>
+<p class="mentoria__sub">${esc(i.subnome)} em 16 encontros, um a um com Yuri.</p>
+${i.descricao.map((p) => `<p>${esc(p)}</p>`).join("\n")}
+<ul class="mentoria__lista">${i.recebe.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>
+</div>
+<article class="oferta oferta--mentoria" id="o-mentoria" data-id="mentoria" aria-labelledby="t-mentoria">
+<div class="oferta__corpo">
+<p class="tags"><span class="tag tag--fmt">${esc(i.formato)}</span><span class="tag">${esc(i.detalhe)}</span></p>
+<h3 id="t-mentoria">${esc(i.paraQuem)}</h3>
+${rodapeHtml(i)}
+</div>
+</article>
+</div>
+</section>
+</div>`;
+}
 
 const visiveis = D.itens.filter((i) => !i.cenario || i.cenario === D.cenarioCursos);
 const maxOff = Math.max(...visiveis.map((i) => off(i.referencia, i.precos[F0.id])));
+const B = itens.bussola;
+const PV = D.provas.vicente;
+
+const destaqueHtml = `<article class="oferta destaque escuro entra entra-3" id="d-bussola" data-id="bussola" aria-labelledby="t-d-bussola">
+<span class="destaque__selo">Voltou</span>
+<h2 id="t-d-bussola">Bússola do Destino</h2>
+<p class="destaque__linha">Os seus próximos 12 meses, mês a mês, pela Revolução Lunar. Fechada desde novembro de 2025.</p>
+${PV ? `<blockquote data-prova="vicente"${PV.ativo ? "" : " hidden"}><p>“${esc(PV.citacao)}”</p><footer>${esc(PV.autor)}</footer></blockquote>` : ""}
+${rodapeHtml(B)}
+<a class="ir" href="#o-bussola" data-ir="bussola" data-abrir>Ver detalhes da Bússola</a>
+</article>`;
 
 const html = `<!doctype html>
 <html lang="pt-BR" data-cenario="${D.cenarioCursos}">
@@ -199,23 +211,23 @@ const html = `<!doctype html>
 <title>Ofertas · Black Friday Apocalíptica · Yuri dos Anjos</title>
 <meta name="description" content="Consultas, cursos e mentoria de Yuri dos Anjos com até ${maxOff}% de desconto. Monte o pedido e envie pelo WhatsApp.">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#0B0A09">
+<meta name="theme-color" content="#0E0B09">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:title" content="Black Friday Apocalíptica · Ofertas">
-<meta property="og:description" content="Consultas, cursos e mentoria de Yuri dos Anjos. Monte o pedido e envie pelo WhatsApp.">
+<meta property="og:description" content="Consultas, cursos e mentoria de Yuri dos Anjos com até ${maxOff}% de desconto.">
 <link rel="icon" href="/bfa/assets/favicon.svg?v=1" type="image/svg+xml">
 <style>${css}</style>
 <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
 <a class="pular" href="#ofertas">Pular para as ofertas</a>
-<header class="topo">
+<header class="topo escuro">
 <div class="topo__linha">
-<p class="marca" style="margin:0">Yuri dos Anjos<span>Black Friday Apocalíptica</span></p>
-<div class="relogio" id="relogio" aria-live="off">
-<div><span id="relogio-rotulo">${esc(F0.rotulo)} · vale</span><b id="relogio-tempo">${esc(F0.validade)}</b></div>
-<svg class="anel" viewBox="0 0 30 30" aria-hidden="true"><circle class="anel__fundo" cx="15" cy="15" r="12"/><circle class="anel__brasa" id="anel-brasa" cx="15" cy="15" r="12" stroke-dasharray="75.4" stroke-dashoffset="0"/><circle class="anel__lua" cx="15" cy="15" r="7.5"/></svg>
+<p class="marca">Yuri dos Anjos<span>Black Friday Apocalíptica</span></p>
+<div class="relogio" id="relogio">
+<div><span id="relogio-rotulo">${esc(F0.rotulo)}, vale</span><b id="relogio-tempo">${esc(F0.validade)}</b></div>
+<svg class="anel" viewBox="0 0 30 30" aria-hidden="true"><circle class="anel__fundo" cx="15" cy="15" r="12"/><circle class="anel__brasa" id="anel-brasa" cx="15" cy="15" r="12" stroke-dasharray="75.4" stroke-dashoffset="0"/></svg>
 </div>
 </div>
 <nav class="atalhos" aria-label="Categorias de ofertas"><ul>
@@ -223,45 +235,32 @@ ${D.secoes.map((s) => `<li><a href="#${s.id}" data-atalho="${s.id}">${esc(s.atal
 </ul></nav>
 </header>
 
-<section class="portao" aria-labelledby="h-portao">
+<section class="portao escuro" aria-labelledby="h-portao">
 <div class="portao__caixa">
 <p class="sobretitulo mono">Black Friday Apocalíptica</p>
-<h1 id="h-portao" style="font-size:clamp(1.8rem,8vw,3rem);font-weight:900;letter-spacing:-.03em;line-height:1">As ofertas abrem hoje às 8h.</h1>
+<h1 id="h-portao">As ofertas abrem hoje às 8h.</h1>
 <p class="portao__hora" id="portao-tempo">--:--:--</p>
 <p>A página se atualiza sozinha na hora da abertura. O link continua o mesmo.</p>
 </div>
 </section>
 
-<section class="abertura" aria-labelledby="h-abertura">
-<div class="abertura__ceu" aria-hidden="true"></div>
+<section class="abertura escuro" aria-labelledby="h-abertura">
 <div class="eclipse" aria-hidden="true"></div>
 <div class="abertura__dentro">
-<div class="abertura__grade">
 <div>
-<p class="sobretitulo mono"><span id="sobre-fase">${esc(F0.rotulo)}</span></p>
-<h1 id="h-abertura">Os <em>maiores</em> descontos que eu já dei</h1>
-<p class="abertura__sub">Até <strong><span id="max-off">${maxOff}</span>% de desconto</strong> em consultas, cursos e mentoria. <span id="validade">Esta condição vale ${esc(F0.validade)}.</span></p>
-<ol class="passos" aria-label="Como pedir">
-<li><b>1 Escolha</b>Toque em Adicionar</li>
-<li><b>2 Revise</b>Confira o pedido e o total</li>
-<li><b>3 Envie</b>Pelo WhatsApp. O pagamento vem depois</li>
-</ol>
+<p class="sobretitulo mono entra"><span id="sobre-fase">${esc(F0.rotulo)}</span></p>
+<h1 id="h-abertura" class="entra entra-2">Os <em>maiores</em> descontos que eu já dei</h1>
+<p class="abertura__sub entra entra-3">Até <strong><span id="max-off">${maxOff}</span>% de desconto</strong> em consultas, cursos e mentoria. <span id="validade">Esta condição vale ${esc(F0.validade)}.</span></p>
 </div>
-<div class="vitrine">
-<p class="vitrine__titulo mono"><span>Comece por aqui</span></p>
-<ul class="vitrine__fila">
-${D.destaques.map(miniHtml).join("\n")}
-</ul>
-</div>
-</div>
+${destaqueHtml}
 </div>
 </section>
 
-<div class="aviso" id="aviso" role="status" aria-live="polite" hidden><div class="aviso__caixa"><p style="margin:0" id="aviso-texto"></p><button type="button" id="aviso-fechar" aria-label="Fechar aviso">×</button></div></div>
-<noscript><div class="aviso"><div class="aviso__caixa"><p style="margin:0">Para montar o pedido, ative o JavaScript ou <a href="https://wa.me/${D.whatsapp}?text=${encodeURIComponent("Olá! Quero fazer um pedido da Black Friday Apocalíptica.")}">fale com o atendimento pelo WhatsApp</a>.</p></div></div></noscript>
+<div class="aviso" id="aviso" role="status" aria-live="polite" hidden><div class="aviso__caixa"><p id="aviso-texto"></p><button type="button" id="aviso-fechar" aria-label="Fechar aviso">×</button></div></div>
+<noscript><div class="aviso"><div class="aviso__caixa"><p>Para montar o pedido, ative o JavaScript ou <a href="https://wa.me/${D.whatsapp}?text=${encodeURIComponent("Olá! Quero fazer um pedido da Black Friday Apocalíptica.")}">fale com o atendimento pelo WhatsApp</a>.</p></div></div></noscript>
 
 <main id="ofertas" tabindex="-1">
-${secoesHtml}
+${D.secoes.map(secaoHtml).join("\n")}
 </main>
 
 <section class="como" aria-labelledby="h-como">
@@ -283,7 +282,7 @@ ${secoesHtml}
 
 <div class="barra" id="barra" aria-hidden="true">
 <div class="barra__dentro">
-<p class="barra__resumo" style="margin:0"><span id="barra-qtd">0 itens no pedido</span><b id="barra-total">R$ 0</b></p>
+<p class="barra__resumo"><span id="barra-qtd">0 itens no pedido</span><b id="barra-total">R$ 0</b></p>
 <button type="button" class="btn" id="abrir-pedido">Revisar pedido</button>
 </div>
 </div>

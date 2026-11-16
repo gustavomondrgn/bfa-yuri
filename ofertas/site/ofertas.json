@@ -1,5 +1,5 @@
 {
-  "atualizado": "2026-11-16T05:05:00-03:00",
+  "atualizado": "2026-11-16T05:45:00-03:00",
   "whatsapp": "5562999623961",
   "pixel": "549360853227105",
   "cenarioCursos": "dois",
@@ -69,16 +69,18 @@
       "atalho": "Uma pergunta"
     },
     {
-      "id": "aprender",
-      "nome": "Aprender astrologia e fé",
-      "atalho": "Cursos e mentoria"
+      "id": "mentoria",
+      "nome": "Mentoria Lux Et Directio",
+      "atalho": "Mentoria"
+    },
+    {
+      "id": "cursos",
+      "nome": "Cursos",
+      "atalho": "Cursos"
     }
   ],
   "destaques": [
-    "bussola",
-    "pacote-astrologia",
-    "pacote-tudo",
-    "consulta-natal"
+    "bussola"
   ],
   "itens": [
     {
@@ -432,7 +434,7 @@
     },
     {
       "id": "pacote-astrologia",
-      "secao": "aprender",
+      "secao": "cursos",
       "cenario": "dois",
       "curso": true,
       "nome": "Pacote Astrologia",
@@ -503,7 +505,7 @@
     },
     {
       "id": "pacote-religiao",
-      "secao": "aprender",
+      "secao": "cursos",
       "cenario": "dois",
       "curso": true,
       "nome": "Pacote Religião",
@@ -569,7 +571,7 @@
     },
     {
       "id": "pacote-tudo",
-      "secao": "aprender",
+      "secao": "cursos",
       "cenario": "unico",
       "curso": true,
       "nome": "Todos os cursos",
@@ -596,8 +598,37 @@
       ]
     },
     {
+      "id": "curso-fundamentos",
+      "secao": "cursos",
+      "curso": true,
+      "avulso": true,
+      "nome": "Por que Astrologia Funciona?",
+      "subnome": "curso avulso",
+      "paraQuem": "Para começar pelos fundamentos, numa aula só.",
+      "formato": "Curso gravado",
+      "detalhe": "Cerca de 3 horas · com Marcos Monteiro",
+      "referencia": 297,
+      "precos": {
+        "d16": 59,
+        "d17": 59,
+        "d18": 59,
+        "d19": 59
+      },
+      "vagas": null,
+      "esgotado": false,
+      "descricao": [
+        "Aula de cerca de três horas que Yuri fez com Marcos Monteiro, um dos astrólogos mais conhecidos do Brasil, sobre os fundamentos que explicam por que a astrologia funciona. Vem com guia da aula, resumo e versão em áudio.",
+        "Este curso também faz parte do Pacote Astrologia."
+      ],
+      "recebe": [
+        "Aula gravada de cerca de 3 horas",
+        "Guia da aula e resumo",
+        "Versão em áudio"
+      ]
+    },
+    {
       "id": "mentoria",
-      "secao": "aprender",
+      "secao": "mentoria",
       "nome": "Mentoria Lux Et Directio",
       "subnome": "Formando astrólogos do zero",
       "paraQuem": "Para quem parte do zero e quer se formar astrólogo, com Yuri ao lado.",
