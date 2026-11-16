@@ -18,10 +18,8 @@ Tudo mora em `pos-venda/` (raiz do repositório):
 
 ## Ao ativar: o andamento, sem ele pedir
 
-1. Rode `python pos-venda/painel.py`. Ele precisa de acesso ao CRM por variável de ambiente: `BFA_CRM_USUARIO` e
-   `BFA_CRM_SENHA` (ou `CRM_CHAVE`). Se não estiverem definidas, **peça a senha ao Yuri e passe só no comando**
-   (`BFA_CRM_USUARIO=... BFA_CRM_SENHA=... python pos-venda/painel.py`); **nunca grave a senha em arquivo.**
-   Sem acesso, `--offline` usa a última cópia.
+1. Rode `python pos-venda/painel.py`. O acesso ao CRM vem sozinho do `ofertas/.env` (instalado em 16/11 pelo pacote
+   do Gustavo; fora do git). Sem ele, `--offline` usa a última cópia. **Nunca mostre nem copie valores do `.env`.**
 2. O resumo também traz as **oportunidades** (`dados/oportunidades.yaml`: leads que ainda não compraram, cuidados
    pelo `/closer-bfa`). Avise os toques vencidos (⏰).
 3. Dê ao Yuri, nesta ordem: **mandar agora** · **cobrar retorno** (enviado há 2+ dias sem resposta) · **em produção

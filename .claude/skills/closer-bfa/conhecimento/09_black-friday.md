@@ -33,19 +33,22 @@
 2. O que o closer faz aqui é o que a página não faz: **tirar a dúvida, ajudar a escolher, quebrar a objeção** (os
    arquivos 06, 07 e 03). O lead que já mandou o carrinho **já decidiu**: não reabra a triagem, confirme e conduza ao
    pagamento. Triagem só para quem chega perguntando "qual serve para mim?".
-3. **O link de pagamento é gerado pelo `ofertas/scripts/pedido.mjs`** (ver `ESTADO-ATUAL.md`). Sem o `ofertas/.env`
-   do Gustavo, gera-se assim mesmo, quando o Yuri pedir (feito em 16/11, pedido BFA-S35V):
-   - `git pull`; em `ofertas/`: `CRM_DIR=<repo>/pos-venda/dados/pedidos-gerados-aqui node scripts/pedido.mjs novo
-     --codigo BFA-XXXX --nome "Nome" --tel 55DDDNUMERO --itens id,id:2 --quando AAAA-MM-DDTHH:MM` (código e horário
-     **da mensagem do cliente**). O link da InfinitePay não precisa de senha.
-   - Registrar no CRM com o login do painel (`POST /bfa-crm/api/pedidos`, mesmos campos que o `pedido.mjs` envia), senão
-     o link curto `/pg/XXXX` não funciona. Pôr nas Anotações que o link saiu **sem aviso automático**.
-   - ⚠️ Sem o `CRM_WEBHOOK_K` do Gustavo, **o pagamento não se confirma sozinho**: conferir o comprovante e marcar
-     "pago" no CRM à mão.
-   - Para o cliente, no formato do Gustavo: `Segue: https://yuridosanjos.com.br/pg/XXXX` + `Só mandar o comprovante`.
-4. O link manda o cliente para a InfinitePay (Pix ou cartão). O pagamento se confirma sozinho no CRM.
-5. **Forma de pagamento:** Pix ou cartão pelo link. A "entrada no Pix + resto no cartão" do playbook **não está no
-   fluxo da BFA**; só com decisão do Yuri.
+3. **Gerar o link quando o Yuri mandar o print do pedido** (pacote de acesso do Gustavo, 16/11; o `ofertas/.env` está
+   instalado, fora do git). Em `ofertas/`, com `git pull` antes:
+   `node --env-file=.env scripts/pedido.mjs novo --codigo BFA-XXXX --nome "Nome do contato" --tel 55DDDNUMERO --itens id,id:2 --quando AAAA-MM-DDTHH:MM`
+   - Código e horário **da mensagem do cliente** (o horário define o preço). `--tel` só números, com DDI.
+   - **O total impresso tem de bater com o da mensagem.** Se não bater, avise antes de mandar.
+   - Responda ao Yuri só com isto, em bloco de código: `Segue: https://yuridosanjos.com.br/pg/XXXX` + `Só mandar o comprovante`.
+   - O controle local com nome e telefone fica em `C:/bfa-pedidos` (fora do repositório). Nunca `git add` de `.env`
+     nem dessa pasta.
+4. **O pagamento se confirma sozinho no CRM** e as vagas baixam sozinhas na página. Não mexa em vagas, preço, página
+   nem deploy. Pagou por fora (Pix direto na chave, remessa do exterior): marcar pago **no CRM**, nunca com
+   `pedido.mjs pago`. Cliente mudou o pedido: criar o novo e cancelar o antigo no CRM. **Não rode `refazer-links` nem
+   `sincronizar`** sem pedido do Gustavo.
+5. **Forma de pagamento:** Pix ou cartão pelo link; **até 3x sem juros** no cartão (a taxa sai do Yuri), de 4x em diante
+   com juros para o cliente. Cartão de fora do Brasil não passa: Pix por app de remessa (Remitly, Paysend) ou alguém da
+   família no Brasil paga o link. A "entrada no Pix + resto no cartão" do playbook não está no fluxo da BFA; só com
+   decisão do Yuri.
 6. **Link de pagamento tem prazo** (06, §4.3.1): ao mandar, diga que é só pedir outro se expirar.
 
 ## 4. O que muda no playbook

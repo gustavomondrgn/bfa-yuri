@@ -141,7 +141,7 @@ def analisar(pedidos, acomp):
     """Devolve, por pedido pago, a lista de itens com etapa, situação e o que fazer."""
     saida = []
     for p in pedidos:
-        if p["status"] not in ("pago", "entregue"):
+        if p["status"] not in ("pago", "producao", "entregue"):  # CRM: aguardando → pago → producao → entregue
             continue
         reg = acomp.get(p["codigo"], {}) or {}
         itens = []
