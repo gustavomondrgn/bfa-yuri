@@ -48,10 +48,8 @@
 - **Desconto de dia vencido não volta.** Quem mandou a mensagem às 00h05 do dia 17 paga o preço do 17. Se o Yuri quiser
   segurar o preço de alguém, a decisão é dele e fica anotada no pedido.
 - **Curso avulso não existe na campanha.** Só os dois pacotes.
-- **Bússola: na BFA ela é em vídeo** (Yuri, 16/11/2026): *"A bússola que tá sendo vendida não vai ser a bússola que a
-  gente faz aqui, a não ser que a pessoa diga expressamente que prefira algo escrito e não em vídeo."* ⚠️ A página e
-  o `ofertas.json` ainda a descrevem como **"Escrito · 40–50 páginas"**. Até o Yuri resolver essa diferença com o
-  Gustavo, **não afirme o formato ao lead sem confirmar com o Yuri.**
+- **Bússola: na BFA ela é só escrita**, como diz a página (40–50 páginas, 14 dias), sem consulta em vídeo nem agenda.
+  Decidido pelo Yuri com o Gustavo em 16/11/2026, depois de uma dúvida de manhã sobre o formato.
 - **Escassez é real e datada**, então a estimulação contraditória (aprendizado) cabe inteira: dar o prazo (o desconto
   cai à meia-noite) e tirar a pressa na mesma mensagem.
 - **Agenda:** a regra continua (02, *Fechamento e agenda*): o closer não promete horário. Pago, o Yuri manda o link.
@@ -61,7 +59,7 @@
 ## 5. O que o closer NÃO pode prometer na BFA
 
 Curso avulso · desconto de dia que já caiu · vaga além do card · preço diferente da página · combo em cima do carrinho ·
-formato da Bússola sem confirmar · prazo de entrega diferente do card (`detalhe` no `ofertas.json`) · horário de agenda.
+consulta em vídeo ou agenda na Bússola · prazo de entrega diferente do card (`detalhe` no `ofertas.json`) · horário de agenda.
 
 ## 6. Depois do sim
 

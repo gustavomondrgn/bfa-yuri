@@ -12,19 +12,16 @@
   "produtos": {
     "bussola": {
       "nome": "Bússola do Destino",
-      "canal": "formulario+agenda",
-      "coletar": "o formulário da Bússola pega os dados e os assuntos que mais importam; a consulta é marcada pela agenda",
-      "prazo": "consulta pela agenda",
+      "canal": "formulario",
+      "coletar": "o formulário da Bússola pega tudo",
+      "prazo": "14 dias",
+      "prazo_dias": 14,
       "etapas": [
         "form_enviado",
         "form_preenchido",
-        "agenda_enviada",
-        "agendado",
-        "consulta_feita",
-        "gravacao_enviada",
         "entregue"
       ],
-      "nota": "A Bússola da BFA é em VÍDEO, não a Bússola escrita da produção (Yuri, 16/11/2026). Só vira escrita se a pessoa disser expressamente que prefere escrito; aí anote na linha do pedido."
+      "nota": "Na BFA a Bússola é só escrita, sem consulta nem agenda (Yuri e Gustavo, 16/11/2026)."
     },
     "revolucao-solar": {
       "nome": "Revolução Solar",

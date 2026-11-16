@@ -60,12 +60,11 @@ python pos-venda/painel.py marcar BFA-XXXX <produto> <etapa> [--nota "..."] [--d
 
 ## Regras
 
-- **Bússola da BFA é em vídeo**: formulário da Bússola primeiro, agenda depois (Yuri, 16/11/2026). Escrita só se o
-  cliente pedir expressamente; aí anote com `--nota` e pergunte ao Yuri. ⚠️ A página ainda diz "Escrito · 40–50 páginas".
+- **Bússola da BFA é só escrita** (Yuri e Gustavo, 16/11/2026): formulário da Bússola e entrega em 14 dias, sem agenda.
 - **Cursos:** o acesso é liberado no **e-mail** da pessoa. Peça o e-mail ao cliente; quando chegar, marque
   `email_recebido` e **avise o Yuri com o nome e o e-mail**, que ele libera na plataforma.
 - **Prazos** contam do dia em que os dados chegam (formulário preenchido ou dados recebidos): 7 dias (Potencial,
-  Raio-X), 14 dias (A Cura, Natal Escrita), 24 a 48 h (Temperamento, Fórmula da Felicidade, Horária).
+  Raio-X), 14 dias (Bússola, A Cura, Natal Escrita), 24 a 48 h (Temperamento, Fórmula da Felicidade, Horária).
 - Mensagem ao cliente sai na voz do Yuri, DM falada: sem travessão, "nós" e nunca "a gente", sem exclamação decorativa
   (regras em `.claude/skills/closer-bfa/conhecimento/00_persona-e-voz.md`).
 - **Não misture com o CRM do Closer** (`D:\Projetos Claude\Closer\`). O pós-venda da BFA vive só aqui.
