@@ -465,12 +465,12 @@
     var txt, frac = 0;
     if (atual.estado === "antes") {
       var f = faltam(atual.prox - t);
-      rot.textContent = "Abre às 8h · faltam";
+      rot.textContent = "Abre às 8h, faltam";
       txt = f.curto;
       $("#portao-tempo").textContent = f.longo;
     } else if (atual.estado === "ativa") {
       var r = faltam(atual.fim - t);
-      rot.textContent = "Este preço termina em";
+      rot.textContent = "Preço vale por mais";
       txt = r.curto;
       frac = (atual.fim - t) / (atual.fim - atual.ini);
     } else {
