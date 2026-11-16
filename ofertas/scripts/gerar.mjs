@@ -267,7 +267,7 @@ ${D.secoes.map(secaoHtml).join("\n")}
 <h2 id="h-como">Como funciona o pedido</h2>
 <ol>
 <li>Escolha as ofertas e toque em Adicionar. Dá para levar mais de uma.</li>
-<li>Toque em Revisar pedido para conferir itens, quantidades e o total.</li>
+<li>Toque em Finalizar pedido para conferir itens, quantidades e o total.</li>
 <li>Envie pelo WhatsApp. A mensagem já vai escrita, com os itens e os preços.</li>
 <li>O atendimento confere as vagas e manda o link de pagamento. A compra se confirma com o pagamento.</li>
 <li>O desconto diminui a cada meia-noite até 19/11. Vale o preço do dia em que você envia o pedido, com pagamento no mesmo dia.</li>
@@ -283,7 +283,7 @@ ${D.secoes.map(secaoHtml).join("\n")}
 <div class="barra" id="barra" aria-hidden="true">
 <div class="barra__dentro">
 <p class="barra__resumo"><span id="barra-qtd">0 itens no pedido</span><b id="barra-total">R$ 0</b></p>
-<button type="button" class="btn" id="abrir-pedido">Revisar pedido</button>
+<button type="button" class="btn" id="abrir-pedido">Finalizar pedido</button>
 </div>
 </div>
 
