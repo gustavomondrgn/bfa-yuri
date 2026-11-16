@@ -144,7 +144,7 @@ async function salvarPedido(p) {
        link=COALESCE(NULLIF(EXCLUDED.link,''), pedidos.link), pago_em=COALESCE(EXCLUDED.pago_em, pedidos.pago_em),
        obs=CASE WHEN EXCLUDED.obs<>'' THEN EXCLUDED.obs ELSE pedidos.obs END, atualizado=now()
      RETURNING *`,
-    [codigo, status, p.criado || null, String(p.nome || "").slice(0, 120), soDigitos(p.tel).slice(0, 20), String(p.fase || "").slice(0, 60), JSON.stringify(itens), Math.round(Number(p.total) || 0), String(p.link || "").slice(0, 500), p.pagoEm || (status === "pago" ? new Date().toISOString() : null), String(p.obs || "").slice(0, 4000)],
+    [codigo, status, p.criado || null, String(p.nome || "").slice(0, 120), soDigitos(p.tel).slice(0, 20), String(p.fase || "").slice(0, 60), JSON.stringify(itens), Math.round(Number(p.total) || 0), String(p.link || "").slice(0, 2000), p.pagoEm || (status === "pago" ? new Date().toISOString() : null), String(p.obs || "").slice(0, 4000)],
   );
   return linha(r.rows[0]);
 }
@@ -174,7 +174,7 @@ async function atualizar(codigo, mud) {
   if (typeof mud.obs === "string") por("obs", mud.obs.slice(0, 4000));
   if (typeof mud.nome === "string") por("nome", mud.nome.slice(0, 120));
   if (typeof mud.tel === "string") por("tel", soDigitos(mud.tel).slice(0, 20));
-  if (typeof mud.link === "string") por("link", mud.link.slice(0, 500));
+  if (typeof mud.link === "string") por("link", mud.link.slice(0, 2000));
   if (Array.isArray(mud.entregues)) {
     const itens = atual.itens.map((i, k) => ({ ...i, entregue: !!mud.entregues[k] }));
     por("itens", JSON.stringify(itens));
