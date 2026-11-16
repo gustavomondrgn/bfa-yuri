@@ -572,63 +572,6 @@
       ]
     },
     {
-      "id": "pacote-tudo",
-      "secao": "cursos",
-      "cenario": "unico",
-      "curso": true,
-      "nome": "Todos os cursos",
-      "subnome": "17 cursos",
-      "paraQuem": "Para quem quer a biblioteca inteira do Yuri: astrologia e fé.",
-      "formato": "Cursos gravados",
-      "detalhe": "17 títulos · sem limite de vagas",
-      "referencia": 3499,
-      "referenciaTexto": "Separados, somam",
-      "precos": {
-        "d16": 497,
-        "d17": 497,
-        "d18": 497,
-        "d19": 497
-      },
-      "vagas": null,
-      "esgotado": false,
-      "descricao": [
-        "Os nove cursos de astrologia e os oito de religião do Yuri num pacote só."
-      ],
-      "cursosDe": [
-        "pacote-astrologia",
-        "pacote-religiao"
-      ]
-    },
-    {
-      "id": "curso-fundamentos",
-      "secao": "cursos",
-      "curso": true,
-      "avulso": true,
-      "nome": "Por que Astrologia Funciona?",
-      "subnome": "sozinho",
-      "paraQuem": "Para começar pelos fundamentos, numa aula só.",
-      "formato": "Curso gravado",
-      "detalhe": "Cerca de 3 horas · com Marcos Monteiro",
-      "referencia": 297,
-      "precos": {
-        "d16": 59,
-        "d17": 59,
-        "d18": 59,
-        "d19": 59
-      },
-      "vagas": null,
-      "esgotado": false,
-      "descricao": [
-        "Aula de cerca de três horas que Yuri fez com Marcos Monteiro, um dos astrólogos mais conhecidos do Brasil, sobre os fundamentos que explicam por que a astrologia funciona. Vem com guia da aula, resumo e versão em áudio. Faz parte do Pacote Astrologia e também sai sozinho, para quem quer começar por ele."
-      ],
-      "recebe": [
-        "Aula gravada de cerca de 3 horas",
-        "Guia da aula e resumo",
-        "Versão em áudio"
-      ],
-      "anexoDe": "pacote-astrologia"
-    },
-    {
       "id": "mentoria",
       "secao": "mentoria",
       "nome": "Mentoria Lux Et Directio",
@@ -658,7 +601,8 @@
         "Dúvidas com Yuri a qualquer momento, com resposta em até 24 horas"
       ],
       "depoimentos": [
-        "mentoria-01"
+        "mentoria-01",
+        "mentoria-02"
       ]
     }
   ],
@@ -674,7 +618,7 @@
   "infinitepay": "yuri-alan-vmj",
   "depoimentos": {
     "vicente": {
-      "mp4": "/bfa/assets/depoimentos/vicente.mp4?v=2",
+      "mp4": "/bfa/assets/depoimentos/vicente.mp4?v=3",
       "poster": "/bfa/assets/depoimentos/vicente.webp?v=2",
       "titulo": "Vicente, sobre as leituras anuais de Yuri",
       "duracao": "1 min 10 s",
@@ -686,6 +630,13 @@
       "poster": "/bfa/assets/depoimentos/mentoria-01.webp?v=1",
       "titulo": "Julio Pozzato, aluno da mentoria Lux et Directio",
       "duracao": "2 min 36 s",
+      "vertical": false
+    },
+    "mentoria-02": {
+      "mp4": "/bfa/assets/depoimentos/mentoria-02.mp4?v=1",
+      "poster": "/bfa/assets/depoimentos/mentoria-02.webp?v=1",
+      "titulo": "Gibran, aluno de Yuri, numa live no YouTube",
+      "duracao": "2 min 12 s",
       "vertical": false
     }
   }

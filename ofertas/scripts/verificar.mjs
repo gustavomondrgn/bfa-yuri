@@ -258,11 +258,11 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
 // --------------------------------------------------------- cenário de cursos --
 {
   const { p, ctx } = await abrir({ query: "previa=1&agora=2026-11-16T10:00:00-03:00&cursos=unico" });
-  ok("pacote único: card de 17 cursos visível e pacotes separados escondidos", (await p.isVisible("#o-pacote-tudo")) && !(await p.isVisible("#o-pacote-astrologia")));
-  ok("pacote único: chamada passa para até 86%", (await p.textContent("#max-off")) === "86");
+  ok("cursos: só os dois pacotes, mesmo com o parâmetro antigo", (await p.locator("#cursos .oferta--pacote").count()) === 2 && (await p.isVisible("#o-pacote-astrologia")) && (await p.isVisible("#o-pacote-religiao")) && (await p.locator("#o-pacote-tudo").count()) === 0);
   await ctx.close();
   const b = await abrir();
-  ok("dois pacotes + curso avulso: chamada é até 80%", (await b.p.textContent("#max-off")) === "80");
+  ok("cursos: Por que Astrologia Funciona? só dentro do Pacote Astrologia", (await b.p.locator("#o-curso-fundamentos").count()) === 0 && (await b.p.textContent("#o-pacote-astrologia .recibo")).includes("Por que Astrologia Funciona?"));
+  ok("chamada mostra o maior desconto real (78%)", (await b.p.textContent("#max-off")) === "78");
   await b.ctx.close();
 }
 

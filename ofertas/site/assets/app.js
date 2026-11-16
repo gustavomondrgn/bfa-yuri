@@ -11,7 +11,7 @@
   var PORTAO = false;
   var ESGOTAR = PREVIA && Q.get("esgotar") ? Q.get("esgotar").split(",") : [];
   var VICENTE = false;
-  var CENARIO = (PREVIA && Q.get("cursos")) || D.cenarioCursos;
+  var CENARIO = D.cenarioCursos; // decidido: dois pacotes (Astrologia e Religião)
   var CHAVE = "bfa-pedido-v1";
   var JSON_URL = "/bfa/ofertas.json";
   var REDUZIR = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -542,7 +542,7 @@
     var faixa = document.createElement("div");
     faixa.className = "previa-faixa";
     faixa.textContent = "PRÉVIA" + (simBase !== null ? " · horário simulado " + fmtDia.format(new Date(simBase)) + " " + fmtHora.format(new Date(simBase)) : "") +
-      " · cursos: " + (CENARIO === "dois" ? "dois pacotes" : "pacote único") + " · nada é enviado ao Pixel";
+      " · nada é enviado ao Pixel";
     document.body.insertBefore(faixa, document.body.firstChild);
     var painel = document.createElement("div");
     painel.className = "painel-previa";
@@ -555,7 +555,6 @@
       op("2026-11-16T10:00:00-03:00", "16/11 10:00") + op("2026-11-16T23:59:40-03:00", "16/11 23:59:40 (virada)") +
       op("2026-11-17T12:00:00-03:00", "17/11 12:00") + op("2026-11-18T12:00:00-03:00", "18/11 12:00") +
       op("2026-11-19T23:59:40-03:00", "19/11 23:59:40 (fim)") + "</select></label>" +
-      '<label>Cursos<select data-p="cursos"><option value="dois"' + (CENARIO === "dois" ? " selected" : "") + '>dois pacotes</option><option value="unico"' + (CENARIO === "unico" ? " selected" : "") + ">pacote único</option></select></label>" +
       '<label><span><input type="checkbox" data-p="esgotar"' + (ESGOTAR.length ? " checked" : "") + "> esgotar Caixa de Pandora</span></label>" +
       '<button type="button" data-p="limpar">Limpar pedido</button>';
     document.body.appendChild(painel);
