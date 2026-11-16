@@ -1,0 +1,242 @@
+{
+  "_leia": "Como se entrega cada produto da BFA. A chave é o id do produto em ofertas/dados/ofertas.json. 'etapas' é a sequência que o painel acompanha, em ordem; a última é sempre 'entregue'. Texto entre <...> é pendência: falta o Yuri informar. 'prazo_dias' conta a partir do dia em que os dados chegam (formulário preenchido ou dados recebidos).",
+  "links": {
+    "agenda": "https://calendar.app.google/vdGLQrhSE3Rmcvwq7",
+    "potencial-riqueza": "https://yuridosanjos.com.br/form/potencial-financeiro",
+    "raio-x": "https://yuridosanjos.com.br/form/raiox-amoroso",
+    "a-cura": "https://yuridosanjos.com.br/form/a-cura/form",
+    "sinastria": "https://yuridosanjos.com.br/form/sinastria",
+    "cursos": "o acesso é liberado no e-mail da pessoa: pedir o e-mail e passar ao Yuri, que libera na plataforma",
+    "bussola": "https://yuridosanjos.com.br/form/bussola"
+  },
+  "produtos": {
+    "bussola": {
+      "nome": "Bússola do Destino",
+      "canal": "formulario+agenda",
+      "coletar": "o formulário da Bússola pega os dados e os assuntos que mais importam; a consulta é marcada pela agenda",
+      "prazo": "consulta pela agenda",
+      "etapas": [
+        "form_enviado",
+        "form_preenchido",
+        "agenda_enviada",
+        "agendado",
+        "consulta_feita",
+        "gravacao_enviada",
+        "entregue"
+      ],
+      "nota": "A Bússola da BFA é em VÍDEO, não a Bússola escrita da produção (Yuri, 16/11/2026). Só vira escrita se a pessoa disser expressamente que prefere escrito; aí anote na linha do pedido."
+    },
+    "revolucao-solar": {
+      "nome": "Revolução Solar",
+      "canal": "agenda",
+      "coletar": "dados de nascimento (data, hora, cidade)",
+      "prazo": "consulta pela agenda",
+      "etapas": [
+        "agenda_enviada",
+        "agendado",
+        "consulta_feita",
+        "gravacao_enviada",
+        "entregue"
+      ],
+      "nota": "O aniversário manda: se a agenda não cobrir a janela do aniversário da pessoa, combinar a data com ela."
+    },
+    "caixa-pandora": {
+      "nome": "Caixa de Pandora",
+      "canal": "agenda",
+      "coletar": "dados de nascimento (data, hora, cidade)",
+      "prazo": "consulta de 2 a 3 horas pela agenda",
+      "etapas": [
+        "agenda_enviada",
+        "agendado",
+        "consulta_feita",
+        "gravacao_enviada",
+        "entregue"
+      ]
+    },
+    "consulta-natal": {
+      "nome": "Consulta Natal",
+      "canal": "agenda",
+      "coletar": "dados de nascimento (data, hora, cidade) e as perguntas prioritárias",
+      "prazo": "consulta de 1 a 2 horas pela agenda",
+      "etapas": [
+        "agenda_enviada",
+        "agendado",
+        "consulta_feita",
+        "gravacao_enviada",
+        "entregue"
+      ]
+    },
+    "sinastria": {
+      "nome": "Sinastria",
+      "canal": "formulario+agenda",
+      "coletar": "o formulário pega os dados das duas pessoas; a consulta é marcada pela agenda",
+      "prazo": "consulta pela agenda",
+      "etapas": [
+        "form_enviado",
+        "form_preenchido",
+        "agenda_enviada",
+        "agendado",
+        "consulta_feita",
+        "gravacao_enviada",
+        "entregue"
+      ],
+      "nota": "Uma pessoa pode responder sozinha; se a outra quiser, faz um segundo envio no mesmo formulário."
+    },
+    "compre-tempo": {
+      "nome": "Compre Tempo",
+      "canal": "agenda",
+      "coletar": "dados de nascimento (data, hora, cidade)",
+      "prazo": "consulta pela agenda + Datas Propícias de 3 anos",
+      "etapas": [
+        "agenda_enviada",
+        "agendado",
+        "consulta_feita",
+        "gravacao_enviada",
+        "datas_enviadas",
+        "entregue"
+      ]
+    },
+    "mentoria": {
+      "nome": "Mentoria Lux Et Directio",
+      "canal": "agenda",
+      "coletar": "melhor dia e horário da semana para os 16 encontros",
+      "prazo": "16 encontros semanais",
+      "etapas": [
+        "boas_vindas",
+        "primeiro_encontro_marcado",
+        "acesso_placidus",
+        "entregue"
+      ],
+      "nota": "'entregue' aqui = mentoria iniciada (1º encontro feito e Placidus liberado)."
+    },
+    "natal-escrita": {
+      "nome": "Consulta Natal Escrita",
+      "canal": "whatsapp",
+      "coletar": "dados de nascimento (data, hora, cidade) e as perguntas da pessoa",
+      "prazo": "14 dias",
+      "prazo_dias": 14,
+      "etapas": [
+        "dados_pedidos",
+        "dados_recebidos",
+        "entregue"
+      ]
+    },
+    "a-cura": {
+      "nome": "A Cura",
+      "canal": "formulario",
+      "coletar": "o formulário pega tudo",
+      "prazo": "14 dias",
+      "prazo_dias": 14,
+      "etapas": [
+        "form_enviado",
+        "form_preenchido",
+        "entregue"
+      ]
+    },
+    "raio-x": {
+      "nome": "Raio-X Amoroso",
+      "canal": "formulario",
+      "coletar": "o formulário pega tudo",
+      "prazo": "7 dias",
+      "prazo_dias": 7,
+      "etapas": [
+        "form_enviado",
+        "form_preenchido",
+        "entregue"
+      ]
+    },
+    "potencial-riqueza": {
+      "nome": "Potencial de Riqueza",
+      "canal": "formulario",
+      "coletar": "o formulário pega tudo",
+      "prazo": "7 dias",
+      "prazo_dias": 7,
+      "etapas": [
+        "form_enviado",
+        "form_preenchido",
+        "entregue"
+      ]
+    },
+    "horaria": {
+      "nome": "Consulta Horária",
+      "canal": "whatsapp",
+      "coletar": "a pergunta (uma por consulta; o pedido diz quantas)",
+      "prazo": "áudio de 2 a 5 min em 24 a 48 h",
+      "prazo_dias": 2,
+      "etapas": [
+        "dados_pedidos",
+        "dados_recebidos",
+        "entregue"
+      ]
+    },
+    "temperamento": {
+      "nome": "O seu real temperamento",
+      "canal": "whatsapp",
+      "coletar": "dados de nascimento (data, hora, cidade)",
+      "prazo": "áudios de 5 a 10 min em 24 a 48 h",
+      "prazo_dias": 2,
+      "etapas": [
+        "dados_pedidos",
+        "dados_recebidos",
+        "entregue"
+      ]
+    },
+    "formula-felicidade": {
+      "nome": "Fórmula da Felicidade",
+      "canal": "whatsapp",
+      "coletar": "dados de nascimento (data, hora, cidade)",
+      "prazo": "áudios de 5 a 10 min em 24 a 48 h",
+      "prazo_dias": 2,
+      "etapas": [
+        "dados_pedidos",
+        "dados_recebidos",
+        "entregue"
+      ]
+    },
+    "pacote-astrologia": {
+      "nome": "Pacote Astrologia (9 cursos)",
+      "canal": "curso",
+      "coletar": "o e-mail em que a pessoa quer receber o acesso",
+      "prazo": "acesso imediato",
+      "etapas": [
+        "email_pedido",
+        "email_recebido",
+        "acesso_liberado",
+        "entregue"
+      ],
+      "nota": "Com o e-mail em mãos, avisar o Yuri: ele libera o acesso na plataforma dos cursos."
+    },
+    "pacote-religiao": {
+      "nome": "Pacote Religião (8 cursos)",
+      "canal": "curso",
+      "coletar": "o e-mail em que a pessoa quer receber o acesso",
+      "prazo": "acesso imediato",
+      "etapas": [
+        "email_pedido",
+        "email_recebido",
+        "acesso_liberado",
+        "entregue"
+      ],
+      "nota": "Com o e-mail em mãos, avisar o Yuri: ele libera o acesso na plataforma dos cursos."
+    }
+  },
+  "rotulos": {
+    "pendente": "nada enviado ainda",
+    "agenda_enviada": "link da agenda enviado",
+    "agendado": "consulta marcada",
+    "consulta_feita": "consulta feita",
+    "gravacao_enviada": "gravação, transcrição e NotebookLM enviados",
+    "datas_enviadas": "Datas Propícias enviadas",
+    "form_enviado": "link do formulário enviado",
+    "form_preenchido": "formulário preenchido (em produção)",
+    "dados_pedidos": "dados pedidos pelo WhatsApp",
+    "dados_recebidos": "dados recebidos (em produção)",
+    "boas_vindas": "boas-vindas enviadas",
+    "primeiro_encontro_marcado": "1º encontro marcado",
+    "acesso_placidus": "Placidus liberado",
+    "acesso_liberado": "acesso liberado (avisar o cliente)",
+    "entregue": "entregue",
+    "email_pedido": "e-mail pedido ao cliente",
+    "email_recebido": "e-mail recebido: Yuri precisa liberar o acesso"
+  }
+}
