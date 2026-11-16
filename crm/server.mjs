@@ -19,8 +19,40 @@ await pool.query(`CREATE TABLE IF NOT EXISTS pedidos (
   fase text NOT NULL DEFAULT '', itens jsonb NOT NULL DEFAULT '[]'::jsonb, total integer NOT NULL DEFAULT 0,
   link text NOT NULL DEFAULT '', pago_em timestamptz, entregue_em timestamptz, obs text NOT NULL DEFAULT '')`);
 
+await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS recibo text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS metodo text NOT NULL DEFAULT '', ADD COLUMN IF NOT EXISTS pago_valor integer`);
+
 const STATUS = ["aguardando", "pago", "entregue", "cancelado"];
 const DIAS = 30;
+const HANDLE = process.env.INFINITEPAY_HANDLE || "yuri-alan-vmj";
+const WEBHOOK_K = process.env.CRM_WEBHOOK_K || "";
+
+// ------------------------------------------------- pagamento (InfinitePay) --
+// O aviso da InfinitePay (webhook) e a volta do cliente (redirect) não são assinados:
+// todo "pago" é conferido no /payment_check antes de mudar o pedido.
+async function conferirPagamento({ order_nsu, transaction_nsu, slug }) {
+  if (!order_nsu || !transaction_nsu || !slug) return { paid: false, motivo: "faltam dados" };
+  const r = await fetch("https://api.checkout.infinitepay.io/payment_check", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ handle: HANDLE, order_nsu, transaction_nsu, slug }),
+  });
+  const j = await r.json().catch(() => ({}));
+  return { paid: j && j.success === true && j.paid === true, ...j };
+}
+async function registrarPagamento(dados, origem) {
+  const codigo = String(dados.order_nsu || "").toUpperCase();
+  const c = await conferirPagamento(dados);
+  console.log(`[pagamento] ${origem} ${codigo} paid=${c.paid} ${c.capture_method || ""} ${c.paid_amount || ""}`);
+  if (!c.paid) return { ok: false, codigo };
+  const metodo = [c.capture_method === "pix" ? "Pix" : c.capture_method === "credit_card" ? "Cartão" : c.capture_method || "", c.installments > 1 ? `${c.installments}x` : ""].filter(Boolean).join(" ");
+  await pool.query(
+    `UPDATE pedidos SET status = CASE WHEN status IN ('aguardando','cancelado') THEN 'pago' ELSE status END,
+       pago_em = COALESCE(pago_em, now()), recibo = COALESCE(NULLIF($2,''), recibo), metodo = $3,
+       pago_valor = $4, atualizado = now() WHERE codigo = $1`,
+    [codigo, String(dados.receipt_url || ""), metodo, Math.round(Number(c.paid_amount || c.amount || 0) / 100)],
+  );
+  return { ok: true, codigo };
+}
 
 // ---------------------------------------------------------------- sessão --
 const assinar = (v) => crypto.createHmac("sha256", CRM_SEGREDO).update(v).digest("base64url");
@@ -57,7 +89,7 @@ function codigoNovo() {
   return "BFA-" + Array.from({ length: 4 }, () => a[crypto.randomInt(a.length)]).join("");
 }
 function linha(r) {
-  return { codigo: r.codigo, status: r.status, criado: r.criado, atualizado: r.atualizado, nome: r.nome, tel: r.tel, fase: r.fase, itens: r.itens, total: r.total, link: r.link, pagoEm: r.pago_em, entregueEm: r.entregue_em, obs: r.obs };
+  return { codigo: r.codigo, status: r.status, criado: r.criado, atualizado: r.atualizado, nome: r.nome, tel: r.tel, fase: r.fase, itens: r.itens, total: r.total, link: r.link, pagoEm: r.pago_em, entregueEm: r.entregue_em, obs: r.obs, recibo: r.recibo || "", metodo: r.metodo || "", pagoValor: r.pago_valor };
 }
 
 // ------------------------------------------------------------------ dados --
@@ -181,7 +213,7 @@ function desenhar(){
   (p.link?'<div class="acoes"><a class="btn btn--sec" target="_blank" rel="noopener" href="'+esc(p.link)+'">Link de pagamento</a><button class="btn btn--sec" data-copiar="'+esc(p.link)+'">Copiar link</button></div>':'')+
   '<label class="meta">Anotações (pra quem é cada item, datas de nascimento, prazos)<textarea data-obs>'+esc(p.obs)+'</textarea></label>'+
   '<div class="acoes">'+(p.status==="aguardando"?'<button class="btn" data-st="pago">Marcar pago</button>':'')+(p.status==="pago"?'<button class="btn" data-st="entregue">Marcar entregue</button>':'')+(p.status!=="aguardando"&&p.status!=="cancelado"?'<button class="btn btn--sec" data-st="aguardando">Voltar p/ aguardando</button>':'')+(p.status!=="cancelado"?'<button class="btn btn--perigo" data-st="cancelado">Cancelar</button>':'<button class="btn btn--sec" data-st="aguardando">Reabrir</button>')+'</div>'+
-  '<p class="meta">'+(p.pagoEm?'Pago em '+dt(p.pagoEm)+'. ':'')+(p.entregueEm?'Entregue em '+dt(p.entregueEm)+'.':'')+'</p></article>').join("");
+  '<p class="meta">'+(p.pagoEm?'Pago em '+dt(p.pagoEm)+(p.metodo?' · '+esc(p.metodo):'')+(p.pagoValor?' · '+brl(p.pagoValor):'')+'. ':'')+(p.recibo?'<a href="'+esc(p.recibo)+'" target="_blank" rel="noopener">Comprovante</a>. ':'')+(p.entregueEm?'Entregue em '+dt(p.entregueEm)+'.':'')+'</p></article>').join("");
 }
 document.addEventListener("click",async e=>{
  const f=e.target.closest("[data-f]");if(f){FILTRO=f.dataset.f;document.querySelectorAll("[data-f]").forEach(b=>b.setAttribute("aria-pressed",b===f));desenhar();return}
@@ -219,6 +251,24 @@ http.createServer(async (req, res) => {
       return html(res, 404, '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Link de pagamento</title><body style="font-family:system-ui;background:#0E0B09;color:#F4EFE7;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center;padding:1rem"><p>Este link de pagamento não existe ou expirou.<br>Fale com o atendimento pelo WhatsApp.</p></body>');
     }
     if (base === "/pg") { res.writeHead(302, { Location: "/bfa" }); return res.end(); }
+    // aviso da InfinitePay quando o pagamento muda (só vale com a chave na URL e conferido no payment_check)
+    if (url.pathname === "/api/infinitepay" && req.method === "POST") {
+      if (!WEBHOOK_K || !igual(url.searchParams.get("k") || "", WEBHOOK_K)) return json(res, 400, { erro: "chave" });
+      let d = {};
+      try { d = JSON.parse(await corpo(req, 100e3)); } catch { return json(res, 400, { erro: "json" }); }
+      const r = await registrarPagamento({ order_nsu: d.order_nsu, transaction_nsu: d.transaction_nsu, slug: d.invoice_slug || d.slug, receipt_url: d.receipt_url }, "webhook");
+      return json(res, 200, { ok: true, pago: r.ok });
+    }
+    // volta do cliente depois de pagar: confere e mostra a confirmação
+    if (url.pathname === "/pago" && (req.method === "GET" || req.method === "HEAD")) {
+      const q = Object.fromEntries(url.searchParams);
+      let r = { ok: false };
+      try { r = await registrarPagamento({ order_nsu: q.order_nsu, transaction_nsu: q.transaction_nsu, slug: q.slug, receipt_url: q.receipt_url }, "redirect"); } catch (e) { console.error(e); }
+      const msg = r.ok
+        ? `<h1 style="font-size:1.6rem;margin:0 0 .6rem">Pagamento confirmado! 🔥</h1><p>Pedido <b>${esc(r.codigo)}</b>. O atendimento do Yuri vai falar com você pelo WhatsApp para os próximos passos.</p>`
+        : `<h1 style="font-size:1.4rem;margin:0 0 .6rem">Recebemos o seu retorno</h1><p>Se o pagamento foi concluído, o atendimento confirma pelo WhatsApp.</p>`;
+      return html(res, 200, `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Pagamento · Black Friday Apocalíptica</title></head><body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#0E0B09;color:#F4EFE7;font:16px/1.5 system-ui,sans-serif;text-align:center;padding:1.2rem"><main style="max-width:420px"><p style="color:#FF8A3D;font:700 12px ui-monospace,monospace;letter-spacing:.14em">BLACK FRIDAY APOCALÍPTICA</p>${msg}${q.receipt_url && /^https:\/\//.test(q.receipt_url) ? `<p><a href="${esc(q.receipt_url)}" style="color:#F6E3B4">Ver comprovante</a></p>` : ""}</main></body></html>`);
+    }
     if (url.pathname === "/entrar" && req.method === "POST") {
       if (bloqueado(ip)) return html(res, 429, paginaLogin(base, "Muitas tentativas. Espere 10 minutos."));
       const f = new URLSearchParams(await corpo(req, 4000));
