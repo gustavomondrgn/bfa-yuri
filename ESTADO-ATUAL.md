@@ -45,8 +45,15 @@ Outros comandos: `pedido.mjs lista` · `cancelar BFA-XXXX` · `link BFA-XXXX` ·
 ## CRM (`crm/`)
 
 - Node 22 + Postgres (Neon, São Paulo). Login único (usuário e senha nas variáveis do Coolify).
-- Status: aguardando → pago → entregue (ou cancelado); itens com caixinha de entregue; anotações; botão de WhatsApp;
-  busca e totais. "+ Pedido" lança um pedido à mão.
+- Painel (16/11): líquido que entrou (desconta a taxa do cartão), faturamento, falta entrar, total possível,
+  gráficos "pedido × pago" e "receita por oferta", filtro por dia (16–19) e quadro kanban
+  aguardando → pago → em produção → entregue (+ cancelados), com arrastar e soltar, gaveta de detalhe, desfazer
+  e aviso ao vivo quando alguém paga (atualiza a cada 20 s). Visual em `crm/ui/` (app.css, app.js, favicon.svg).
+- Taxa do cartão: até 16/11 09h19 a InfinitePay repassava tudo ao cliente; depois, a conta absorve até 3x
+  (1x 4,2% · 2x 6,09% · 3x+ 7,01%). Tabela em `crm/ui/app.js` (TAXA, TROCA_TAXA). Pix sem taxa.
+  Pagamento confirmado à mão: escolher a forma na gaveta para o líquido sair certo.
+- O `POST /api/pedidos` (pedido.mjs) nunca volta um status para trás, então `sincronizar` com o controle local
+  desatualizado não desfaz pagamentos nem entregas.
 - Variáveis: `DATABASE_URL`, `CRM_USUARIO`, `CRM_SENHA`, `CRM_SEGREDO`, `CRM_CHAVE_API`, `CRM_WEBHOOK_K`,
   `INFINITEPAY_HANDLE`. O `ofertas/.env` precisa de `CRM_URL`, `CRM_CHAVE`, `CRM_WEBHOOK_K` e das variáveis do Coolify.
 

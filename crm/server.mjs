@@ -7,6 +7,7 @@
 import http from "node:http";
 import crypto from "node:crypto";
 import pg from "pg";
+import { readFileSync } from "node:fs";
 
 const { DATABASE_URL, CRM_USUARIO = "", CRM_SENHA = "", CRM_SEGREDO = "", CRM_CHAVE_API = "" } = process.env;
 const PORT = Number(process.env.PORT) || 3000;
@@ -22,7 +23,11 @@ await pool.query(`CREATE TABLE IF NOT EXISTS pedidos (
 await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS recibo text NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS metodo text NOT NULL DEFAULT '', ADD COLUMN IF NOT EXISTS pago_valor integer`);
 
-const STATUS = ["aguardando", "pago", "entregue", "cancelado"];
+const STATUS = ["aguardando", "pago", "producao", "entregue", "cancelado"];
+const PAGOS = ["pago", "producao", "entregue"];
+// interface do CRM (ui/): lida uma vez ao subir e embutida na página (sem cache de CDN no meio)
+const ler = (f) => readFileSync(new URL("./ui/" + f, import.meta.url), "utf8");
+const UI = { css: ler("app.css"), js: ler("app.js"), ico: ler("favicon.svg").trim() };
 const DIAS = 30;
 const HANDLE = process.env.INFINITEPAY_HANDLE || "yuri-alan-vmj";
 const WEBHOOK_K = process.env.CRM_WEBHOOK_K || "";
@@ -100,7 +105,12 @@ async function salvarPedido(p) {
   const r = await pool.query(
     `INSERT INTO pedidos (codigo,status,criado,nome,tel,fase,itens,total,link,pago_em,obs)
      VALUES ($1,$2,COALESCE($3::timestamptz, now()),$4,$5,$6,$7,$8,$9,$10,$11)
-     ON CONFLICT (codigo) DO UPDATE SET status=EXCLUDED.status, nome=EXCLUDED.nome, tel=EXCLUDED.tel, fase=EXCLUDED.fase,
+     ON CONFLICT (codigo) DO UPDATE SET status=CASE
+         WHEN EXCLUDED.status = 'cancelado' THEN 'cancelado'
+         WHEN pedidos.status = 'cancelado' AND EXCLUDED.status <> 'pago' THEN 'cancelado'
+         WHEN COALESCE(array_position(ARRAY['aguardando','pago','producao','entregue'], EXCLUDED.status), 0)
+            >= COALESCE(array_position(ARRAY['aguardando','pago','producao','entregue'], pedidos.status), 0) THEN EXCLUDED.status
+         ELSE pedidos.status END, nome=EXCLUDED.nome, tel=EXCLUDED.tel, fase=EXCLUDED.fase,
        itens=CASE WHEN jsonb_array_length(EXCLUDED.itens)>0 THEN EXCLUDED.itens ELSE pedidos.itens END, total=EXCLUDED.total,
        link=COALESCE(NULLIF(EXCLUDED.link,''), pedidos.link), pago_em=COALESCE(EXCLUDED.pago_em, pedidos.pago_em),
        obs=CASE WHEN EXCLUDED.obs<>'' THEN EXCLUDED.obs ELSE pedidos.obs END, atualizado=now()
@@ -114,12 +124,23 @@ async function atualizar(codigo, mud) {
   if (!atual) return null;
   const sets = [], vals = [];
   const por = (col, v) => { vals.push(v); sets.push(`${col}=$${vals.length}`); };
+  const agora = new Date().toISOString();
   if (mud.status && STATUS.includes(mud.status)) {
     por("status", mud.status);
-    if (mud.status === "pago" && !atual.pago_em) por("pago_em", new Date().toISOString());
-    if (mud.status === "entregue") por("entregue_em", new Date().toISOString());
-    if (mud.status !== "entregue" && atual.entregue_em) por("entregue_em", null);
+    if (mud.pagoEm === undefined) {
+      if (PAGOS.includes(mud.status) && !atual.pago_em) por("pago_em", agora);
+      if (mud.status === "aguardando" && atual.pago_em) por("pago_em", null);
+    }
+    if (mud.status === "entregue") {
+      if (!atual.entregue_em) por("entregue_em", agora);
+      if (!Array.isArray(mud.entregues)) por("itens", JSON.stringify(atual.itens.map((i) => ({ ...i, entregue: true }))));
+    } else if (atual.entregue_em) por("entregue_em", null);
   }
+  if (mud.pagoEm !== undefined) {
+    const d = mud.pagoEm ? new Date(mud.pagoEm) : null;
+    if (!d || !Number.isNaN(d.getTime())) por("pago_em", d ? d.toISOString() : null);
+  }
+  if (typeof mud.metodo === "string") por("metodo", mud.metodo.slice(0, 40));
   if (typeof mud.obs === "string") por("obs", mud.obs.slice(0, 4000));
   if (typeof mud.nome === "string") por("nome", mud.nome.slice(0, 120));
   if (typeof mud.tel === "string") por("tel", soDigitos(mud.tel).slice(0, 20));
@@ -135,102 +156,86 @@ async function atualizar(codigo, mud) {
 }
 
 // ----------------------------------------------------------------- páginas --
-const CSS = `:root{--f:#0E0B09;--c:#17130F;--c2:#201A15;--l:#33291F;--t:#F4EFE7;--t2:#CFC6BA;--t3:#9A8F82;--creme:#F6E3B4;--brasa:#FF8A3D;--verm:#C8140C;--verde:#25D366}
-*{box-sizing:border-box}body{margin:0;background:var(--f);color:var(--t);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
-a{color:inherit}button,input,select,textarea{font:inherit;color:inherit}
-.marca{font-weight:900;letter-spacing:-.02em}.marca small{display:block;color:var(--brasa);font:600 11px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase}
-.btn{appearance:none;border:0;border-radius:10px;min-height:44px;padding:.55rem 1rem;font-weight:800;cursor:pointer;background:var(--creme);color:#17130F;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;text-decoration:none}
-.btn--sec{background:var(--c2);color:var(--t);border:1px solid var(--l)}.btn--zap{background:var(--verde);color:#062b14}.btn--perigo{background:transparent;color:#FF8F86;border:1px solid #5a2320}
-input,select,textarea{background:var(--c2);border:1px solid var(--l);border-radius:10px;padding:.6rem .75rem;width:100%}
-textarea{min-height:64px;resize:vertical}:focus-visible{outline:2px solid var(--creme);outline-offset:2px}`;
+// Visual e comportamento ficam em ui/app.css e ui/app.js; aqui só o esqueleto.
+const FONTES = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@500;600&display=swap">`;
+function cabeca(base, titulo) {
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><meta name="theme-color" content="#0B0908"><title>${titulo}</title><link rel="icon" type="image/svg+xml" href="${base}/favicon.svg">${FONTES}<style>${UI.css}</style></head>`;
+}
+const MARCA = () => `<div class="marca">${UI.ico.replace("<svg ", '<svg aria-hidden="true" ')}<div><span class="marca__crm">CRM de pedidos</span><span class="marca__bf">Black Friday Apocalíptica</span></div></div>`;
 
 function paginaLogin(base, erro = "") {
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>CRM · BFA</title><style>${CSS}
-main{min-height:100vh;display:grid;place-items:center;padding:1rem}form{width:min(100%,360px);display:grid;gap:.8rem;background:var(--c);border:1px solid var(--l);border-radius:16px;padding:1.4rem}
-label{display:grid;gap:.3rem;font-weight:700;font-size:.9rem}.erro{color:#FF8F86;font-weight:700}</style></head><body><main>
-<form method="post" action="${base}/entrar"><p class="marca">CRM · Pedidos<small>Black Friday Apocalíptica</small></p>
-${erro ? `<p class="erro">${esc(erro)}</p>` : ""}
-<label>Usuário<input name="usuario" autocomplete="username" required autofocus></label>
-<label>Senha<input name="senha" type="password" autocomplete="current-password" required></label>
-<button class="btn" type="submit">Entrar</button></form></main></body></html>`;
+  return `${cabeca(base, "Entrar · CRM BFA")}<body class="entrada"><form class="entrada__form" method="post" action="${base}/entrar">${MARCA()}
+${erro ? `<p class="entrada__erro" role="alert">${esc(erro)}</p>` : ""}
+<label class="campo">Usuário<input name="usuario" autocomplete="username" required autofocus></label>
+<label class="campo">Senha<input name="senha" type="password" autocomplete="current-password" required></label>
+<button class="btn btn--brasa btn--cheio" type="submit">Entrar</button></form></body></html>`;
 }
 
+const DIAS_CAMPANHA = [["d16", "16", "seg"], ["d17", "17", "ter"], ["d18", "18", "qua"], ["d19", "19", "qui"]];
 function paginaApp(base) {
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>CRM · BFA</title><style>${CSS}
-header{position:sticky;top:0;z-index:5;background:rgba(14,11,9,.96);border-bottom:1px solid var(--l);padding:.7rem 1rem}
-.topo{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:.75rem}
-.resumo{max-width:1100px;margin:.7rem auto 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem}
-.resumo div{background:var(--c);border:1px solid var(--l);border-radius:12px;padding:.5rem .7rem}.resumo b{display:block;font-size:1.25rem}.resumo span{font-size:.75rem;color:var(--t3)}
-.filtros{max-width:1100px;margin:.7rem auto 0;display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
-.filtros button{background:var(--c);border:1px solid var(--l);border-radius:999px;padding:.35rem .8rem;min-height:36px;cursor:pointer;font-weight:700;font-size:.85rem}
-.filtros button[aria-pressed=true]{background:var(--creme);color:#17130F;border-color:var(--creme)}.filtros input{flex:1 1 200px;width:auto;min-height:36px;padding:.35rem .8rem}
-main{max-width:1100px;margin:0 auto;padding:1rem;display:grid;gap:.8rem;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
-.ped{background:var(--c);border:1px solid var(--l);border-radius:16px;padding:1rem;display:grid;gap:.6rem;align-content:start}
-.ped__cab{display:flex;justify-content:space-between;align-items:center;gap:.5rem}.cod{font:700 .8rem ui-monospace,Consolas,monospace;color:var(--t3)}
-.st{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;border-radius:999px;padding:.2rem .6rem}
-.st--aguardando{background:#3a2c12;color:#FFD38A}.st--pago{background:#103a22;color:#7CF0A8}.st--entregue{background:#22303a;color:#9CC9FF}.st--cancelado{background:#3a1512;color:#FF8F86}
-.nome{font-weight:800;font-size:1.1rem}.tel{color:var(--t2);font-size:.9rem}
-ul{margin:0;padding:0;list-style:none;display:grid;gap:.3rem}li{display:flex;gap:.5rem;align-items:center;font-size:.92rem}li input{width:20px;height:20px;flex:none}
-.total{display:flex;justify-content:space-between;border-top:1px solid var(--l);padding-top:.5rem;font-weight:800}
-.meta{font-size:.78rem;color:var(--t3)}.acoes{display:flex;gap:.4rem;flex-wrap:wrap}.acoes .btn{min-height:40px;padding:.4rem .8rem;font-size:.88rem}
-.vazio{grid-column:1/-1;text-align:center;color:var(--t3);padding:3rem 1rem}
-dialog{background:var(--c);color:var(--t);border:1px solid var(--l);border-radius:16px;width:min(94vw,440px)}dialog::backdrop{background:rgba(0,0,0,.7)}
-dialog form{display:grid;gap:.6rem}dialog label{display:grid;gap:.25rem;font-weight:700;font-size:.88rem}
-@media (max-width:560px){.resumo{grid-template-columns:repeat(2,minmax(0,1fr))}main{grid-template-columns:1fr}}</style></head><body>
-<header><div class="topo"><p class="marca" style="margin:0">CRM · Pedidos<small>Black Friday Apocalíptica</small></p>
-<div style="display:flex;gap:.4rem"><button class="btn btn--sec" id="novo" type="button">+ Pedido</button><form method="post" action="${base}/sair"><button class="btn btn--sec" type="submit">Sair</button></form></div></div>
-<div class="resumo"><div><b id="r-ag">0</b><span>aguardando pagamento</span></div><div><b id="r-pg">0</b><span>pagos a entregar</span></div><div><b id="r-en">0</b><span>entregues</span></div><div><b id="r-fat">R$ 0</b><span>faturamento pago</span></div></div>
-<div class="filtros" role="group" aria-label="Filtrar pedidos"><button data-f="todos" aria-pressed="true">Todos</button><button data-f="aguardando" aria-pressed="false">Aguardando</button><button data-f="pago" aria-pressed="false">A entregar</button><button data-f="entregue" aria-pressed="false">Entregues</button><button data-f="cancelado" aria-pressed="false">Cancelados</button><input id="busca" type="search" placeholder="Buscar nome, telefone ou código" aria-label="Buscar"></div></header>
-<main id="lista" aria-live="polite"></main>
-<dialog id="dlg"><form method="dialog" id="form-novo"><p class="marca" style="margin:0">Novo pedido</p>
-<label>Nome<input name="nome" required></label><label>WhatsApp (com DDD; de fora do Brasil, com o código do país)<input name="tel" inputmode="tel" required></label>
-<label>Itens (um por linha, ex.: 2x Bússola do Destino)<textarea name="itens" required></textarea></label><label>Total (R$)<input name="total" inputmode="numeric" required></label>
-<label>Link de pagamento (opcional)<input name="link"></label><label>Status<select name="status"><option value="aguardando">Aguardando pagamento</option><option value="pago">Pago</option></select></label>
-<div class="acoes"><button class="btn" value="ok">Salvar</button><button class="btn btn--sec" value="cancelar" formnovalidate>Cancelar</button></div></form></dialog>
-<script>
-const BASE=${JSON.stringify(base)};let PED=[],FILTRO="todos";
-const brl=n=>"R$ "+Number(n||0).toLocaleString("pt-BR");
-const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const dt=s=>s?new Date(s).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
-const ROT={aguardando:"Aguardando pagamento",pago:"Pago · a entregar",entregue:"Entregue",cancelado:"Cancelado"};
-async function api(m,u,b){const r=await fetch(BASE+u,{method:m,headers:{"Content-Type":"application/json"},body:b?JSON.stringify(b):undefined});if(r.status===401){location.href=BASE+"/";throw 0}if(!r.ok)throw new Error(await r.text());return r.json()}
-async function carregar(){PED=(await api("GET","/api/pedidos")).pedidos;desenhar()}
-function zap(p){const t=String(p.tel||"").replace(/\\D/g,"");const n=t;const msg="Olá, "+(p.nome||"").split(" ")[0]+"! Aqui é do atendimento do Yuri dos Anjos, sobre o seu pedido "+p.codigo+" da Black Friday Apocalíptica.";return "https://wa.me/"+n+"?text="+encodeURIComponent(msg)}
-function desenhar(){
- const q=document.getElementById("busca").value.trim().toLowerCase();
- const c={aguardando:0,pago:0,entregue:0};let fat=0;
- PED.forEach(p=>{if(c[p.status]!=null)c[p.status]++;if(p.status==="pago"||p.status==="entregue")fat+=p.total});
- document.getElementById("r-ag").textContent=c.aguardando;document.getElementById("r-pg").textContent=c.pago;document.getElementById("r-en").textContent=c.entregue;document.getElementById("r-fat").textContent=brl(fat);
- const lista=PED.filter(p=>(FILTRO==="todos"||p.status===FILTRO)&&(!q||[p.nome,p.tel,p.codigo].join(" ").toLowerCase().includes(q)));
- const el=document.getElementById("lista");
- if(!lista.length){el.innerHTML='<p class="vazio">Nenhum pedido aqui.</p>';return}
- el.innerHTML=lista.map(p=>'<article class="ped" data-c="'+esc(p.codigo)+'">'+
-  '<div class="ped__cab"><span class="cod">'+esc(p.codigo)+' · '+dt(p.criado)+'</span><span class="st st--'+p.status+'">'+ROT[p.status]+'</span></div>'+
-  '<div><div class="nome">'+esc(p.nome||"Sem nome")+'</div><div class="tel">'+esc(p.tel)+(p.fase?' · '+esc(p.fase):'')+'</div></div>'+
-  (p.tel?'<a class="btn btn--zap" target="_blank" rel="noopener" href="'+zap(p)+'">Abrir WhatsApp</a>':'')+
-  '<ul>'+p.itens.map((i,k)=>'<li><input type="checkbox" data-ent="'+k+'" '+(i.entregue?'checked':'')+' aria-label="Entregue: '+esc(i.nome)+'"><span>'+i.qtd+'× '+esc(i.nome)+(i.preco?' · '+brl(i.preco):'')+'</span></li>').join("")+'</ul>'+
-  '<div class="total"><span>Total</span><span>'+brl(p.total)+'</span></div>'+
-  (p.link?'<div class="acoes"><a class="btn btn--sec" target="_blank" rel="noopener" href="'+esc(p.link)+'">Link de pagamento</a><button class="btn btn--sec" data-copiar="'+esc(p.link)+'">Copiar link</button></div>':'')+
-  '<label class="meta">Anotações (pra quem é cada item, datas de nascimento, prazos)<textarea data-obs>'+esc(p.obs)+'</textarea></label>'+
-  '<div class="acoes">'+(p.status==="aguardando"?'<button class="btn" data-st="pago">Marcar pago</button>':'')+(p.status==="pago"?'<button class="btn" data-st="entregue">Marcar entregue</button>':'')+(p.status!=="aguardando"&&p.status!=="cancelado"?'<button class="btn btn--sec" data-st="aguardando">Voltar p/ aguardando</button>':'')+(p.status!=="cancelado"?'<button class="btn btn--perigo" data-st="cancelado">Cancelar</button>':'<button class="btn btn--sec" data-st="aguardando">Reabrir</button>')+'</div>'+
-  '<p class="meta">'+(p.pagoEm?'Pago em '+dt(p.pagoEm)+(p.metodo?' · '+esc(p.metodo):'')+(p.pagoValor?' · '+brl(p.pagoValor):'')+'. ':'')+(p.recibo?'<a href="'+esc(p.recibo)+'" target="_blank" rel="noopener">Comprovante</a>. ':'')+(p.entregueEm?'Entregue em '+dt(p.entregueEm)+'.':'')+'</p></article>').join("");
-}
-document.addEventListener("click",async e=>{
- const f=e.target.closest("[data-f]");if(f){FILTRO=f.dataset.f;document.querySelectorAll("[data-f]").forEach(b=>b.setAttribute("aria-pressed",b===f));desenhar();return}
- const cp=e.target.closest("[data-copiar]");if(cp){navigator.clipboard.writeText(cp.dataset.copiar);cp.textContent="Copiado";return}
- const st=e.target.closest("[data-st]");if(st){const c=st.closest(".ped").dataset.c;if(st.dataset.st==="cancelado"&&!confirm("Cancelar o pedido "+c+"?"))return;const p=await api("PATCH","/api/pedidos/"+encodeURIComponent(c),{status:st.dataset.st});PED=PED.map(x=>x.codigo===c?p:x);desenhar()}
-});
-document.addEventListener("change",async e=>{
- if(e.target.matches("[data-ent]")){const art=e.target.closest(".ped"),c=art.dataset.c;const ent=[...art.querySelectorAll("[data-ent]")].map(i=>i.checked);const p=await api("PATCH","/api/pedidos/"+encodeURIComponent(c),{entregues:ent});PED=PED.map(x=>x.codigo===c?p:x)}
- if(e.target.matches("[data-obs]")){const c=e.target.closest(".ped").dataset.c;const p=await api("PATCH","/api/pedidos/"+encodeURIComponent(c),{obs:e.target.value});PED=PED.map(x=>x.codigo===c?p:x)}
-});
-document.getElementById("busca").addEventListener("input",desenhar);
-const dlg=document.getElementById("dlg");document.getElementById("novo").onclick=()=>dlg.showModal();
-dlg.addEventListener("close",async()=>{if(dlg.returnValue!=="ok")return;const f=new FormData(document.getElementById("form-novo"));
- const itens=String(f.get("itens")).split("\\n").map(s=>s.trim()).filter(Boolean).map(s=>{const m=/^(\\d+)\\s*[x×]\\s*(.+)$/i.exec(s);return m?{qtd:+m[1],nome:m[2]}:{qtd:1,nome:s}});
- const dig=String(f.get("tel")).replace(/\\D/g,"");await api("POST","/api/pedidos",{nome:f.get("nome"),tel:(dig.length===10||dig.length===11)?"55"+dig:dig,itens,total:+String(f.get("total")).replace(/\\D/g,""),link:f.get("link"),status:f.get("status")});document.getElementById("form-novo").reset();carregar()});
-carregar();setInterval(()=>{if(!document.querySelector("textarea:focus"))carregar()},30000);
-</script></body></html>`;
+  return `${cabeca(base, "CRM BFA")}<body data-base="${esc(base)}">
+<header class="topo">${MARCA()}
+  <nav class="dias" aria-label="Dia da campanha"><button type="button" data-dia="tudo" aria-pressed="true"><b>Tudo</b><small>—</small></button>${DIAS_CAMPANHA.map(([id, d, s]) => `<button type="button" data-dia="${id}" aria-pressed="false"><b>${d}<span>${s}</span></b><small>—</small></button>`).join("")}</nav>
+  <div class="topo__acoes"><span class="vivo" id="vivo" title="Atualiza sozinho a cada 20 segundos"><i></i><span>conectando…</span></span>
+    <button class="btn btn--brasa" id="novo" type="button">+ Pedido</button>
+    <form method="post" action="${base}/sair"><button class="btn btn--fantasma" type="submit">Sair</button></form></div>
+</header>
+<main class="painel">
+  <div class="secao-tit ord-din"><h2>Dinheiro</h2></div>
+  <section class="dinheiro" aria-label="Dinheiro">
+    <article class="cartao heroi" style="--i:0">
+      <p class="rotulo"><i class="chave chave--pago"></i>Entrou · líquido</p>
+      <p class="heroi__valor" id="k-liq">R$ 0</p>
+      <p class="heroi__sub" id="k-liq-sub"></p>
+      <div class="heroi__rodape"><div class="seg" id="k-seg" role="img" aria-label=""></div><ul class="leg" id="k-seg-leg"></ul></div>
+    </article>
+    <article class="cartao kpi" style="--i:1"><p class="rotulo"><i class="chave chave--pago"></i>Faturamento</p><p class="kpi__valor" id="k-fat">R$ 0</p><p class="kpi__sub" id="k-fat-sub"></p></article>
+    <article class="cartao kpi" style="--i:2"><p class="rotulo"><i class="chave chave--entrar"></i>Falta entrar</p><p class="kpi__valor" id="k-ent">R$ 0</p><p class="kpi__sub" id="k-ent-sub"></p><button class="kpi__acao" id="ir-aguardando" type="button" hidden>Ver quem falta pagar →</button></article>
+    <article class="cartao kpi kpi--pos" style="--i:3"><p class="rotulo"><i class="chave chave--total"></i>Total possível</p><p class="kpi__valor" id="k-pos">R$ 0</p><p class="kpi__sub" id="k-pos-sub"></p></article>
+    <article class="cartao faixa-num" style="--i:4"><dl>
+      <div><dt>Conversão</dt><dd id="k-conv">0%</dd><small id="k-conv-sub"></small></div>
+      <div><dt>A entregar</dt><dd id="k-fazer">0</dd><small id="k-fazer-sub"></small></div>
+      <div><dt>Taxa do cartão</dt><dd id="k-taxa">R$ 0</dd><small id="k-taxa-sub"></small></div>
+      <div><dt>Cancelados</dt><dd id="k-canc">R$ 0</dd><small id="k-canc-sub"></small></div></dl></article>
+  </section>
+  <section class="graficos" aria-label="Gráficos">
+    <article class="cartao graf" style="--i:5">
+      <header class="graf__cab"><h3>Pedido × pago ao longo do tempo</h3><p>Valor dos pedidos, em R$. A faixa azul entre as linhas é o que ainda falta entrar.</p></header>
+      <ul class="leg"><li><i class="ln ln--pago"></i>Pago</li><li><i class="faixa"></i>A entrar</li><li><i class="ln ln--entrar"></i>Total pedido</li></ul>
+      <div class="graf__area" id="g-tempo"></div>
+      <details class="tabela"><summary>Ver em tabela</summary><div id="t-tempo"></div></details>
+    </article>
+    <article class="cartao graf" style="--i:6">
+      <header class="graf__cab"><h3>Receita por oferta</h3><p>Pago e aguardando, por produto.</p></header>
+      <ul class="leg"><li><i class="sw sw--pago"></i>Pago</li><li><i class="sw sw--entrar"></i>A entrar</li></ul>
+      <ul class="ofertas" id="g-ofertas"></ul>
+      <details class="tabela"><summary>Ver em tabela</summary><div id="t-ofertas"></div></details>
+    </article>
+  </section>
+  <div class="secao-tit ord-ped"><h2>Pedidos</h2></div>
+  <section class="quadro" aria-label="Pedidos">
+    <div class="quadro__barra">
+      <label class="busca"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><span class="sr">Buscar</span><input id="busca" type="search" placeholder="Buscar nome, telefone, código ou produto" autocomplete="off"></label>
+      <span class="quadro__info" id="n-busca" aria-live="polite"></span>
+      <span class="dica-arrastar">Arraste os cartões entre as colunas</span>
+      <label class="troca"><input type="checkbox" id="ver-canc">Mostrar cancelados</label>
+    </div>
+    <div class="colunas" id="colunas"></div>
+  </section>
+</main>
+<dialog class="gaveta" id="gaveta" aria-labelledby="gv-nome"><div id="gaveta-conteudo"></div></dialog>
+<dialog class="modal" id="dlg-novo" aria-labelledby="novo-tit"><form id="form-novo">
+  <h2 id="novo-tit">Novo pedido</h2>
+  <label class="campo">Nome<input name="nome" required autocomplete="off"></label>
+  <label class="campo">WhatsApp <small>com DDD; de fora do Brasil, com o código do país</small><input name="tel" inputmode="tel" required autocomplete="off"></label>
+  <label class="campo">Itens <small>um por linha, ex.: 2x Consulta Horária</small><textarea name="itens" required></textarea></label>
+  <div class="duas"><label class="campo">Total (R$)<input name="total" inputmode="decimal" required></label>
+  <label class="campo">Situação<select name="status"><option value="aguardando">Aguardando pagamento</option><option value="pago">Pago</option></select></label></div>
+  <label class="campo">Link de pagamento <small>opcional</small><input name="link" autocomplete="off"></label>
+  <div class="modal__acoes"><button class="btn btn--fantasma" type="button" id="cancelar-novo">Cancelar</button><button class="btn btn--brasa" type="submit">Salvar pedido</button></div>
+</form></dialog>
+<div class="avisos" id="avisos"></div>
+<script>${UI.js}</script></body></html>`;
 }
 
 // ---------------------------------------------------------------- rotas --
@@ -240,6 +245,7 @@ http.createServer(async (req, res) => {
   const ip = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
   try {
     if (url.pathname === "/healthz") return json(res, 200, { ok: true });
+    if (url.pathname === "/favicon.svg" || url.pathname === "/favicon.ico") { res.writeHead(200, { "Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=86400", ...SEG }); return res.end(UI.ico); }
     // link curto de pagamento: yuridosanjos.com.br/pg/42SY -> link da InfinitePay do pedido BFA-42SY
     const curto = base === "/pg" ? /^\/([A-Za-z0-9]{3,8})\/?$/.exec(url.pathname) : /^\/p\/([A-Za-z0-9]{3,8})\/?$/.exec(url.pathname);
     if (curto && (req.method === "GET" || req.method === "HEAD")) {
