@@ -33,9 +33,16 @@
 2. O que o closer faz aqui é o que a página não faz: **tirar a dúvida, ajudar a escolher, quebrar a objeção** (os
    arquivos 06, 07 e 03). O lead que já mandou o carrinho **já decidiu**: não reabra a triagem, confirme e conduza ao
    pagamento. Triagem só para quem chega perguntando "qual serve para mim?".
-3. **O link de pagamento é gerado pelo `ofertas/scripts/pedido.mjs`** (ver `ESTADO-ATUAL.md`), que precisa do
-   `ofertas/.env` do Gustavo. Sem ele nesta máquina, **o closer não gera link**: o Yuri pede ao Gustavo, ou lança o
-   pedido à mão no CRM ("+ Pedido") e combina o pagamento. Pergunte ao Yuri antes de improvisar outra forma.
+3. **O link de pagamento é gerado pelo `ofertas/scripts/pedido.mjs`** (ver `ESTADO-ATUAL.md`). Sem o `ofertas/.env`
+   do Gustavo, gera-se assim mesmo, quando o Yuri pedir (feito em 16/11, pedido BFA-S35V):
+   - `git pull`; em `ofertas/`: `CRM_DIR=<repo>/pos-venda/dados/pedidos-gerados-aqui node scripts/pedido.mjs novo
+     --codigo BFA-XXXX --nome "Nome" --tel 55DDDNUMERO --itens id,id:2 --quando AAAA-MM-DDTHH:MM` (código e horário
+     **da mensagem do cliente**). O link da InfinitePay não precisa de senha.
+   - Registrar no CRM com o login do painel (`POST /bfa-crm/api/pedidos`, mesmos campos que o `pedido.mjs` envia), senão
+     o link curto `/pg/XXXX` não funciona. Pôr nas Anotações que o link saiu **sem aviso automático**.
+   - ⚠️ Sem o `CRM_WEBHOOK_K` do Gustavo, **o pagamento não se confirma sozinho**: conferir o comprovante e marcar
+     "pago" no CRM à mão.
+   - Para o cliente, no formato do Gustavo: `Segue: https://yuridosanjos.com.br/pg/XXXX` + `Só mandar o comprovante`.
 4. O link manda o cliente para a InfinitePay (Pix ou cartão). O pagamento se confirma sozinho no CRM.
 5. **Forma de pagamento:** Pix ou cartão pelo link. A "entrada no Pix + resto no cartão" do playbook **não está no
    fluxo da BFA**; só com decisão do Yuri.
