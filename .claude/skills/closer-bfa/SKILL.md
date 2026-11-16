@@ -45,8 +45,14 @@ Abra o `ofertas/dados/ofertas.json` (raiz do repositório) **antes de citar qual
 ## Registro
 
 **Nada vai para o CRM do Closer** (`D:\Projetos Claude\Closer\experiencia\`): o Yuri pediu para não misturar.
-O que precisar ficar anotado (para quem é cada item, exceção dada, combinação de pagamento) vai para o campo
-**Anotações** do pedido no CRM da BFA. Se o lead fechar, o pós-venda segue pela skill `/pos-venda-bfa`.
+
+- **Lead que ainda não comprou** (pensando, sumiu, pediu condição) → **`pos-venda/dados/oportunidades.yaml`**, fora do
+  git: interesse, oferta feita, exceção aberta pelo Yuri, situação, `proximo_toque` e `toques`. Quando o Yuri pedir
+  ("deixa salvo como oportunidade"), grave **sem perguntar**. O `painel.py` lista as abertas, com ⏰ nas vencidas;
+  ao ativar a skill, diga quais toques estão vencidos. Rascunho não enviado fica no campo `rascunho`.
+- Mandou um toque → `toques` + 1, novo `proximo_toque`, `situacao` atualizada. Comprou → `fechada: "comprou BFA-XXXX"`
+  e o pedido segue no `/pos-venda-bfa`. Desistiu → `fechada:` com o motivo.
+- Régua: 3 toques sem compra → Retirada Elegante (02). A campanha fecha em 19/11; não marque toque depois disso.
 
 ## Manutenção
 

@@ -22,9 +22,11 @@ Tudo mora em `pos-venda/` (raiz do repositório):
    `BFA_CRM_SENHA` (ou `CRM_CHAVE`). Se não estiverem definidas, **peça a senha ao Yuri e passe só no comando**
    (`BFA_CRM_USUARIO=... BFA_CRM_SENHA=... python pos-venda/painel.py`); **nunca grave a senha em arquivo.**
    Sem acesso, `--offline` usa a última cópia.
-2. Dê ao Yuri, nesta ordem: **mandar agora** · **cobrar retorno** (enviado há 2+ dias sem resposta) · **em produção
+2. O resumo também traz as **oportunidades** (`dados/oportunidades.yaml`: leads que ainda não compraram, cuidados
+   pelo `/closer-bfa`). Avise os toques vencidos (⏰).
+3. Dê ao Yuri, nesta ordem: **mandar agora** · **cobrar retorno** (enviado há 2+ dias sem resposta) · **em produção
    com prazo** (destaque o atrasado) · **consultas marcadas** · **tudo entregue, falta marcar no CRM**.
-3. Para "mandar agora", entregue a **mensagem pronta de cada pedido** (uma por pedido, cobrindo todos os itens). O
+4. Para "mandar agora", entregue a **mensagem pronta de cada pedido** (uma por pedido, cobrindo todos os itens). O
    painel HTML (`pos-venda/dados/PAINEL.html`) tem o botão que abre o WhatsApp com ela.
 
 ## Quando o Yuri cola o print de uma compra

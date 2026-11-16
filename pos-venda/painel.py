@@ -257,6 +257,28 @@ def fmt(d):
     return d.strftime("%d/%m") if d else "?"
 
 
+OPORT = DADOS / "oportunidades.yaml"
+
+
+def resumo_oportunidades():
+    """Leads da BFA que ainda não compraram (dados/oportunidades.yaml), pelo próximo toque."""
+    if not OPORT.exists():
+        return []
+    ops = yaml.safe_load(OPORT.read_text(encoding="utf-8")) or {}
+    abertas = [(k, o) for k, o in ops.items() if isinstance(o, dict) and not o.get("fechada")]
+    if not abertas:
+        return []
+    agora = dt.datetime.now(FUSO).strftime("%Y-%m-%d %H:%M")
+    abertas.sort(key=lambda ko: str(ko[1].get("proximo_toque") or "9999"))
+    out = ["💬 OPORTUNIDADES (ainda não compraram)"]
+    for k, o in abertas:
+        pt = str(o.get("proximo_toque") or "sem data")
+        marca = "⏰ " if pt != "sem data" and pt <= agora else "   "
+        out.append(f"{marca}{pt}  {o.get('nome', k)} · {o.get('interesse', '')[:70]} · toques: {o.get('toques', 0)}")
+    out.append("")
+    return out
+
+
 def resumo_texto(an, pedidos):
     ag = sum(1 for p in pedidos if p["status"] == "aguardando")
     linhas = [f"Pós-venda BFA, {HOJE.strftime('%d/%m/%Y')}: {len(an)} pedidos pagos · {ag} aguardando pagamento (não entram aqui)\n"]
@@ -292,6 +314,7 @@ def resumo_texto(an, pedidos):
         linhas.append("✅ TUDO ENTREGUE, MAS O CRM AINDA DIZ 'PAGO' → marcar entregue no CRM:")
         linhas += ["  " + c for c in crm]
         linhas.append("")
+    linhas += resumo_oportunidades()
     sem_mapa = sorted({i["nome"] for x in an for i in x["itens"] if not i["pid"]})
     if sem_mapa:
         linhas.append("⚠️  Itens que não reconheci (sem mapa de entrega): " + "; ".join(sem_mapa))
