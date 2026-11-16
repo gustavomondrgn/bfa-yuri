@@ -67,6 +67,9 @@ python pos-venda/painel.py marcar BFA-XXXX <produto> <etapa> [--nota "..."] [--d
 - **Horária não se pede na boas-vindas** (Yuri, 16/11/2026): muita gente compra para ter a horária *na manga*. A
   mensagem diz que ela fica guardada e que a pessoa manda a pergunta quando precisar. Etapa `horaria_guardada`, que o
   painel **não cobra**; chegou a pergunta → `dados_recebidos` (24 a 48 h).
+- **Consulta em vídeo = link da agenda; leitura escrita = formulário. Nunca os dois** (Yuri, 16/11/2026). Na dúvida
+  sobre um produto, o que manda é a página (`ofertas/dados/ofertas.json`). A Sinastria da BFA é consulta em vídeo: só
+  agenda.
 - **Bússola da BFA é só escrita** (Yuri e Gustavo, 16/11/2026): formulário da Bússola e entrega em 14 dias, sem agenda.
 - **Cursos:** o acesso é liberado no **e-mail** da pessoa. Peça o e-mail ao cliente; quando chegar, marque
   `email_recebido` e **avise o Yuri com o nome e o e-mail**, que ele libera na plataforma.
@@ -80,5 +83,5 @@ python pos-venda/painel.py marcar BFA-XXXX <produto> <etapa> [--nota "..."] [--d
 
 ## Links
 
-Todos no `entregas.json` (agenda, formulários de Potencial, Raio-X, A Cura, Sinastria e Bússola). Link novo ou
+Todos no `entregas.json` (agenda, formulários de Potencial, Raio-X, A Cura e Bússola). Link novo ou
 trocado: edite lá, e todas as mensagens passam a usá-lo.

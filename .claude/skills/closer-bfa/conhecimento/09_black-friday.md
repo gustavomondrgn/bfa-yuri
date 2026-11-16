@@ -39,6 +39,8 @@
    - Código e horário **da mensagem do cliente** (o horário define o preço). `--tel` só números, com DDI.
    - **O total impresso tem de bater com o da mensagem.** Se não bater, avise antes de mandar.
    - Responda ao Yuri só com isto, em bloco de código: `Segue: https://yuridosanjos.com.br/pg/XXXX` + `Só mandar o comprovante`.
+     **Nada além disso** (Yuri, 16/11/2026): nem dados de nascimento, nem formulário, nem agenda. Isso tudo vai na
+     mensagem de pós-venda, depois do pagamento (`/pos-venda-bfa`).
    - O controle local com nome e telefone fica em `C:/bfa-pedidos` (fora do repositório). Nunca `git add` de `.env`
      nem dessa pasta.
 4. **O pagamento se confirma sozinho no CRM** e as vagas baixam sozinhas na página. Não mexa em vagas, preço, página

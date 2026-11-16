@@ -246,9 +246,6 @@ def mensagem_inicial(p, itens):
     if combo_formula:
         blocos.append("Como você comprou também a Fórmula da Felicidade, deixa um lembrete disso em qualquer campo do "
                       "formulário do Potencial. Eu faço as duas leituras juntas.")
-    form_agenda = [CHAMADA.get(i["pid"], i["prod"]["nome"]) for i in itens if i["prod"].get("canal") == "formulario+agenda"]
-    if form_agenda:
-        blocos.append(f"Para {juntar(form_agenda)}, assim que o formulário chegar eu te mando o link da agenda para marcarmos a consulta.")
     if agenda:
         blocos.append(f"Para {juntar(agenda)}, escolhe o melhor horário aqui: {LINKS.get('agenda')}\n"
                       "Se não achar horário que funcione, me fala que nós encaixamos.")
