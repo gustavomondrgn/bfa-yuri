@@ -66,7 +66,8 @@ python pos-venda/painel.py marcar BFA-XXXX <produto> <etapa> [--nota "..."] [--d
   pedido de dados pelo WhatsApp.
 - **Horária não se pede na boas-vindas** (Yuri, 16/11/2026): muita gente compra para ter a horária *na manga*. A
   mensagem diz que ela fica guardada e que a pessoa manda a pergunta quando precisar. Etapa `horaria_guardada`, que o
-  painel **não cobra**; chegou a pergunta → `dados_recebidos` (24 a 48 h).
+  painel **não cobra**; chegou a pergunta → `dados_recebidos` (24 a 48 h). **Várias Horárias: uma pergunta de cada
+  vez, de preferência uma por dia, nunca todas juntas** (Yuri, 16/11/2026; Doutrina §228).
 - **Consulta em vídeo = link da agenda; leitura escrita = formulário. Nunca os dois** (Yuri, 16/11/2026). Na dúvida
   sobre um produto, o que manda é a página (`ofertas/dados/ofertas.json`). A Sinastria da BFA é consulta em vídeo: só
   agenda.

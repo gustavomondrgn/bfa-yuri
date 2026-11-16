@@ -226,7 +226,9 @@ def mensagem_inicial(p, itens):
                                  "é só me mandar aqui do jeito que ela estiver na sua cabeça, que em 24 a 48 horas eu te respondo em áudio"
                                  if q == 1 else
                                  f"As suas {q} Horárias ficam guardadas com você: não precisa fazer as perguntas agora. Quando surgir uma questão, "
-                                 "é só me mandar aqui, uma de cada vez ou todas juntas, que em 24 a 48 horas eu te respondo em áudio")
+                                 "é só me mandar aqui, que em 24 a 48 horas eu te respondo em áudio. Uma pergunta de cada vez, "
+                                 "de preferência uma por dia: cada pergunta tem o seu próprio mapa")
+                # Horária: uma pergunta de cada vez, de preferência uma por dia (Yuri, 16/11/2026; Doutrina §228)
             elif pid == "natal-escrita":
                 dados_nasc.append(CHAMADA[pid])
                 perguntas.append("Natal Escrita: me manda também as perguntas que você quer ver respondidas")
