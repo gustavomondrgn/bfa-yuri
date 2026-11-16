@@ -46,14 +46,26 @@ async function conferirPagamento({ order_nsu, transaction_nsu, slug }) {
 }
 // ------------------------------------------------- vagas vendidas (público) --
 // A página /bfa calcula vagas = vagasIniciais − unidades pagas. Só contagens por oferta, sem cliente.
+// Congelar: { "bussola": 3 } faz a página contar 3 pagas para a Bússola, qualquer que seja o real
+// (decisão de Gustavo em 16/11: não negar pedido nem aumentar o total anunciado). {} descongela.
+await pool.query(`CREATE TABLE IF NOT EXISTS ajustes (chave text PRIMARY KEY, valor jsonb NOT NULL, atualizado timestamptz NOT NULL DEFAULT now())`);
+async function congelado() {
+  const r = await pool.query("SELECT valor FROM ajustes WHERE chave = 'congelar'");
+  return r.rows[0]?.valor || {};
+}
 let cacheVagas = { em: 0, dados: null };
-async function vendidos() {
-  if (cacheVagas.dados && Date.now() - cacheVagas.em < 15000) return cacheVagas.dados;
+async function vendidosReais() {
   const r = await pool.query(
     `SELECT i->>'id' AS id, SUM(GREATEST(1, COALESCE((i->>'qtd')::int, 1)))::int AS n
        FROM pedidos, jsonb_array_elements(itens) i
       WHERE status IN ('pago','producao','entregue') AND COALESCE(i->>'id','') <> '' GROUP BY 1`);
-  const dados = { vendidos: Object.fromEntries(r.rows.map((x) => [x.id, x.n])), em: new Date().toISOString() };
+  return Object.fromEntries(r.rows.map((x) => [x.id, x.n]));
+}
+async function vendidos() {
+  if (cacheVagas.dados && Date.now() - cacheVagas.em < 15000) return cacheVagas.dados;
+  const mostrado = { ...(await vendidosReais()) };
+  for (const [id, n] of Object.entries(await congelado())) mostrado[id] = Math.max(0, Number(n) || 0);
+  const dados = { vendidos: mostrado, em: new Date().toISOString() };
   cacheVagas = { em: Date.now(), dados };
   return dados;
 }
@@ -322,6 +334,15 @@ http.createServer(async (req, res) => {
         const salvos = [];
         for (const x of lista) salvos.push(await salvarPedido(x));
         return json(res, 200, { pedidos: salvos });
+      }
+      // congelar vagas mostradas na página (só com login ou chave)
+      if (url.pathname === "/api/congelar" && req.method === "GET") return json(res, 200, { congelar: await congelado(), reais: await vendidosReais() });
+      if (url.pathname === "/api/congelar" && req.method === "PUT") {
+        const c = JSON.parse(await corpo(req, 4000));
+        const limpo = Object.fromEntries(Object.entries(c && typeof c === "object" ? c : {}).filter(([k, v]) => /^[a-z0-9-]{1,40}$/.test(k) && Number.isFinite(Number(v))).map(([k, v]) => [k, Math.max(0, Math.round(Number(v)))]));
+        await pool.query("INSERT INTO ajustes (chave, valor) VALUES ('congelar', $1) ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor, atualizado = now()", [JSON.stringify(limpo)]);
+        zerarVagas();
+        return json(res, 200, { congelar: limpo });
       }
       const m = /^\/api\/pedidos\/([A-Za-z0-9-]{1,20})$/.exec(url.pathname);
       if (m && req.method === "PATCH") {
