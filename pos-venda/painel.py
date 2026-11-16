@@ -204,9 +204,14 @@ def mensagem_inicial(p, itens):
     """Uma mensagem por pedido, cobrindo todos os itens que ainda não começaram."""
     nome = primeiro_nome(p.get("nome"))
     blocos, form, agenda, dados_nasc, perguntas, curso = [], [], [], [], [], []
+    # Potencial + Fórmula no mesmo pedido: a Fórmula é feita junto, pelo formulário do Potencial (Yuri, 16/11/2026)
+    novos = {i["pid"] for i in itens}
+    combo_formula = {"potencial-riqueza", "formula-felicidade"} <= novos
     for i in itens:
         pid, prod = i["pid"], i["prod"]
         canal = prod.get("canal", "")
+        if combo_formula and pid == "formula-felicidade":
+            continue
         if "formulario" in canal:
             form.append(f"{prod['nome']}: {LINKS.get(pid, '<link>')}")
         if canal in ("agenda",) or canal.endswith("agenda"):
@@ -238,6 +243,9 @@ def mensagem_inicial(p, itens):
         else:
             blocos.append("Para eu começar, preciso que você preencha os formulários (um para cada leitura):\n" + "\n".join(form)
                           + ("\nO prazo de cada leitura começa a contar quando o formulário dela chegar aqui." if com_prazo else ""))
+    if combo_formula:
+        blocos.append("Como você comprou também a Fórmula da Felicidade, deixa um lembrete disso em qualquer campo do "
+                      "formulário do Potencial. Eu faço as duas leituras juntas.")
     form_agenda = [CHAMADA.get(i["pid"], i["prod"]["nome"]) for i in itens if i["prod"].get("canal") == "formulario+agenda"]
     if form_agenda:
         blocos.append(f"Para {juntar(form_agenda)}, assim que o formulário chegar eu te mando o link da agenda para marcarmos a consulta.")

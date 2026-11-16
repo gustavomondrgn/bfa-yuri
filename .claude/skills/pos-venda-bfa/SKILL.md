@@ -60,6 +60,10 @@ python pos-venda/painel.py marcar BFA-XXXX <produto> <etapa> [--nota "..."] [--d
 
 ## Regras
 
+- **Potencial + Fórmula da Felicidade no mesmo pedido** (Yuri, 16/11/2026): a mensagem pede para a pessoa deixar, em
+  qualquer campo do formulário do Potencial, um lembrete de que comprou também a Fórmula; o Yuri faz as duas juntas. Não
+  se pedem dados de nascimento à parte para a Fórmula. Só vale para quem comprou os dois; Fórmula sozinha segue o
+  pedido de dados pelo WhatsApp.
 - **Horária não se pede na boas-vindas** (Yuri, 16/11/2026): muita gente compra para ter a horária *na manga*. A
   mensagem diz que ela fica guardada e que a pessoa manda a pergunta quando precisar. Etapa `horaria_guardada`, que o
   painel **não cobra**; chegou a pergunta → `dados_recebidos` (24 a 48 h).
