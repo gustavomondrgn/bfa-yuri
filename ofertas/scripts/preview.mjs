@@ -28,6 +28,11 @@ createServer(async (req, res) => {
   const c = decodeURIComponent(url.pathname);
   if (c === "/healthz") { res.writeHead(200); return res.end("ok\n"); }
   // imita o CRM (/bfa-crm/api/vagas): vendidos = iniciais − vagas do ofertas.json, então a página mostra as mesmas vagas
+  // imita o CRM (/bfa-crm/api/precos): nada salvo, valem os preços do ofertas.json
+  if (c === "/bfa-crm/api/precos") {
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return res.end(JSON.stringify({ precos: {}, atualizado: null }));
+  }
   if (c === "/bfa-crm/api/vagas") {
     const D = JSON.parse(await readFile(join(SITE, "ofertas.json"), "utf8"));
     const vendidos = Object.fromEntries(D.itens.filter((i) => i.vagasIniciais != null && i.vagas != null).map((i) => [i.id, i.vagasIniciais - i.vagas]));

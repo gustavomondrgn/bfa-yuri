@@ -29,7 +29,7 @@ const STATUS = ["aguardando", "pago", "producao", "entregue", "cancelado"];
 const PAGOS = ["pago", "producao", "entregue"];
 // interface do CRM (ui/): lida uma vez ao subir e embutida na página (sem cache de CDN no meio)
 const ler = (f) => readFileSync(new URL("./ui/" + f, import.meta.url), "utf8");
-const UI = { css: ler("app.css"), js: ler("app.js"), ico: ler("favicon.svg").trim() };
+const UI = { css: ler("app.css"), js: ler("app.js"), precos: ler("precos.js"), ico: ler("favicon.svg").trim() };
 const DIAS = 30;
 const HANDLE = process.env.INFINITEPAY_HANDLE || "yuri-alan-vmj";
 const WEBHOOK_K = process.env.CRM_WEBHOOK_K || "";
@@ -72,6 +72,48 @@ async function vendidos() {
   return dados;
 }
 const zerarVagas = () => { cacheVagas.em = 0; };
+
+// -------------------------------------------------- preços por dia (público) --
+// Tela "Preços" (/bfa-crm/precos, com login): Gustavo muda o preço de cada oferta em cada dia e salva.
+// A página /bfa lê /api/precos (sem login; só números, nada de cliente) e põe por cima do
+// ofertas.json, sem deploy. Formato: { "bussola": { "d16": 797, "d17": 977, ... }, ... } em reais.
+// Cada versão anterior fica em 'precos-historico' (últimas 40) para desfazer um erro.
+const CATALOGO = process.env.CATALOGO_URL || "/bfa/ofertas.json";
+let cachePrecos = { em: 0, dados: null };
+async function precos() {
+  if (cachePrecos.dados && Date.now() - cachePrecos.em < 10000) return cachePrecos.dados;
+  const r = await pool.query("SELECT valor, atualizado FROM ajustes WHERE chave = 'precos'");
+  const dados = { precos: r.rows[0]?.valor || {}, atualizado: r.rows[0]?.atualizado || null };
+  cachePrecos = { em: Date.now(), dados };
+  return dados;
+}
+function limparPrecos(c) {
+  const fonte = c && typeof c === "object" && c.precos && typeof c.precos === "object" ? c.precos : c;
+  const limpo = {}, erros = [];
+  for (const [id, dias] of Object.entries(fonte && typeof fonte === "object" ? fonte : {})) {
+    if (!/^[a-z0-9-]{1,40}$/.test(id) || !dias || typeof dias !== "object") { erros.push(id); continue; }
+    for (const [f, v] of Object.entries(dias)) {
+      const n = Number(v);
+      if (!/^d\d{2}$/.test(f) || !Number.isInteger(n) || n < 1 || n > 1e6) { erros.push(`${id}.${f}`); continue; }
+      (limpo[id] ||= {})[f] = n;
+    }
+  }
+  return { limpo, erros };
+}
+async function salvarPrecos(novo) {
+  const antes = (await pool.query("SELECT valor, atualizado FROM ajustes WHERE chave = 'precos'")).rows[0];
+  if (antes) {
+    const h = (await pool.query("SELECT valor FROM ajustes WHERE chave = 'precos-historico'")).rows[0]?.valor || [];
+    const lista = [{ em: antes.atualizado, precos: antes.valor }, ...(Array.isArray(h) ? h : [])].slice(0, 40);
+    await pool.query("INSERT INTO ajustes (chave, valor) VALUES ('precos-historico', $1) ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor, atualizado = now()", [JSON.stringify(lista)]);
+  }
+  await pool.query("INSERT INTO ajustes (chave, valor) VALUES ('precos', $1) ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor, atualizado = now()", [JSON.stringify(novo)]);
+  const mudou = [];
+  for (const [id, dias] of Object.entries(novo)) for (const [f, v] of Object.entries(dias)) if (antes?.valor?.[id]?.[f] !== v) mudou.push(`${id}.${f}=${v}`);
+  console.log(`[precos] salvo · ${mudou.length} mudança(s)${mudou.length ? ": " + mudou.slice(0, 40).join(" ") : ""}`);
+  cachePrecos.em = 0;
+  return precos();
+}
 
 async function registrarPagamento(dados, origem) {
   const codigo = String(dados.order_nsu || "").toUpperCase();
@@ -212,6 +254,7 @@ function paginaApp(base) {
   <div class="topo__acoes"><span class="vivo" id="vivo" title="Atualiza sozinho a cada 20 segundos"><i></i><span>conectando…</span></span>
     <button class="btn btn--fantasma btn--liga" id="fogos" type="button" aria-pressed="false" title="Fogos de artifício"><span aria-hidden="true">🎆</span><span class="rot">Fogos</span></button>
     <button class="btn btn--fantasma btn--liga" id="musica" type="button" aria-pressed="false" title="Música épica"><span aria-hidden="true">🎵</span><span class="rot">Música</span></button>
+    <a class="btn btn--fantasma" href="${base}/precos" title="Preços de cada oferta por dia">Preços</a>
     <button class="btn btn--brasa" id="novo" type="button">+ Pedido</button>
     <form method="post" action="${base}/sair"><button class="btn btn--fantasma" type="submit">Sair</button></form></div>
 </header>
@@ -273,6 +316,30 @@ function paginaApp(base) {
 <script>${UI.js}</script></body></html>`;
 }
 
+// tela Preços: o catálogo (nomes, seções, ordem, preço cheio) vem do próprio ofertas.json da página;
+// os valores salvos aqui valem por cima dele. Comportamento em ui/precos.js.
+function paginaPrecos(base) {
+  return `${cabeca(base, "Preços · CRM BFA")}<body class="pg-precos" data-base="${esc(base)}" data-catalogo="${esc(CATALOGO)}">
+<header class="topo">${MARCA()}
+  <div class="topo__acoes topo__acoes--fim"><a class="btn btn--fantasma" href="${base}/">← Pedidos</a>
+    <a class="btn btn--fantasma" href="/bfa" target="_blank" rel="noopener">Ver a página</a>
+    <form method="post" action="${base}/sair"><button class="btn btn--fantasma" type="submit">Sair</button></form></div>
+</header>
+<main class="painel precos">
+  <div class="precos__cab"><div><h1>Preços por dia</h1>
+    <p>Mude o valor e clique em <b>Salvar preços</b>. A página de ofertas troca sozinha, sem deploy: quem abrir já vê o preço novo, e quem já está nela vê em até 1 minuto. O link de pagamento também sai com o preço novo.</p></div>
+    <p class="precos__info" id="pr-info"></p></div>
+  <div id="pr-tabela"><p class="precos__carregando">Carregando ofertas…</p></div>
+</main>
+<div class="precos__barra" id="pr-barra" hidden><span id="pr-n"></span><button class="btn btn--fantasma" type="button" id="pr-desfazer">Desfazer</button><button class="btn btn--brasa" type="button" id="pr-salvar">Salvar preços</button></div>
+<dialog class="modal" id="pr-conf" aria-labelledby="pr-conf-tit"><form method="dialog">
+  <h2 id="pr-conf-tit">Confirmar preços</h2><ul class="precos__lista" id="pr-lista"></ul>
+  <div class="modal__acoes"><button class="btn btn--fantasma" value="nao">Voltar</button><button class="btn btn--brasa" value="sim">Salvar e publicar</button></div>
+</form></dialog>
+<div class="avisos" id="avisos"></div>
+<script>${UI.precos}</script></body></html>`;
+}
+
 // ---------------------------------------------------------------- rotas --
 http.createServer(async (req, res) => {
   const base = prefixo(req);
@@ -281,6 +348,7 @@ http.createServer(async (req, res) => {
   try {
     if (url.pathname === "/healthz") return json(res, 200, { ok: true });
     if (url.pathname === "/api/vagas" && (req.method === "GET" || req.method === "HEAD")) return json(res, 200, await vendidos());
+    if (url.pathname === "/api/precos" && (req.method === "GET" || req.method === "HEAD")) return json(res, 200, await precos());
     if (url.pathname === "/favicon.svg" || url.pathname === "/favicon.ico") { res.writeHead(200, { "Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=86400", ...SEG }); return res.end(UI.ico); }
     // link curto de pagamento: yuridosanjos.com.br/pg/42SY -> link da InfinitePay do pedido BFA-42SY
     const curto = base === "/pg" ? /^\/([A-Za-z0-9]{3,8})\/?$/.exec(url.pathname) : /^\/p\/([A-Za-z0-9]{3,8})\/?$/.exec(url.pathname);
@@ -349,6 +417,19 @@ http.createServer(async (req, res) => {
         zerarVagas();
         return json(res, 200, { congelar: limpo });
       }
+      // preços por dia (tela Preços): substitui o objeto inteiro; valor errado devolve 400 e nada muda
+      if (url.pathname === "/api/precos" && req.method === "PUT") {
+        let c;
+        try { c = JSON.parse(await corpo(req, 60e3)); } catch { return json(res, 400, { erro: "json" }); }
+        const { limpo, erros } = limparPrecos(c);
+        if (erros.length) return json(res, 400, { erro: "valores", campos: erros });
+        if (!Object.keys(limpo).length) return json(res, 400, { erro: "vazio" });
+        return json(res, 200, await salvarPrecos(limpo));
+      }
+      if (url.pathname === "/api/precos/historico" && req.method === "GET") {
+        const h = (await pool.query("SELECT valor FROM ajustes WHERE chave = 'precos-historico'")).rows[0]?.valor || [];
+        return json(res, 200, { historico: h });
+      }
       const m = /^\/api\/pedidos\/([A-Za-z0-9-]{1,20})$/.exec(url.pathname);
       if (m && req.method === "PATCH") {
         const p = await atualizar(m[1].toUpperCase(), JSON.parse(await corpo(req)));
@@ -357,6 +438,7 @@ http.createServer(async (req, res) => {
       return json(res, 404, { erro: "rota" });
     }
     if (req.method !== "GET" && req.method !== "HEAD") return json(res, 405, { erro: "método" });
+    if (url.pathname === "/precos" || url.pathname === "/precos/") return html(res, 200, logado ? paginaPrecos(base) : paginaLogin(base));
     if (url.pathname !== "/" && url.pathname !== "") { res.writeHead(303, { Location: base + "/" }); return res.end(); }
     return html(res, 200, logado ? paginaApp(base) : paginaLogin(base));
   } catch (e) {

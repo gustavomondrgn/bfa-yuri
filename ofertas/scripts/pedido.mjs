@@ -31,6 +31,17 @@ for (let k = 0; k < resto.length; k++) {
 }
 
 const D = JSON.parse(await readFile(DADOS, "utf8"));
+// preços salvos no CRM (tela Preços) valem por cima do ofertas.json, igual à página: o link sai com o
+// mesmo valor que a pessoa viu. Só para "novo" (o "pago" regrava o ofertas.json e não deve levar isso junto).
+if (cmd === "novo" && process.env.CRM_URL) {
+  try {
+    const r = await fetch(process.env.CRM_URL + "/api/precos?t=" + Date.now(), { cache: "no-store" });
+    const j = r.ok ? await r.json() : null;
+    let n = 0;
+    for (const i of D.itens) for (const [f, v] of Object.entries(j?.precos?.[i.id] || {})) if (i.precos && Number.isInteger(v) && v > 0) { i.precos[f] = v; n++; }
+    console.log(r.ok ? `  (preços do CRM: ${n} valor(es) aplicados)` : `  ATENÇÃO: preços do CRM não vieram (${r.status}); usando os do ofertas.json`);
+  } catch (e) { console.log("  ATENÇÃO: CRM fora do ar; usando os preços do ofertas.json (" + e.message + ")"); }
+}
 await mkdir(CRM_DIR, { recursive: true });
 const crm = existsSync(CRM) ? JSON.parse(await readFile(CRM, "utf8")) : { pedidos: [] };
 const brl = (n) => "R$ " + n.toLocaleString("pt-BR");

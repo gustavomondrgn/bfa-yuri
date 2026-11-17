@@ -354,3 +354,60 @@ dialog{color:var(--t1)}
 @media (forced-colors:active){
   .seg__b,.of__b,.chave,.col__ponto{forced-color-adjust:none}
 }
+
+/* ------------------------------------------------- tela Preços (/precos) */
+.topo__acoes--fim{margin-left:auto;flex-wrap:wrap}
+.precos{max-width:1180px;padding-bottom:150px;gap:16px}
+.precos__cab{display:flex;align-items:flex-end;justify-content:space-between;gap:10px 28px;flex-wrap:wrap;margin:6px 2px 4px}
+.precos__cab h1{margin:0 0 8px;font:italic 500 36px/1.05 var(--serif);color:var(--creme)}
+.precos__cab p{margin:0;color:var(--t2);max-width:66ch}
+.precos__cab b{color:var(--t1)}
+.precos__info{font:500 12px/1.4 var(--mono)!important;color:var(--t3)!important}
+.precos__carregando{color:var(--t3);padding:30px 4px}
+.pr-sec{padding:16px 18px 6px}
+.pr-sec h2{margin:0 0 12px;font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--brasa)}
+.pr-cab,.pr-linha{display:grid;grid-template-columns:minmax(0,1.7fr) 92px repeat(4,minmax(96px,1fr));gap:10px;align-items:center}
+.pr-cab{padding:0 0 8px;border-bottom:1px solid var(--linha);font:600 10.5px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--t3)}
+.pr-cab .hoje{color:var(--creme)}
+.pr-cab .passado{opacity:.6}
+.pr-linha{padding:11px 0;border-bottom:1px solid var(--linha)}
+.pr-linha:last-child{border-bottom:0}
+.pr-nome{min-width:0}
+.pr-nome b{display:block;font-weight:650;color:var(--t1);line-height:1.25}
+.pr-nome b span{font-weight:450;color:var(--t2)}
+.pr-nome small{display:block;color:var(--t3);font-size:12.5px;margin-top:2px}
+.pr-ref{font:500 13px/1 var(--mono);color:var(--t3)}
+.pr-cel{display:grid;gap:4px;align-content:start}
+.pr-dia{display:none}
+.pr-campo{display:flex;align-items:center;gap:5px;background:var(--sup2);border:1px solid var(--linha2);border-radius:10px;padding:0 10px;height:42px;transition:border-color .15s,box-shadow .15s,background .15s}
+.pr-campo i{font-style:normal;color:var(--t3);font-size:12px}
+.pr-campo input{width:100%;min-width:0;border:0;background:transparent;font:600 16px/1 var(--mono);color:var(--t1);outline:0;padding:0}
+.pr-campo:focus-within{border-color:var(--brasa);box-shadow:0 0 0 3px rgba(255,138,61,.18)}
+.pr-cel.hoje .pr-campo{box-shadow:inset 0 0 0 1px rgba(255,138,61,.4)}
+.pr-cel.passado .pr-campo{opacity:.45}
+.pr-cel.mudou .pr-campo{border-color:var(--creme);background:rgba(246,227,180,.09)}
+.pr-cel.erro .pr-campo{border-color:#D03B3B}
+.pr-off{font:500 11px/1 var(--mono);color:var(--t3);min-height:11px}
+.pr-off.acima,.pr-cel.erro .pr-off{color:#FF9A90}
+.precos__barra{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:10px;padding:10px 10px 10px 18px;background:rgba(27,22,18,.97);border:1px solid var(--linha2);border-radius:16px;box-shadow:0 20px 50px -20px rgba(0,0,0,.9);animation:subir .25s ease-out}
+.precos__barra span{font-weight:650;color:var(--creme);white-space:nowrap;margin-right:6px}
+.precos__barra .btn:disabled{opacity:.45;cursor:not-allowed}
+.precos__lista{margin:0;padding:0 0 0 18px;max-height:50vh;overflow:auto;color:var(--t2);display:grid;gap:7px}
+.precos__lista b{color:var(--t1)}
+@media (max-width:760px){
+  .precos__cab h1{font-size:30px}
+  .pr-sec{padding:14px 12px 4px}
+  .pr-cab{display:none}
+  .pr-linha{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 6px;padding:13px 0}
+  .pr-nome{grid-column:1 / -1}
+  .pr-ref{grid-column:1 / -1;margin-top:-4px;font-size:12px}
+  .pr-ref::before{content:"Preço cheio: "}
+  .pr-dia{display:block;font:600 10px/1 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--t3)}
+  .pr-cel.hoje .pr-dia{color:var(--creme)}
+  .pr-campo{padding:0 7px;height:40px}
+  .pr-campo i{display:none}
+  .pr-campo input{font-size:15px}
+  .pr-off{font-size:10px}
+  .precos__barra{left:10px;right:10px;transform:none;justify-content:flex-end;flex-wrap:wrap;padding:10px}
+  .precos__barra span{flex:1 1 100%;margin:0 0 2px 4px}
+}

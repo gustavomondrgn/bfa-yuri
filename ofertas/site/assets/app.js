@@ -591,6 +591,7 @@
   var CHAVE = "bfa-pedido-v1";
   var JSON_URL = "/bfa/ofertas.json";
   var VAGAS_URL = "/bfa-crm/api/vagas"; // unidades pagas por oferta (CRM); vagas = vagasIniciais − pagas
+  var PRECOS_URL = "/bfa-crm/api/precos"; // preço de cada dia editado no CRM (tela Preços); vale por cima do ofertas.json
   var REDUZIR = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   doc.setAttribute("data-cenario", CENARIO);
 
@@ -954,6 +955,9 @@
     var vendidos = fetch(VAGAS_URL + "?t=" + Date.now(), { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
       .then(function (r) { return r.ok ? r.json() : null; })
       .catch(function () { return null; });
+    var precosCrm = fetch(PRECOS_URL + "?t=" + Date.now(), { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
     return fetch(JSON_URL + "?t=" + Date.now(), { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
       .then(function (r) {
         clearTimeout(timer);
@@ -967,7 +971,14 @@
       })
       .then(function (novo) {
         if (!novo || !novo.itens || !novo.fases) return;
-        return vendidos.then(function (v) {
+        return Promise.all([vendidos, precosCrm]).then(function (res) {
+          var v = res[0], pc = res[1];
+          // preços salvos no CRM valem por cima do ofertas.json; sem resposta do CRM, fica o do arquivo
+          if (pc && pc.precos) novo.itens.forEach(function (i) {
+            var x = pc.precos[i.id];
+            if (!x || !i.precos) return;
+            for (var f in x) if (Object.prototype.hasOwnProperty.call(x, f) && typeof x[f] === "number" && x[f] > 0) i.precos[f] = x[f];
+          });
           // sem resposta do CRM, vale o número do ofertas.json
           if (v && v.vendidos) novo.itens.forEach(function (i) {
             if (i.vagasIniciais == null || i.vagas == null) return;
