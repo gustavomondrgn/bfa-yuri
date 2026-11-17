@@ -213,7 +213,9 @@ def mensagem_inicial(p, itens):
         if combo_formula and pid == "formula-felicidade":
             continue
         if "formulario" in canal:
-            form.append(f"{prod.get('rotulo_form', prod['nome'])}: {LINKS.get(pid, '<link>')}")
+            # 2× o mesmo produto = duas leituras, um formulário preenchido para cada pessoa (Yuri, 17/11/2026)
+            vezes = f" (preencher {i['qtd']} vezes, uma para cada pessoa)" if i["qtd"] > 1 else ""
+            form.append(f"{prod.get('rotulo_form', prod['nome'])}{vezes}: {LINKS.get(pid, '<link>')}")
         if canal in ("agenda",) or canal.endswith("agenda"):
             if pid == "mentoria":
                 perguntas.append("Mentoria: me conta quais dias e horários da semana funcionam melhor para os nossos encontros")
@@ -240,7 +242,8 @@ def mensagem_inicial(p, itens):
     blocos.append(f"Oi, {nome}, tudo bem? Recebi aqui a confirmação do seu pagamento. Muito obrigado pela confiança.")
     if form:
         com_prazo = any(i["prod"].get("prazo_dias") and "formulario" in i["prod"].get("canal", "") for i in itens)
-        if len(form) == 1:
+        leituras = sum(i["qtd"] for i in itens if "formulario" in i["prod"].get("canal", ""))
+        if len(form) == 1 and leituras == 1:
             blocos.append("Para eu começar, preciso que você preencha o formulário:\n" + form[0]
                           + ("\nO prazo começa a contar quando ele chegar aqui." if com_prazo else ""))
         else:
