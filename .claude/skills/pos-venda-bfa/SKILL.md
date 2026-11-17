@@ -72,6 +72,12 @@ python pos-venda/painel.py marcar BFA-XXXX <produto> <etapa> [--nota "..."] [--d
   sobre um produto, o que manda é a página (`ofertas/dados/ofertas.json`). A Sinastria da BFA é consulta em vídeo: só
   agenda. **Exceção: o Compre Tempo**, que é consulta em vídeo **e** Datas Propícias de 3 anos por escrito: vão os dois
   links na mesma mensagem, a agenda e o formulário do Datas Propícias (Yuri e Gustavo, 16/11/2026).
+- **Parcelas sem juros combinadas com o cliente** (Yuri, 17/11/2026): o `pedido.mjs` não escolhe parcelas, e a conta
+  da InfinitePay cobra os juros do cliente. Quando alguém tiver um "12x sem juros" prometido, o Yuri cria o link **no
+  app da InfinitePay, com o sem juros escolhido só naquele link** (não na conta: na conta vale para todas as vendas).
+  Depois, aponte o pedido no CRM para esse link (POST em `/api/pedidos` com o mesmo código), para o `/pg/` levar até
+  ele, e anote na obs que esse link **não avisa o CRM**: o pagamento se marca à mão. Referência de custo: em 12x sem
+  juros a InfinitePay fica com cerca de 16,7% (R$ 1.297 → entram R$ 1.080,92).
 - **Bússola da BFA é só escrita** (Yuri e Gustavo, 16/11/2026): formulário da Bússola e entrega em 14 dias, sem agenda.
 - **Cursos:** o acesso é liberado no **e-mail** da pessoa. Peça o e-mail ao cliente; quando chegar, marque
   `email_recebido` e **avise o Yuri com o nome e o e-mail**, que ele libera na plataforma.
