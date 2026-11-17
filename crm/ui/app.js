@@ -87,7 +87,8 @@
     if (Date.parse(p.pagoEm || p.criado) < TROCA_TAXA) return 0;
     return TAXA[Math.min(parcelas(p), 3)] || 0;
   }
-  const liquidoDe = (p) => Math.round(p.total * (100 - taxaDe(p))) / 100;
+  // líquido real informado à mão vale mais que a tabela de taxas
+  const liquidoDe = (p) => (p.liquido != null && PAGOS.has(p.status) ? Number(p.liquido) : Math.round(p.total * (100 - taxaDe(p))) / 100);
 
   // ------------------------------------------------------------------ estado
   let PED = [];
@@ -463,7 +464,7 @@
           <dl class="gv-dl">
             <dt>Situação</dt><dd>${pago ? `Pago ${esc(diaHora(p.pagoEm || p.criado))}` : p.status === "cancelado" ? "Cancelado" : "Aguardando"}</dd>
             ${pago ? `<dt>Forma</dt><dd><select id="g-metodo" aria-label="Forma de pagamento">${opcoes.map((o) => `<option value="${o}"${o === atual ? " selected" : ""}>${o || "não informada"}</option>`).join("")}</select></dd>
-            <dt>Líquido</dt><dd class="gv-liq">${brl(liquidoDe(p))}${taxa ? ` <small style="color:var(--t3);font-weight:500">(taxa ${String(taxa).replace(".", ",")}%)</small>` : ""}</dd>` : ""}
+            <dt>Líquido</dt><dd class="gv-liq">${brl(liquidoDe(p))}${p.liquido != null ? ` <small style="color:var(--t3);font-weight:500">(valor real da InfinitePay)</small>` : taxa ? ` <small style="color:var(--t3);font-weight:500">(taxa ${String(taxa).replace(".", ",")}%)</small>` : ""}</dd>` : ""}
             ${p.pagoValor ? `<dt>Cliente pagou</dt><dd>${brl(p.pagoValor)}</dd>` : ""}
             ${p.recibo ? `<dt>Comprovante</dt><dd><a href="${esc(p.recibo)}" target="_blank" rel="noopener">abrir</a></dd>` : ""}
           </dl>

@@ -22,6 +22,8 @@ await pool.query(`CREATE TABLE IF NOT EXISTS pedidos (
 
 await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS recibo text NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS metodo text NOT NULL DEFAULT '', ADD COLUMN IF NOT EXISTS pago_valor integer`);
+// líquido real informado à mão (ex.: link do app da InfinitePay com 12x sem juros, taxa fora da tabela do CRM)
+await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS liquido_real numeric(12,2)`);
 
 const STATUS = ["aguardando", "pago", "producao", "entregue", "cancelado"];
 const PAGOS = ["pago", "producao", "entregue"];
@@ -122,7 +124,7 @@ function codigoNovo() {
   return "BFA-" + Array.from({ length: 4 }, () => a[crypto.randomInt(a.length)]).join("");
 }
 function linha(r) {
-  return { codigo: r.codigo, status: r.status, criado: r.criado, atualizado: r.atualizado, nome: r.nome, tel: r.tel, fase: r.fase, itens: r.itens, total: r.total, link: r.link, pagoEm: r.pago_em, entregueEm: r.entregue_em, obs: r.obs, recibo: r.recibo || "", metodo: r.metodo || "", pagoValor: r.pago_valor };
+  return { codigo: r.codigo, status: r.status, criado: r.criado, atualizado: r.atualizado, nome: r.nome, tel: r.tel, fase: r.fase, itens: r.itens, total: r.total, link: r.link, pagoEm: r.pago_em, entregueEm: r.entregue_em, obs: r.obs, recibo: r.recibo || "", metodo: r.metodo || "", pagoValor: r.pago_valor, liquido: r.liquido_real == null ? null : Number(r.liquido_real) };
 }
 
 // ------------------------------------------------------------------ dados --
@@ -172,6 +174,7 @@ async function atualizar(codigo, mud) {
   }
   if (typeof mud.metodo === "string") por("metodo", mud.metodo.slice(0, 40));
   if (typeof mud.obs === "string") por("obs", mud.obs.slice(0, 4000));
+  if (mud.liquido === null || Number.isFinite(Number(mud.liquido)) && mud.liquido !== undefined && mud.liquido !== "") por("liquido_real", mud.liquido === null ? null : Math.round(Number(mud.liquido) * 100) / 100);
   if (typeof mud.nome === "string") por("nome", mud.nome.slice(0, 120));
   if (typeof mud.tel === "string") por("tel", soDigitos(mud.tel).slice(0, 20));
   if (typeof mud.link === "string") por("link", mud.link.slice(0, 2000));
