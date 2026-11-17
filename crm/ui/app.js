@@ -636,6 +636,139 @@
     } catch (e) { if (e.message !== "login") vivo(false); }
   }
 
+  // Fogos de artifício: o botão do topo liga e desliga (para comemorar meta batida)
+  (() => {
+    const bt = $("#fogos"); if (!bt) return;
+    const cv = document.createElement("canvas"); cv.className = "fogos"; cv.setAttribute("aria-hidden", "true");
+    const cx = cv.getContext("2d");
+    const CORES = ["#FF8A3D", "#F6E3B4", "#FF3B1F", "#FFC24A", "#2A98C9", "#FFFFFF", "#E2601C", "#9085E9"];
+    const sorte = (a, b) => a + Math.random() * (b - a);
+    const umDe = (l) => l[Math.floor(Math.random() * l.length)];
+    let ligado = false, raf = 0, prox = 0, ultimo = 0, W = 0, H = 0;
+    const foguetes = [], fagulhas = [];
+    const medir = () => { const dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+    const lancar = () => {
+      const x = sorte(W * 0.12, W * 0.88);
+      foguetes.push({ x, y: H + 8, vx: (W / 2 - x) * sorte(0.0005, 0.0018), vy: -sorte(9.5, 13.5) * Math.min(1.2, H / 800), alvo: sorte(H * 0.1, H * 0.42), cor: umDe(CORES) });
+    };
+    const explodir = (f) => {
+      const n = Math.round(sorte(70, 120)), anel = Math.random() < 0.3, cor2 = Math.random() < 0.45 ? umDe(CORES) : f.cor, forca = sorte(3.2, 6.2);
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2 + sorte(-0.05, 0.05), v = anel ? forca : forca * Math.sqrt(Math.random());
+        fagulhas.push({ x: f.x, y: f.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, vida: 1, gasto: sorte(0.009, 0.017), cor: i % 2 ? f.cor : cor2, pisca: Math.random() < 0.25, r: sorte(1.2, 2.3) });
+      }
+    };
+    const quadro = (t) => {
+      const k = Math.min(3, ultimo ? (t - ultimo) / 16.7 : 1); ultimo = t;
+      if (ligado && t > prox) { lancar(); if (Math.random() < 0.35) lancar(); prox = t + sorte(260, 720); }
+      // apaga aos poucos o quadro anterior (rastro) sem pintar o fundo da página
+      cx.globalCompositeOperation = "destination-out"; cx.fillStyle = "rgba(0,0,0,.2)"; cx.fillRect(0, 0, W, H);
+      cx.globalCompositeOperation = "lighter";
+      for (let i = foguetes.length - 1; i >= 0; i--) {
+        const f = foguetes[i];
+        f.x += f.vx * k; f.y += f.vy * k; f.vy += 0.1 * k;
+        cx.fillStyle = f.cor; cx.beginPath(); cx.arc(f.x, f.y, 2.2, 0, Math.PI * 2); cx.fill();
+        if (f.y <= f.alvo || f.vy >= -1.5) { explodir(f); foguetes.splice(i, 1); }
+      }
+      for (let i = fagulhas.length - 1; i >= 0; i--) {
+        const p = fagulhas[i];
+        p.vx *= Math.pow(0.975, k); p.vy = p.vy * Math.pow(0.975, k) + 0.055 * k;
+        p.x += p.vx * k; p.y += p.vy * k; p.vida -= p.gasto * k;
+        if (p.vida <= 0) { fagulhas.splice(i, 1); continue; }
+        cx.globalAlpha = Math.max(0, p.vida) * (p.pisca && Math.random() < 0.4 ? 0.25 : 1);
+        cx.fillStyle = p.cor; cx.beginPath(); cx.arc(p.x, p.y, p.r * (0.6 + p.vida * 0.4), 0, Math.PI * 2); cx.fill();
+      }
+      cx.globalAlpha = 1;
+      if (ligado || foguetes.length || fagulhas.length) raf = requestAnimationFrame(quadro);
+      else { raf = 0; cx.clearRect(0, 0, W, H); cv.remove(); }
+    };
+    bt.addEventListener("click", () => {
+      ligado = !ligado; bt.setAttribute("aria-pressed", String(ligado));
+      if (!ligado) return;
+      if (!cv.isConnected) { document.body.append(cv); medir(); }
+      lancar(); setTimeout(lancar, 180); setTimeout(lancar, 420);
+      prox = performance.now() + 700;
+      if (!raf) { ultimo = 0; raf = requestAnimationFrame(quadro); }
+    });
+    addEventListener("resize", () => { if (cv.isConnected) medir(); });
+  })();
+
+  // Música épica gerada no navegador (Web Audio, sem arquivo): tambores, cordas e metais em ré menor,
+  // laço de 8 compassos a 92 bpm; os metais entram a partir da 2ª volta. O botão do topo liga e desliga.
+  (() => {
+    const bt = $("#musica"); if (!bt || !window.AudioContext) return;
+    const BPM = 92, OIT = 60 / BPM / 2;
+    const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+    const ACORDES = [[50, 57, 62, 65], [46, 53, 58, 62], [53, 57, 60, 65], [48, 55, 60, 64], [50, 57, 62, 65], [46, 53, 58, 62], [48, 55, 60, 64], [45, 52, 57, 61]];
+    const BAIXO = [38, 34, 41, 36, 38, 34, 36, 33];
+    const OSTINATO = [0, 0, 12, 0, 7, 0, 12, 7];
+    const TAMBOR = [[3, 0.55], [4, 0.85], [6, 0.65], [7, 0.4]];
+    const MEL = []; // [nota MIDI, duração em oitavos], 64 oitavos
+    for (const [n, d] of [[74, 4], [69, 2], [74, 2], [77, 6], [76, 2], [72, 4], [77, 2], [81, 2], [79, 8], [81, 4], [77, 2], [74, 2], [77, 4], [82, 4], [79, 4], [76, 4], [73, 4], [69, 4]]) { MEL.push([n, d]); for (let i = 1; i < d; i++) MEL.push(null); }
+    let ac, mix, mestre, ruido, tocando = false, timer = 0, proxT = 0, passo = 0;
+    const iniciar = () => {
+      ac = new AudioContext();
+      const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4; comp.connect(ac.destination);
+      mestre = ac.createGain(); mestre.gain.value = 0; mestre.connect(comp);
+      mix = ac.createGain(); mix.connect(mestre);
+      const n = Math.floor(ac.sampleRate * 2.8), imp = ac.createBuffer(2, n, ac.sampleRate);
+      for (let c = 0; c < 2; c++) { const d = imp.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3); }
+      const sala = ac.createConvolver(); sala.buffer = imp; const molhado = ac.createGain(); molhado.gain.value = 0.32;
+      mix.connect(sala); sala.connect(molhado); molhado.connect(mestre);
+      ruido = ac.createBuffer(1, ac.sampleRate, ac.sampleRate); const r = ruido.getChannelData(0); for (let i = 0; i < r.length; i++) r[i] = Math.random() * 2 - 1;
+    };
+    const voz = (tipo, f, t, dur, vol, corte, at, sol, det = 0) => {
+      const o = ac.createOscillator(), fl = ac.createBiquadFilter(), g = ac.createGain();
+      o.type = tipo; o.frequency.value = f; o.detune.value = det; fl.type = "lowpass"; fl.frequency.value = corte;
+      const fim = t + Math.max(at, dur);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + at); g.gain.setValueAtTime(vol, fim); g.gain.linearRampToValueAtTime(0, fim + sol);
+      o.connect(fl); fl.connect(g); g.connect(mix); o.start(t); o.stop(fim + sol + 0.05);
+    };
+    const chiado = (t, dur, vol, tipo, corte) => {
+      const s = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain();
+      s.buffer = ruido; s.loop = true; fl.type = tipo; fl.frequency.value = corte;
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      s.connect(fl); fl.connect(g); g.connect(mix); s.start(t); s.stop(t + dur + 0.05);
+    };
+    const tambor = (t, v, grande) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.setValueAtTime(grande ? 95 : 125, t); o.frequency.exponentialRampToValueAtTime(grande ? 36 : 52, t + 0.4);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + (grande ? 1.5 : 0.6));
+      o.connect(g); g.connect(mix); o.start(t); o.stop(t + 1.6);
+      chiado(t, 0.12, v * 0.35, "lowpass", 1100);
+    };
+    const agendar = () => {
+      while (proxT < ac.currentTime + 0.3) {
+        const t = proxT, oit = passo % 8, comp = Math.floor(passo / 8) % 8, volta = Math.floor(passo / 64);
+        if (oit === 0) {
+          for (const m of ACORDES[comp]) for (const d of [-9, 9]) voz("sawtooth", hz(m), t, OIT * 8 - 0.1, 0.018, 1500, 0.4, 0.6, d);
+          tambor(t, comp % 4 === 0 ? 1 : 0.8, comp % 4 === 0);
+          if (comp % 4 === 0) chiado(t, 2.2, 0.06, "highpass", 6000);
+        }
+        voz("sawtooth", hz(BAIXO[comp] + OSTINATO[oit]), t, OIT * 0.5, 0.05, 750, 0.005, 0.07);
+        if (oit % 2 === 0) voz("triangle", hz(BAIXO[comp] - 12), t, OIT * 1.6, 0.13, 260, 0.01, 0.15);
+        for (const [p, v] of TAMBOR) if (p === oit) tambor(t, v * 0.75, false);
+        if (comp === 7 && oit >= 4) tambor(t, 0.35 + (oit - 4) * 0.15, false); // virada antes de voltar
+        const nota = volta >= 1 ? MEL[passo % 64] : null;
+        if (nota) for (const [d, tipo, vol, oct] of [[-6, "sawtooth", 0.03, 0], [6, "sawtooth", 0.03, 0], [0, "square", 0.012, -12]]) voz(tipo, hz(nota[0] + oct), t, OIT * nota[1] - 0.05, vol, 2300, 0.07, 0.18, d);
+        passo++; proxT += OIT;
+      }
+    };
+    bt.addEventListener("click", async () => {
+      tocando = !tocando; bt.setAttribute("aria-pressed", String(tocando));
+      if (tocando) {
+        if (!ac) iniciar();
+        await ac.resume();
+        const t = ac.currentTime; mestre.gain.cancelScheduledValues(t); mestre.gain.setValueAtTime(mestre.gain.value, t); mestre.gain.linearRampToValueAtTime(0.7, t + 1);
+        passo = 0; proxT = t + 0.08; agendar(); clearInterval(timer); timer = setInterval(agendar, 50);
+      } else {
+        clearInterval(timer); const t = ac.currentTime;
+        mestre.gain.cancelScheduledValues(t); mestre.gain.setValueAtTime(mestre.gain.value, t); mestre.gain.linearRampToValueAtTime(0, t + 0.6);
+        setTimeout(() => { if (!tocando) ac.suspend(); }, 800);
+      }
+    });
+  })();
+
   $("#ver-canc").checked = VER_CANC;
   ligarMira();
   let largura = 0;

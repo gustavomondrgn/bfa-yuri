@@ -68,6 +68,9 @@ button{cursor:pointer}
 .dias button.dia--hoje::after{content:"";position:absolute;top:6px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--brasa);box-shadow:0 0 0 2px var(--sup),0 0 10px var(--brasa)}
 .topo__acoes{display:flex;align-items:center;gap:8px}
 .topo__acoes form{margin:0}
+.btn--liga{gap:6px}
+.btn--liga[aria-pressed=true]{border-color:var(--brasa);color:var(--creme);box-shadow:0 0 22px -6px rgba(255,138,61,.9)}
+.fogos{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:60}
 .vivo{display:inline-flex;align-items:center;gap:7px;font:500 11.5px/1 var(--mono);color:var(--t3);padding:0 6px;white-space:nowrap}
 .vivo i{width:8px;height:8px;border-radius:50%;background:var(--feito);box-shadow:0 0 0 0 rgba(12,163,12,.6);animation:pulso 2.4s infinite}
 .vivo--off i{background:#D03B3B;animation:none}
@@ -324,6 +327,7 @@ dialog{color:var(--t1)}
   .topo{gap:10px}
   .marca__bf{font-size:17px}
   .vivo span{display:none}
+  .btn--liga .rot{display:none}
   .dias{order:3;margin-left:0;width:100%}
   .dias button{flex:1;min-width:58px}
   .topo__acoes{margin-left:auto}

@@ -207,6 +207,8 @@ function paginaApp(base) {
 <header class="topo">${MARCA()}
   <nav class="dias" aria-label="Dia da campanha"><button type="button" data-dia="tudo" aria-pressed="true"><b>Tudo</b><small>—</small></button>${DIAS_CAMPANHA.map(([id, d, s]) => `<button type="button" data-dia="${id}" aria-pressed="false"><b>${d}<span>${s}</span></b><small>—</small></button>`).join("")}</nav>
   <div class="topo__acoes"><span class="vivo" id="vivo" title="Atualiza sozinho a cada 20 segundos"><i></i><span>conectando…</span></span>
+    <button class="btn btn--fantasma btn--liga" id="fogos" type="button" aria-pressed="false" title="Fogos de artifício"><span aria-hidden="true">🎆</span><span class="rot">Fogos</span></button>
+    <button class="btn btn--fantasma btn--liga" id="musica" type="button" aria-pressed="false" title="Música épica"><span aria-hidden="true">🎵</span><span class="rot">Música</span></button>
     <button class="btn btn--brasa" id="novo" type="button">+ Pedido</button>
     <form method="post" action="${base}/sair"><button class="btn btn--fantasma" type="submit">Sair</button></form></div>
 </header>
