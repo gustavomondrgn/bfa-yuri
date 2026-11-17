@@ -18,6 +18,8 @@
   var JSON_URLS = ["/bfa/ofertas.json", "/bfa-b/ofertas.json"];
   // a mídia da A mora em /bfa/assets; aqui, a mesma cópia está em /bfa-b/assets
   function midia(u) { return String(u || "").replace(/^\/bfa\//, "/bfa-b/"); }
+  var VAGAS_URL = "/bfa-crm/api/vagas"; // unidades pagas por oferta (CRM); vagas = vagasIniciais − pagas
+  var PRECOS_URL = "/bfa-crm/api/precos"; // preço de cada dia editado no CRM (tela Preços); vale por cima do ofertas.json
   var REDUZIR = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   doc.setAttribute("data-cenario", CENARIO);
 
@@ -188,11 +190,7 @@
     var fase = faseExibida();
     $$("[data-id]").forEach(function (el) { renderCard(el, animar); });
     // chamada principal: fixa em "até 80%" (decisão de Gustavo em 16/11), vem dos dados
-    if (D.chamadaDesconto) {
-      $("#max-off").textContent = D.chamadaDesconto;
-      var gig = $("[data-gigante]");
-      if (gig && gig.textContent !== D.chamadaDesconto + "%") gig.innerHTML = (D.chamadaDesconto + "%").split("").map(function (c, k) { return '<span style="--i:' + k + '">' + c + "</span>"; }).join("");
-    }
+    if (D.chamadaDesconto) $("#max-off").textContent = D.chamadaDesconto;
     $("#sobre-fase").textContent = atual.estado === "encerrada" ? "Black Friday encerrada" : fase.rotulo;
     $("#validade").textContent = atual.estado === "encerrada"
       ? "A campanha terminou em 19/11, às 23h59."
@@ -382,6 +380,12 @@
   function buscarDados(limiteMs) {
     var ctrl = window.AbortController ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, limiteMs || 4000);
+    var vendidos = fetch(VAGAS_URL + "?t=" + Date.now(), { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
+    var precosCrm = fetch(PRECOS_URL + "?t=" + Date.now(), { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
     var pegar = function (k) {
       return fetch(JSON_URLS[k] + "?t=" + Date.now(), { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
         .then(function (r) { if (!r.ok && k + 1 < JSON_URLS.length) return pegar(k + 1); return r; }, function (e) { if (k + 1 < JSON_URLS.length && !(ctrl && ctrl.signal.aborted)) return pegar(k + 1); throw e; });
@@ -399,9 +403,27 @@
       })
       .then(function (novo) {
         if (!novo || !novo.itens || !novo.fases) return;
-        D = novo; indexar(); ultimaBusca = Date.now();
-        tick(true);
-        renderTudo(false);
+        return Promise.all([vendidos, precosCrm]).then(function (res) {
+          var v = res[0], pc = res[1];
+          // preços salvos no CRM valem por cima do ofertas.json; sem resposta do CRM, fica o do arquivo
+          if (pc && pc.precos) novo.itens.forEach(function (i) {
+            var x = pc.precos[i.id];
+            if (!x || !i.precos) return;
+            for (var f in x) if (Object.prototype.hasOwnProperty.call(x, f) && typeof x[f] === "number" && x[f] > 0) i.precos[f] = x[f];
+          });
+          // esgotar pelo CRM (mesma tela): carimbo ESGOTADO e compra bloqueada
+          if (pc && pc.esgotados && pc.esgotados.length) novo.itens.forEach(function (i) {
+            if (pc.esgotados.indexOf(i.id) >= 0) i.esgotado = true;
+          });
+          // sem resposta do CRM, vale o número do ofertas.json
+          if (v && v.vendidos) novo.itens.forEach(function (i) {
+            if (i.vagasIniciais == null || i.vagas == null) return;
+            i.vagas = Math.max(0, i.vagasIniciais - (Number(v.vendidos[i.id]) || 0));
+          });
+          D = novo; indexar(); ultimaBusca = Date.now();
+          tick(true);
+          renderTudo(false);
+        });
       })
       .catch(function () { clearTimeout(timer); });
   }
@@ -464,6 +486,8 @@
     var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
     return { h: h, m: m, s: ss, curto: h >= 1 ? h + "h " + duas(m) + "min" : duas(m) + ":" + duas(ss), longo: duas(h) + ":" + duas(m) + ":" + duas(ss) };
   }
+  function cronometro(ms) { var r = faltam(ms); return (r.h ? r.h + "h " : "") + duas(r.m) + "m " + duas(r.s) + "s"; }
+  function rotuloRelogio() { var f = D.fases; return atual.fase && atual.fase.id === f[f.length - 1].id ? "A Black Friday acaba em" : "Os preços aumentam em"; }
   var ultimoTexto = "";
   function tick(silencioso) {
     var t = agora();
@@ -478,14 +502,14 @@
     var fimFase = null;
     if (atual.estado === "antes") {
       fimFase = Date.parse(atual.fase.fim);
-      rot.textContent = "Preço vale por mais";
-      txt = faltam(fimFase - t).curto;
+      rot.textContent = rotuloRelogio();
+      txt = cronometro(fimFase - t);
       frac = 1;
     } else if (atual.estado === "ativa") {
       fimFase = atual.fim;
       var r = faltam(atual.fim - t);
-      rot.textContent = "Preço vale por mais";
-      txt = r.curto;
+      rot.textContent = rotuloRelogio();
+      txt = cronometro(atual.fim - t);
       frac = (atual.fim - t) / (atual.fim - atual.ini);
     } else {
       rot.textContent = "Black Friday";
@@ -494,7 +518,7 @@
     if (txt !== ultimoTexto) { tempo.textContent = txt; ultimoTexto = txt; }
     var cg = $("#contagem");
     if (cg) cg.textContent = fimFase ? faltam(fimFase - t).longo : "encerrada";
-    brasa.setAttribute("stroke-dashoffset", (75.4 * (1 - frac)).toFixed(2));
+    if (brasa) brasa.setAttribute("stroke-dashoffset", (75.4 * (1 - frac)).toFixed(2));
     if (mudou && !silencioso) aoVirar(antiga, atual);
   }
 
@@ -516,6 +540,8 @@
   }
 
   setInterval(tick, 1000);
+  // vagas e preços ao vivo enquanto a página está aberta
+  setInterval(function () { if (!document.hidden && Date.now() - ultimaBusca > 55000) buscarDados(); }, 60000);
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "visible") {
       tick();
@@ -582,6 +608,7 @@
 
   // ---------------------------------------------------- vídeo de depoimento --
   var dlgV = $("#video"), vid = dlgV ? $("video", dlgV) : null, origemVideo = null, videoEmpurrou = false;
+  if (dlgV && vid && window.BfaPlayer) { try { window.BfaPlayer.montar($(".video-dlg__midia", dlgV), vid); } catch (e) {} }
   function abrirVideo(id, botao) {
     var d = D.depoimentos && D.depoimentos[id];
     if (!d || !dlgV) return;
@@ -619,6 +646,51 @@
     dlgV.addEventListener("click", function (e) { if (e.target === dlgV) fecharVideo(false); });
     window.addEventListener("popstate", function () { if (dlgV.open) fecharVideo(true); });
   }
+
+  // ------------------------------------------- mural "O que falam de mim" --
+  (function () {
+    var grade = $("#mural-grade"), corpo = $("#mural-corpo"), mais = $("#mural-mais");
+    if (!grade || !corpo || !mais) return;
+    var itens = $$(".mural__item", grade), ncols = 0, teto = 0;
+    function colunas() { var w = corpo.clientWidth; return w >= 720 ? 3 : w >= 460 ? 2 : 1; }
+    function montar() {
+      var n = colunas();
+      if (n === ncols) return;
+      ncols = n;
+      var cols = [], alt = [];
+      for (var k = 0; k < n; k++) { var c = document.createElement("div"); c.className = "mural__col"; cols.push(c); alt.push(0); }
+      itens.forEach(function (it) {
+        var prop = parseFloat(it.style.getPropertyValue("--prop")) || 1;
+        var k = alt.indexOf(Math.min.apply(null, alt));
+        cols[k].appendChild(it);
+        alt[k] += prop + 0.12;
+      });
+      grade.textContent = "";
+      cols.forEach(function (c) { grade.appendChild(c); });
+      grade.classList.add("js-mosaico");
+    }
+    function recolher() {
+      if (corpo.getAttribute("data-aberto")) return;
+      teto = Math.round(Math.max(1700, innerHeight * 2.6));
+      corpo.style.setProperty("--teto", teto + "px");
+      var longo = grade.scrollHeight > teto + 300;
+      corpo.classList.toggle("recolhido", longo);
+      mais.hidden = !longo;
+    }
+    function abrirTudo() {
+      corpo.classList.remove("recolhido");
+      corpo.setAttribute("data-aberto", "1");
+      mais.hidden = true;
+      mais.setAttribute("aria-expanded", "true");
+    }
+    mais.addEventListener("click", abrirTudo);
+    corpo.addEventListener("focusin", function (e) {
+      if (corpo.classList.contains("recolhido") && e.target.getBoundingClientRect().bottom > corpo.getBoundingClientRect().top + teto - 160) abrirTudo();
+    });
+    montar(); recolher();
+    var t;
+    window.addEventListener("resize", function () { clearTimeout(t); t = setTimeout(function () { montar(); recolher(); }, 150); });
+  })();
 
   // ---------------------------------------------------------------- início --
   tick(true);

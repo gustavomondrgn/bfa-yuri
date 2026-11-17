@@ -1,0 +1,11 @@
+{
+  "name": "bfa-ofertas-b",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sincronizar": "node scripts/sincronizar-app.cjs",
+    "gerar": "node scripts/gerar.mjs",
+    "preview": "node scripts/preview.mjs",
+    "verificar": "node scripts/verificar.mjs"
+  }
+}

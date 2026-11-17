@@ -16,9 +16,14 @@ const raiz = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const A_DADOS = raiz("../ofertas/dados/ofertas.json");
 const A_ASSETS = raiz("../ofertas/site/assets/");
 const D = JSON.parse(await readFile(A_DADOS, "utf8"));
-const css = await readFile(raiz("src/estilo.css"), "utf8");
-const js = await readFile(raiz("src/app.js"), "utf8");
-const mov = await readFile(raiz("src/movimento.js"), "utf8");
+// 17/11: a B vira a /bfa. BFA_BASE=/bfa gera com os caminhos e a chave do carrinho da A (a do ar, para
+// ninguém perder o carrinho); sem a variável continua /bfa-b (prévia local e testes).
+const BASE = /(^|\/)bfa$/.test(process.env.BFA_BASE || "") ? "/bfa" : "/bfa-b"; // (o Git Bash reescreve "/bfa" como caminho)
+const naBase = (s) => (BASE === "/bfa-b" ? s : s.split("/bfa-b/").join("/bfa/").split('"bfa-b-pedido-v1"').join('"bfa-pedido-v1"'));
+// player dos depoimentos: o mesmo da A, lido direto de ../ofertas/src (não há cópia)
+const css = naBase((await readFile(raiz("src/estilo.css"), "utf8")) + "\n" + (await readFile(raiz("../ofertas/src/player.css"), "utf8")));
+const js = naBase((await readFile(raiz("../ofertas/src/player.js"), "utf8")) + "\n" + (await readFile(raiz("src/app.js"), "utf8")));
+const mov = naBase(await readFile(raiz("src/movimento.js"), "utf8"));
 
 const hash = (s) => createHash("sha1").update(s).digest("hex").slice(0, 8);
 const vJs = hash(js), vMov = hash(mov);
@@ -32,10 +37,23 @@ const itens = Object.fromEntries(D.itens.map((i) => [i.id, i]));
 const C = 2 * Math.PI * 7;
 const maxOff = D.chamadaDesconto ?? 80;
 
-// palavras com máscara (revelação tipográfica: cada palavra sobe de dentro da linha)
+// palavras com máscara (revelação tipográfica: cada palavra sobe de dentro da linha).
+// Palavra de até 2 letras vai junto com a seguinte (a última, com a anterior), para
+// não sobrar "O" ou "é" sozinho no fim da linha; o espaço é normal, então a máscara
+// ainda quebra por dentro se a tela for estreita demais.
+const curta = (w) => w.replace(/[^\p{L}\p{N}]/gu, "").length <= 2;
+function unidades(texto) {
+  const ws = String(texto).split(/\s+/).filter(Boolean), us = [];
+  for (let k = 0; k < ws.length; k++) {
+    let u = ws[k];
+    while (curta(ws[k]) && k + 1 < ws.length) u += " " + ws[++k];
+    us.push(u);
+  }
+  if (us.length > 1 && curta(us[us.length - 1])) { const fim = us.pop(); us[us.length - 1] += " " + fim; }
+  return us;
+}
 function mascaras(texto, base = 0) {
-  return esc(texto).split(/\s+/).filter(Boolean)
-    .map((w, k) => `<span class="m"><span style="--i:${base + k}">${w}</span></span>`).join(" ");
+  return unidades(texto).map((w, k) => `<span class="m"><span style="--i:${base + k}">${esc(w)}</span></span>`).join(" ");
 }
 // palavras soltas para o realce progressivo na rolagem (mentoria)
 const luz = (texto) => esc(texto).split(/\s+/).map((w) => `<span class="w">${w}</span>`).join(" ");
@@ -164,27 +182,23 @@ function depoHtml(id, modo) {
   return `<button type="button" class="depo depo--grande" data-video="${esc(id)}"><span class="depo__thumb"><img src="${capa}" alt="" width="848" height="478" loading="lazy" decoding="async">${img ? "" : `<span class="depo__play" aria-hidden="true"></span>`}</span><span class="depo__leg">${esc(d.titulo || "")}${dur}</span></button>`;
 }
 
-// mural "Quem já fez": tudo o que não está nos cards, em três fileiras (mesmo conteúdo da A)
-function muralItem(id, copia) {
+// mural "O que falam de mim": o mesmo da A (título, texto, mosaico com os prints
+// inteiros e "Ver mais depoimentos"; o app.js monta as colunas). Na B, as colunas
+// andam em velocidades diferentes na rolagem (movimento.js).
+function muralItem(id) {
   const d = D.depoimentos[id];
-  const fora = copia ? ' tabindex="-1"' : "";
-  if (d.tipo === "imagem") {
-    const w = Number(d.w) || 600, h = Number(d.h) || 600;
-    const larg = Math.round(Math.min(1.9, Math.max(.62, w / h)) * 100) / 100;
-    return `<a class="mural__item" href="${midia(d.img)}" data-video="${esc(id)}"${fora} style="--r:${larg}"><span class="mural__quadro"><img src="${midia(d.mini || d.img)}" alt="" width="${Math.min(560, w)}" height="${Math.round(Math.min(560, w) * h / w)}" loading="lazy" decoding="async"></span><span class="mural__rot mono">${esc(d.produto || "")}</span>${copia ? "" : `<span class="sr">Ver depoimento: ${esc(d.produto || d.titulo || "")}</span>`}</a>`;
-  }
-  return `<a class="mural__item mural__item--video${d.audio ? " mural__item--audio" : ""}" href="${midia(d.mp4)}" data-video="${esc(id)}"${fora} style="--r:${d.audio ? 1.25 : .62}"><span class="mural__quadro">${d.audio ? `<span class="mural__onda" aria-hidden="true">${"<i></i>".repeat(18)}</span>` : `<img src="${midia(d.poster)}" alt="" width="270" height="480" loading="lazy" decoding="async">`}<span class="depo__play" aria-hidden="true"></span></span><span class="mural__rot mono">${esc(d.produto || "")}${d.duracao ? ` · ${esc(d.duracao)}` : ""}</span>${copia ? "" : `<span class="sr">${esc(d.titulo || "")}</span>`}</a>`;
+  const i = esc(id);
+  if (d.tipo === "imagem") return `<a class="mural__item" href="${midia(d.img)}" data-video="${i}" style="--prop:${(d.h / d.w).toFixed(4)}"><img src="${midia(d.img)}" srcset="${midia(d.mini)} 560w, ${midia(d.img)} ${d.w}w" sizes="(min-width:1100px) 300px, (min-width:760px) 33vw, 92vw" alt="Print de depoimento sobre ${esc(d.produto)}" width="${d.w}" height="${d.h}" loading="lazy" decoding="async"><span class="mural__rot mono">${esc(d.produto)}</span></a>`;
+  if (d.audio) return `<a class="mural__item mural__item--audio" href="${midia(d.mp4)}" data-video="${i}" style="--prop:.42"><span class="mural__onda" aria-hidden="true">${"<i></i>".repeat(22)}</span><span class="mural__ouvir"><span class="depo-chip__play" aria-hidden="true"></span>Ouvir depoimento em áudio <span class="mono">${esc(d.duracao)}</span></span><span class="mural__rot mono">${esc(d.produto)}</span></a>`;
+  return `<a class="mural__item mural__item--video" href="${midia(d.mp4)}" data-video="${i}" style="--prop:1.4"><span class="mural__quadro"><img src="${midia(d.poster)}" alt="" width="270" height="480" loading="lazy" decoding="async"><span class="depo__play" aria-hidden="true"></span></span><span class="mural__rot mono">${esc(d.produto)} · vídeo · ${esc(d.duracao)}</span><span class="sr">${esc(d.titulo)}</span></a>`;
 }
 function muralHtml() {
   const ids = (D.mural || []).filter((id) => D.depoimentos && D.depoimentos[id]);
   if (!ids.length) return "";
-  const fileiras = [[], [], []];
-  ids.forEach((id, n) => fileiras[n % 3].push(id));
   return `<section class="mural" aria-labelledby="h-mural">
-<div class="mural__cab"><span class="mural__fantasma" aria-hidden="true">Quem já fez</span><p class="mono sobretitulo">${ids.length} depoimentos</p><h2 id="h-mural">${mascaras("Quem já fez")}</h2><p class="mural__intro">Prints e vídeos de quem já passou por consultas, cursos e análises com Yuri. Toque em qualquer um para ver inteiro.</p></div>
-<div class="mural__fileiras">
-${fileiras.filter((f) => f.length).map((f, n) => `<div class="mural__fileira mural__fileira--${n % 2 ? "dir" : "esq"}" style="--dur:${f.length * 7}s"><div class="mural__trilho"><div class="mural__grupo">${f.map((id) => muralItem(id, false)).join("")}</div><div class="mural__grupo" aria-hidden="true">${f.map((id) => muralItem(id, true)).join("")}</div></div></div>`).join("\n")}
-</div>
+<div class="mural__cab"><span class="mural__aspas" aria-hidden="true">“</span><p class="mono sobretitulo">${ids.length} depoimentos</p><h2 id="h-mural">${mascaras("O que falam de mim")}</h2><p class="mural__intro">Sobre os meus serviços e a minha entrega, nas palavras de quem já fez.</p></div>
+<div class="mural__corpo" id="mural-corpo"><div class="mural__grade" id="mural-grade">${ids.map(muralItem).join("")}</div></div>
+<div class="mural__mais"><button type="button" class="btn mural__btn" id="mural-mais" aria-controls="mural-corpo" aria-expanded="false" hidden>Ver mais depoimentos</button></div>
 </section>`;
 }
 
@@ -284,28 +298,28 @@ const ICONES = {
 // ------------------------------------------------- Bússola em destaque --
 const B = itens.bussola;
 const dV = D.depoimentos && D.depoimentos.vicente;
-// anel da bússola: os 12 meses em volta do rosto do Vicente, texto girando
+// anel da bússola: os 12 meses em volta do rosto do Vicente (aro fino, só os traços;
+// 17/11: Gustavo pediu o rosto maior e a roda mais delicada, sem o texto girando)
 function dialHtml() {
   if (!B || !dV) return "";
   const ticks = Array.from({ length: 12 }, (_, k) => {
-    const a = (k * 30 - 90) * Math.PI / 180, r1 = k === 0 ? 61 : 64, r2 = 71;
+    const a = (k * 30 - 90) * Math.PI / 180, r1 = k === 0 ? 87 : 89.5, r2 = k === 0 ? 99 : 95.5;
     const p = (r) => `${(100 + r * Math.cos(a)).toFixed(2)} ${(100 + r * Math.sin(a)).toFixed(2)}`;
     return `<path d="M${p(r1)}L${p(r2)}"${k === 0 ? ' class="norte"' : ""}/>`;
   }).join("");
-  const frase = "Bússola do Destino ✦ 12 meses ✦ mês a mês ✦ Revolução Lunar ✦";
   return `<button type="button" class="dial" data-video="vicente">
 <span class="dial__disco" aria-hidden="true">
-<span class="dial__anel"><svg viewBox="0 0 200 200"><defs><path id="dial-volta" d="M100 100m-82 0a82 82 0 1 1 164 0a82 82 0 1 1-164 0"/></defs><circle class="dial__aro" cx="100" cy="100" r="97"/><g class="dial__ticks">${ticks}</g><text><textPath href="#dial-volta" textLength="508" lengthAdjust="spacing">${esc(frase.toUpperCase())}</textPath></text></svg></span>
+<span class="dial__anel"><svg viewBox="0 0 200 200"><circle class="dial__aro" cx="100" cy="100" r="98.5"/><g class="dial__ticks">${ticks}</g></svg></span>
 <span class="dial__rosto"><img src="${midia(dV.poster)}" alt="" width="270" height="480" decoding="async"></span>
 <span class="depo__play"></span>
 </span>
-<span class="dial__txt">${dV.trecho ? `<q>${esc(dV.trecho)}</q>` : ""}<small>${esc((dV.titulo || "Vicente").split(",")[0])} · assistir o depoimento${dV.duracao ? ` (${esc(dV.duracao)})` : ""}</small></span>
+<span class="dial__txt">${dV.trecho ? `<q>${esc(dV.trecho)}</q>` : ""}<small>${esc((dV.titulo || "Vicente").split(",")[0])} · assistir o depoimento${dV.duracao ? ` <span class="nw">(${esc(dV.duracao)})</span>` : ""}</small></span>
 </button>`;
 }
 
 const destaqueHtml = B ? `<article class="oferta destaque" id="d-bussola" data-id="bussola" aria-labelledby="t-d-bussola">
 <span class="destaque__selo selo-volta">${esc(B.selo || "Voltou depois de um ano")}</span>
-<h2 id="t-d-bussola">Bússola do Destino</h2>
+<h2 id="t-d-bussola">Bússola <em>do Destino</em></h2>
 <p class="destaque__linha">Os seus próximos 12 meses, mês a mês, pela Revolução Lunar. Fechada desde novembro de 2025.</p>
 ${dialHtml()}
 ${rodapeHtml(B)}
@@ -313,9 +327,61 @@ ${rodapeHtml(B)}
 </article>` : "";
 
 const X = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
-const giganteHtml = (n) => `${String(n).split("").map((c, k) => `<span style="--i:${k}">${c}</span>`).join("")}<span style="--i:${String(n).length}">%</span>`;
 const fitaGrupo = () => `<span>Black Friday Apocalíptica</span><span>Até ${maxOff}% de desconto</span><span data-validade>Só ${esc(F0.validade)}</span>`;
 const fita = (mod) => `<div class="fita fita--${mod}"><div class="fita__trilho">${Array.from({ length: 6 }, fitaGrupo).join("")}</div></div>`;
+
+// abertura animada (17/11): a marca sai do topo e vira a entrada da página.
+// Só em CSS (o GSAP chega depois), em toda entrada e todo reload (pedido de Gustavo, 17/11). Toque pula.
+// Letras do "Black Friday" entram alternando de cima e de baixo (acervo 328/356).
+const letras = (t) => [...t].map((c, k) => c === " " ? '<span class="c c--esp"> </span>' : `<span class="c"><span class="${k % 2 ? "de-baixo" : "de-cima"}" style="--i:${k}">${esc(c)}</span></span>`).join("");
+const introHtml = `<div class="intro" aria-hidden="true">
+<div class="intro__miolo">
+<p class="intro__nome">${mascaras("Yuri dos Anjos")}</p>
+<p class="intro__bf">${letras("Black Friday")}</p>
+<p class="intro__apo"><span class="m"><span>Apocalíptica</span></span></p>
+<div class="intro__pe"><i class="intro__linha"></i><p class="intro__conta mono">Até <b class="intro__n"></b>% de desconto</p></div>
+</div>
+</div>`;
+// 17/11: fundo da abertura = tempestade (céu em redemoinho + raios + cidade, a arte aprovada da campanha),
+// escolhida por Gustavo entre três opções; o "80%" gigante saiu.
+// Silhueta da cidade da opção 1: gerada aqui, sempre igual (semente fixa), sem imagem.
+function cidadeSvg() {
+  let sem = 20261117;
+  const rnd = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+  const W = 1600, H = 240;
+  const camada = (base, alt, larg, chance) => {
+    let x = -20, d = "", jan = "";
+    while (x < W + 20) {
+      const w = Math.round(larg[0] + rnd() * (larg[1] - larg[0]));
+      const h = Math.round(alt[0] + Math.pow(rnd(), 1.6) * (alt[1] - alt[0]) + (rnd() < 0.08 ? 46 : 0));
+      const y = H - base - h;
+      d += `M${x} ${H}V${y}h${w}V${H}Z`;
+      // recuo no topo (prédio escalonado) ou antena
+      const r = rnd();
+      if (r < 0.3 && w > 26) { const rw = Math.round(w * (0.4 + rnd() * 0.3)), rh = Math.round(8 + rnd() * 22); d += `M${x + Math.round((w - rw) / 2)} ${y}v-${rh}h${rw}v${rh}Z`; }
+      else if (r < 0.48 && h > 70) d += `M${x + Math.round(w * (0.3 + rnd() * 0.4))} ${y}v-${Math.round(14 + rnd() * 30)}h1.6V${y}Z`;
+      for (let jy = y + 9; jy < H - base - 8; jy += 12) for (let jx = x + 5; jx < x + w - 6; jx += 8) if (rnd() < chance) jan += `M${jx} ${jy}h3v4h-3Z`;
+      x += w + (rnd() < 0.3 ? Math.round(rnd() * 10) : 0);
+    }
+    return { d, jan };
+  };
+  const longe = camada(30, [70, 190], [22, 58], 0.025), fundo = camada(14, [40, 150], [20, 54], 0.035), frente = camada(0, [18, 96], [18, 50], 0.05);
+  return `<svg class="cidade" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+<defs><linearGradient id="cid-nevoa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A8E99" stop-opacity="0"/><stop offset=".6" stop-color="#2A8E99" stop-opacity=".2"/><stop offset="1" stop-color="#16585F" stop-opacity=".34"/></linearGradient>
+<linearGradient id="cid-bruma" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A8E99" stop-opacity="0"/><stop offset="1" stop-color="#2A8E99" stop-opacity=".22"/></linearGradient>
+<linearGradient id="cid-chao" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050404" stop-opacity="0"/><stop offset="1" stop-color="#050404"/></linearGradient></defs>
+<rect y="40" width="${W}" height="${H - 40}" fill="url(#cid-nevoa)"/>
+<path d="${longe.d}" fill="#112529" opacity=".75"/><path class="cidade__jan" d="${longe.jan}" fill="#FFB36B" opacity=".25"/>
+<rect y="120" width="${W}" height="${H - 120}" fill="url(#cid-bruma)"/>
+<path d="${fundo.d}" fill="#0A1517"/><path class="cidade__jan" d="${fundo.jan}" fill="#FFB36B" opacity=".35"/>
+<rect y="170" width="${W}" height="${H - 170}" fill="url(#cid-bruma)"/>
+<path d="${frente.d}" fill="#050404"/><path class="cidade__jan" d="${frente.jan}" fill="#FFC27D" opacity=".45"/>
+<rect y="${H - 40}" width="${W}" height="40" fill="url(#cid-chao)"/>
+</svg>`;
+}
+
+// contador do "até 80%" da abertura (o número vem do ofertas.json)
+const cssIntro = `@keyframes conta{from{--n:0}to{--n:${maxOff}}}`;
 
 
 const html = `<!doctype html>
@@ -334,29 +400,30 @@ const html = `<!doctype html>
 <link rel="preload" href="/bfa-b/assets/fontes/anton.woff2?v=1" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/bfa-b/assets/fontes/instrument-serif-italico.woff2?v=1" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/bfa-b/assets/favicon.svg?v=1" type="image/svg+xml">
-<style>${css}</style>
-<script>(function(d){d.classList.add('js');try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)d.classList.add('anima')}catch(e){}})(document.documentElement)</script>
+<style>${css}
+${cssIntro}</style>
+<script>(function(d){d.classList.add('js');try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('anima');if(!/[?&]intro=0/.test(location.search)){d.classList.add('com-intro');document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.intro'))d.classList.add('intro-fim')},true);setTimeout(function(){d.classList.add('intro-fim')},4500)}}}catch(e){}})(document.documentElement)</script>
 </head>
 <body>
+${introHtml}
 <a class="pular" href="#ofertas">Pular para as ofertas</a>
 <header class="topo">
-<div class="topo__linha">
-<p class="marca">Yuri dos Anjos<span>Black Friday Apocalíptica</span></p>
-<div class="relogio" id="relogio">
-<div><span id="relogio-rotulo">${esc(F0.rotulo)}, vale</span><b id="relogio-tempo">${esc(F0.validade)}</b></div>
-<svg class="anel" viewBox="0 0 30 30" aria-hidden="true"><circle class="anel__fundo" cx="15" cy="15" r="12"/><circle class="anel__brasa" id="anel-brasa" cx="15" cy="15" r="12" stroke-dasharray="75.4" stroke-dashoffset="0"/></svg>
-</div>
+<div class="alerta" id="relogio">
+<p><i class="alerta__pulso" aria-hidden="true"></i><span id="relogio-rotulo">Os preços aumentam</span> <b id="relogio-tempo">à meia-noite</b></p>
+<canvas class="alerta__fogo" aria-hidden="true"></canvas>
 </div>
 <nav class="atalhos" aria-label="Categorias de ofertas"><ul>
 ${D.secoes.map((s) => `<li><a href="#${s.id}" data-atalho="${s.id}"><svg viewBox="0 0 16 16" aria-hidden="true">${ICONES[s.icone] || ""}</svg><span>${esc(s.atalho)}</span></a></li>`).join("\n")}
 <li class="atalhos__marca" aria-hidden="true"></li>
 </ul></nav>
+<i class="topo__progresso" aria-hidden="true"></i>
 </header>
 
 <section class="abertura" aria-labelledby="h-abertura">
 <div class="abertura__ceu" aria-hidden="true">
-<div class="eclipse"><i class="eclipse__fogo"></i><div class="eclipse__disco"></div></div>
-<p class="gigante" data-gigante>${giganteHtml(maxOff)}</p>
+<canvas class="ceu-tela"></canvas>
+<canvas class="ceu-raios"></canvas>
+${cidadeSvg()}
 <i class="horizonte-fogo"></i>
 </div>
 <div class="abertura__dentro">
@@ -379,13 +446,6 @@ ${D.secoes.map(secaoHtml).join("\n")}
 
 ${muralHtml()}
 
-<footer class="rodape">
-<p class="rodape__gigante" aria-hidden="true"><span>Black Friday Apocalíptica ✦ Black Friday Apocalíptica ✦ Black Friday Apocalíptica ✦</span></p>
-<div class="rodape__txt">
-<p>Black Friday Apocalíptica · Yuri dos Anjos · 16 a 19 de novembro de 2026.</p>
-<p>Pedidos pelo WhatsApp do atendimento. O pagamento acontece depois, pelo link enviado pela equipe.</p>
-</div>
-</footer>
 
 <div class="barra" id="barra" aria-hidden="true">
 <div class="barra__dentro">
@@ -455,8 +515,8 @@ copiados += await copiarPasta(join(A_ASSETS, "lux"), join(SITE, "assets/lux"), (
 copiados += await copiarSeMudou(join(A_ASSETS, "favicon.svg"), join(SITE, "assets/favicon.svg"));
 copiados += await copiarPasta(raiz("fontes"), join(SITE, "assets/fontes"), (f) => f.endsWith(".woff2"));
 copiados += await copiarPasta(raiz("vendor"), join(SITE, "assets/vendor"), (f) => f.endsWith(".js"));
-await writeFile(join(SITE, "index.html"), html);
+await writeFile(join(SITE, "index.html"), naBase(html));
 await writeFile(join(SITE, "assets/app.js"), js);
 await writeFile(join(SITE, "assets/movimento.js"), mov);
 await copyFile(A_DADOS, join(SITE, "ofertas.json"));
-console.log(`ofertas-b/site/index.html · ${(html.length / 1024).toFixed(1)} KB · app.js v=${vJs} · movimento.js v=${vMov} · ${copiados} arquivo(s) de mídia copiado(s) · até ${maxOff}%`);
+console.log(`[${BASE}] ofertas-b/site/index.html ·${(html.length / 1024).toFixed(1)} KB · app.js v=${vJs} · movimento.js v=${vMov} · ${copiados} arquivo(s) de mídia copiado(s) · até ${maxOff}%`);

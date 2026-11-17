@@ -21,10 +21,6 @@ troca('var JSON_URL = "/bfa/ofertas.json";',
 troca('return fetch(JSON_URL + "?t=" + Date.now(), { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })\n      .then(function (r) {',
   'var pegar = function (k) {\n      return fetch(JSON_URLS[k] + "?t=" + Date.now(), { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })\n        .then(function (r) { if (!r.ok && k + 1 < JSON_URLS.length) return pegar(k + 1); return r; }, function (e) { if (k + 1 < JSON_URLS.length && !(ctrl && ctrl.signal.aborted)) return pegar(k + 1); throw e; });\n    };\n    return pegar(0)\n      .then(function (r) {');
 
-// chamada "até 80%": também o número gigante decorativo da abertura
-troca('if (D.chamadaDesconto) $("#max-off").textContent = D.chamadaDesconto;',
-  'if (D.chamadaDesconto) {\n      $("#max-off").textContent = D.chamadaDesconto;\n      var gig = $("[data-gigante]");\n      if (gig && gig.textContent !== D.chamadaDesconto + "%") gig.innerHTML = (D.chamadaDesconto + "%").split("").map(function (c, k) { return \'<span style="--i:\' + k + \'">\' + c + "</span>"; }).join("");\n    }');
-
 // revelação na rolagem: na B quem cuida é o movimento.js (GSAP + ScrollTrigger)
 const ini = s.indexOf("  // ------------------------------------------- revelação suave na rolagem --");
 const fim = s.indexOf("  // ---------------------------------------------------- vídeo de depoimento --");
@@ -34,6 +30,19 @@ s = s.slice(0, ini) + "  // revelação na rolagem: na página B, em movimento.j
 // caminhos da mídia no player
 troca('img.src = d.img; img.width = d.w; img.height = d.h;', 'img.src = midia(d.img); if (d.w) img.width = d.w; if (d.h) img.height = d.h;');
 troca('vid.poster = d.poster || ""; vid.src = d.mp4;', 'vid.poster = midia(d.poster); vid.src = midia(d.mp4);');
+
+// 17/11: topo vira faixa vermelha "Os preços aumentam em 19h 09m 32s" (último dia: "A Black Friday acaba em"; com segundos,
+// e "h/m/s" para não parecer horário); o anel do relógio da A não existe na B
+function trocaN(de, para, n) {
+  const k = s.split(de).length - 1;
+  if (k !== n) { console.error("FALHOU (" + k + "x, esperado " + n + "): " + de.slice(0, 90)); process.exit(1); }
+  s = s.split(de).join(para);
+}
+trocaN('rot.textContent = "Preço vale por mais";', 'rot.textContent = rotuloRelogio();', 2);
+troca('txt = faltam(fimFase - t).curto;', 'txt = cronometro(fimFase - t);');
+troca('txt = r.curto;', 'txt = cronometro(atual.fim - t);');
+troca('var ultimoTexto = "";', 'function cronometro(ms) { var r = faltam(ms); return (r.h ? r.h + "h " : "") + duas(r.m) + "m " + duas(r.s) + "s"; }\n  function rotuloRelogio() { var f = D.fases; return atual.fase && atual.fase.id === f[f.length - 1].id ? "A Black Friday acaba em" : "Os preços aumentam em"; }\n  var ultimoTexto = "";');
+troca('brasa.setAttribute("stroke-dashoffset"', 'if (brasa) brasa.setAttribute("stroke-dashoffset"');
 
 fs.writeFileSync(arq, s);
 console.log("src/app.js da B sincronizado com a A e adaptado");
