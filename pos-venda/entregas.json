@@ -6,7 +6,8 @@
     "raio-x": "https://yuridosanjos.com.br/form/raiox-amoroso",
     "a-cura": "https://yuridosanjos.com.br/form/a-cura/form",
     "cursos": "o acesso é liberado no e-mail da pessoa: pedir o e-mail e passar ao Yuri, que libera na plataforma",
-    "bussola": "https://yuridosanjos.com.br/form/bussola"
+    "bussola": "https://yuridosanjos.com.br/form/bussola",
+    "compre-tempo": "https://yuridosanjos.com.br/form/datas-propicias"
   },
   "produtos": {
     "bussola": {
@@ -78,17 +79,21 @@
     },
     "compre-tempo": {
       "nome": "Compre Tempo",
-      "canal": "agenda",
-      "coletar": "dados de nascimento (data, hora, cidade)",
+      "canal": "formulario+agenda",
+      "coletar": "o formulário do Datas Propícias (financeiro) pega os dados e o contexto; a consulta é marcada pela agenda",
       "prazo": "consulta pela agenda + Datas Propícias de 3 anos",
       "etapas": [
+        "form_enviado",
+        "form_preenchido",
         "agenda_enviada",
         "agendado",
         "consulta_feita",
         "gravacao_enviada",
         "datas_enviadas",
         "entregue"
-      ]
+      ],
+      "rotulo_form": "Datas Propícias (3 anos)",
+      "nota": "Compre Tempo = consulta em vídeo + Datas Propícias de 3 anos por escrito: vai o link da agenda E o do formulário do Datas Propícias na mesma mensagem (Yuri e Gustavo, 16/11/2026). É a exceção à regra \"vídeo = agenda, escrito = formulário\", porque o produto tem as duas partes."
     },
     "mentoria": {
       "nome": "Mentoria Lux Et Directio",

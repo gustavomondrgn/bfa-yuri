@@ -70,7 +70,8 @@ python pos-venda/painel.py marcar BFA-XXXX <produto> <etapa> [--nota "..."] [--d
   vez, de preferência uma por dia, nunca todas juntas** (Yuri, 16/11/2026; Doutrina §228).
 - **Consulta em vídeo = link da agenda; leitura escrita = formulário. Nunca os dois** (Yuri, 16/11/2026). Na dúvida
   sobre um produto, o que manda é a página (`ofertas/dados/ofertas.json`). A Sinastria da BFA é consulta em vídeo: só
-  agenda.
+  agenda. **Exceção: o Compre Tempo**, que é consulta em vídeo **e** Datas Propícias de 3 anos por escrito: vão os dois
+  links na mesma mensagem, a agenda e o formulário do Datas Propícias (Yuri e Gustavo, 16/11/2026).
 - **Bússola da BFA é só escrita** (Yuri e Gustavo, 16/11/2026): formulário da Bússola e entrega em 14 dias, sem agenda.
 - **Cursos:** o acesso é liberado no **e-mail** da pessoa. Peça o e-mail ao cliente; quando chegar, marque
   `email_recebido` e **avise o Yuri com o nome e o e-mail**, que ele libera na plataforma.

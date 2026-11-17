@@ -213,11 +213,12 @@ def mensagem_inicial(p, itens):
         if combo_formula and pid == "formula-felicidade":
             continue
         if "formulario" in canal:
-            form.append(f"{prod['nome']}: {LINKS.get(pid, '<link>')}")
+            form.append(f"{prod.get('rotulo_form', prod['nome'])}: {LINKS.get(pid, '<link>')}")
         if canal in ("agenda",) or canal.endswith("agenda"):
             if pid == "mentoria":
                 perguntas.append("Mentoria: me conta quais dias e horários da semana funcionam melhor para os nossos encontros")
-            elif "formulario" not in canal:
+            else:
+                # formulario+agenda (Compre Tempo): vão os dois links na mesma mensagem (Yuri, 16/11/2026)
                 agenda.append(CHAMADA.get(pid, prod["nome"]))
         if canal == "whatsapp":
             if pid == "horaria":
