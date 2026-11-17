@@ -57,7 +57,10 @@ p{margin:0;text-wrap:pretty}
 .m > span{display:inline-block}
 
 /* ===================================================================== topo == */
-.topo{position:sticky;top:0;z-index:30;background:rgba(7,5,5,.93);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border-bottom:1px solid rgba(255,138,61,.16)}
+.topo{position:sticky;top:0;z-index:30;background:#090606;border-bottom:1px solid rgba(255,138,61,.16)}
+/* navegadores de app (Telegram/iOS) deixam a página passar por baixo da barra de endereço transparente: a área acima
+   do cabeçalho grudado fica na cor da faixa, sem "buraco" mostrando o conteúdo */
+.topo::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:100vh;background:#7A0A05;pointer-events:none}
 /* faixa vermelha do timer (17/11: a marca saiu do topo e foi para a abertura animada) */
 /* fundo vermelho; com movimento, o canvas .alerta__fogo põe fogo por cima (movimento.js) */
 .alerta{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(180deg,#7A0A05,#A80F08 60%,#C2160A);color:#fff;box-shadow:inset 0 -1px 0 rgba(0,0,0,.3)}
@@ -87,12 +90,13 @@ html:not(.js) .atalhos a[aria-current="true"]{background:var(--creme)}
    animado da abertura e desce a página uns 100–170 px (bug visto por Gustavo em 17/11) */
 .abertura{position:relative;isolation:isolate;overflow:clip;overflow-anchor:none;padding:0 0 4.2rem;background:linear-gradient(180deg,#0B0505,#060404 75%)}
 .abertura__ceu{position:absolute;inset:0;z-index:-1;pointer-events:none}
-.horizonte-fogo{position:absolute;left:-10%;right:-10%;bottom:-3rem;height:9rem;background:radial-gradient(50% 100% at 50% 100%,rgba(255,90,30,.32),transparent 70%);filter:blur(8px)}
+.horizonte-fogo{position:absolute;left:-10%;right:-10%;bottom:-3rem;height:9rem;background:radial-gradient(50% 100% at 50% 100%,rgba(255,90,30,.32),transparent 72%)}
 
 /* ---- fundo da abertura: tempestade (17/11, escolha de Gustavo entre três; escurecida no nível 2 de 3) ----
    céu em redemoinho (WebGL), raios e a cidade com névoa azul-petróleo da arte aprovada da campanha (movimento.js) */
 .abertura__texto{position:relative}
-.ceu-tela,.ceu-raios{position:absolute;left:0;top:0;width:100%;height:min(100%,50rem);-webkit-mask-image:linear-gradient(180deg,#000 58%,transparent);mask-image:linear-gradient(180deg,#000 58%,transparent)}
+.ceu-tela,.ceu-raios{position:absolute;left:0;top:0;width:100%;height:min(100%,50rem)}
+.ceu-raios{-webkit-mask-image:linear-gradient(180deg,#000 58%,transparent);mask-image:linear-gradient(180deg,#000 58%,transparent)}
 .ceu-tela{opacity:0;transition:opacity 1.4s var(--ease)}
 .ceu-tela.pronta{opacity:1}
 .ceu-raios{z-index:3}
@@ -102,7 +106,8 @@ html:not(.js) .atalhos a[aria-current="true"]{background:var(--creme)}
 .abertura__ceu::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:rgba(5,3,3,.27)}
 .abertura__texto::before{content:"";position:absolute;z-index:-1;inset:-14% -20% -10% -24%;background:radial-gradient(closest-side,rgba(6,4,4,.66),rgba(6,4,4,.3) 60%,transparent);pointer-events:none}
 @media (min-width:1000px){
-  .ceu-tela,.ceu-raios{height:100%;-webkit-mask-image:linear-gradient(180deg,#000 72%,transparent);mask-image:linear-gradient(180deg,#000 72%,transparent)}
+  .ceu-tela,.ceu-raios{height:100%}
+  .ceu-raios{-webkit-mask-image:linear-gradient(180deg,#000 72%,transparent);mask-image:linear-gradient(180deg,#000 72%,transparent)}
   .abertura__texto::before{inset:-18% -16% -14% -22%}
   .cidade{display:block}
 }
@@ -120,10 +125,15 @@ html:not(.js) .atalhos a[aria-current="true"]{background:var(--creme)}
 .abertura__sub strong{font-style:italic;font-weight:400;color:var(--creme);text-shadow:0 0 18px rgba(255,138,61,.45)}
 
 /* ---------------------------------------------------- Bússola em destaque -- */
+/* desempenho (17/11): sem backdrop-filter (o fundo já é 95% opaco) e o anel girando num elemento à parte */
 .destaque{position:relative;border-radius:22px;padding:1.55rem 1.15rem 1.05rem;border:1.5px solid transparent;
-  background:linear-gradient(165deg,rgba(30,19,13,.94),rgba(11,7,6,.96)) padding-box,
-             conic-gradient(from var(--ang),rgba(255,138,61,.18),rgba(255,160,90,.95) 12%,rgba(200,20,12,.55) 24%,rgba(255,138,61,.16) 40%,rgba(255,138,61,.16) 70%,rgba(255,200,130,.6) 86%,rgba(255,138,61,.18)) border-box;
-  box-shadow:0 40px 80px -36px rgba(255,80,30,.55),0 0 0 1px rgba(0,0,0,.4);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  background:linear-gradient(165deg,rgb(29,18,13),rgb(11,7,6)) padding-box;
+  box-shadow:0 40px 80px -36px rgba(255,80,30,.55),0 0 0 1px rgba(0,0,0,.4)}
+/* o degradê gira num quadrado pequeno ampliado 4x (degradê suave, a ampliação não aparece): só transform, na GPU */
+.destaque__aro{position:absolute;inset:-1.5px;border-radius:inherit;padding:1.5px;pointer-events:none;contain:strict;overflow:hidden;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.destaque__aro::before{content:"";position:absolute;left:50%;top:50%;width:75%;aspect-ratio:1;translate:-50% -50%;transform:scale(4);
+  background:conic-gradient(rgba(255,138,61,.18),rgba(255,160,90,.95) 12%,rgba(200,20,12,.55) 24%,rgba(255,138,61,.16) 40%,rgba(255,138,61,.16) 70%,rgba(255,200,130,.6) 86%,rgba(255,138,61,.18))}
 .destaque .destaque__selo{position:absolute;top:-.85rem;left:1rem}
 .destaque h2{font-family:var(--display);text-transform:uppercase;font-size:clamp(2.2rem,10.5vw,2.9rem);line-height:.95;letter-spacing:.006em;color:var(--tinta)}
 .destaque h2 em{font-family:var(--serifa);font-style:italic;text-transform:none;font-size:1.06em;color:var(--brasa-txt);letter-spacing:0}
@@ -154,7 +164,7 @@ html:not(.js) .atalhos a[aria-current="true"]{background:var(--creme)}
 
 /* =================================================================== fitas == */
 .fitas{position:relative;z-index:12;height:5.6rem;margin:-3.1rem 0 -1.6rem;overflow:clip visible;pointer-events:none}
-.fita{position:absolute;left:-12%;right:-12%;top:50%;overflow:hidden;white-space:nowrap}
+.fita{position:absolute;left:-12%;right:-12%;top:50%;overflow:hidden;white-space:nowrap;will-change:transform}
 .fita--a{z-index:2;background:var(--vermelho);color:#fff;transform:translateY(-62%) rotate(-3deg);box-shadow:0 16px 40px -12px rgba(200,20,12,.75)}
 .fita--b{z-index:1;background:#140C09;color:var(--creme);transform:translateY(-30%) rotate(2.4deg);border-block:1px solid rgba(246,227,180,.16)}
 .fita__trilho{display:flex;width:max-content;will-change:transform}
@@ -431,7 +441,7 @@ html.com-intro .intro__n{animation:conta 1.1s cubic-bezier(.2,.7,.2,1) .45s both
 
 .barra{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:.6rem var(--gutter) calc(.6rem + env(safe-area-inset-bottom));transform:translateY(125%);transition:transform .5s var(--ease);pointer-events:none}
 .barra.ativa{transform:none}
-.barra__dentro{pointer-events:auto;max-width:44rem;margin:0 auto;display:flex;align-items:center;gap:.6rem;background:rgba(18,11,9,.9);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,138,61,.38);border-radius:18px;padding:.5rem .5rem .5rem 1.05rem;box-shadow:0 22px 50px -14px rgba(0,0,0,.85),0 -10px 40px -22px rgba(255,90,30,.6)}
+.barra__dentro{pointer-events:auto;max-width:44rem;margin:0 auto;display:flex;align-items:center;gap:.6rem;background:rgba(18,11,9,.97);border:1px solid rgba(255,138,61,.38);border-radius:18px;padding:.5rem .5rem .5rem 1.05rem;box-shadow:0 22px 50px -14px rgba(0,0,0,.85),0 -10px 40px -22px rgba(255,90,30,.6)}
 .barra__resumo{flex:1;min-width:0;line-height:1.15}
 .barra__resumo span{display:block;font-size:.76rem;color:var(--tinta-3)}
 .barra__resumo b{display:inline-block;font-family:var(--display);font-weight:400;font-size:1.65rem;letter-spacing:.01em;color:var(--creme);transform-origin:left center}
@@ -564,7 +574,8 @@ html[data-cenario="unico"] [data-so-cenario="dois"]{display:none!important}
 /* --atraso: com a abertura animada, a hero entra quando a cortina sobe */
 html.anima .abertura h1 .m > span{animation:sobe-m 1.05s var(--ease) backwards;animation-delay:calc(var(--atraso,0s) + .15s + var(--i,0) * .075s)}
 html.anima .sobretitulo,html.anima .abertura__sub{animation:surge 1s var(--ease) calc(var(--atraso,0s) + .55s) backwards}
-html.anima .destaque{animation:surge-d 1.1s var(--ease) calc(var(--atraso,0s) + .45s) backwards,anel 7s linear 1.4s infinite}
+html.anima .destaque{animation:surge-d 1.1s var(--ease) calc(var(--atraso,0s) + .45s) backwards}
+html.anima .destaque__aro::before{animation:aro-gira 7s linear 1.4s infinite}
 html.anima .alerta__pulso::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1.5px solid #fff;animation:onda 1.4s ease-out infinite}
 html.anima .pulso::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1.5px solid var(--vivo);animation:onda 1.8s ease-out infinite}
 html.anima .dial__anel svg{animation:gira 36s linear infinite}
@@ -572,7 +583,7 @@ html.anima .fita--a .fita__trilho{animation:fita 42s linear infinite}
 html.anima .fita--b .fita__trilho{animation:fita 50s linear infinite reverse}
 html.anima .selo-volta{animation:selo-pulsa 2.2s ease-in-out infinite}
 html.anima .selo-volta::after{animation:selo-brilho 3.6s ease-in-out infinite}
-html.anima .depo__play{animation:pulsa 2.6s ease-in-out infinite}
+html.anima .depo__play::before{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid rgba(246,227,180,.5);animation:pulsa 2.6s ease-out infinite}
 html.anima .aguia__halo{animation:gira 60s linear infinite}
 html.anima .mentoria__aguia{animation:paira 7s ease-in-out infinite}
 html.anima .parado,html.anima .parado *{animation-play-state:paused!important}
@@ -585,12 +596,12 @@ html.gsap .fita .fita__trilho{animation:none}
 @keyframes surge{from{opacity:0;transform:translateY(16px)}}
 @keyframes surge-d{from{opacity:0;transform:translateY(34px) scale(.97)}}
 @keyframes gira{to{transform:rotate(360deg)}}
-@keyframes anel{to{--ang:360deg}}
+@keyframes aro-gira{to{transform:rotate(360deg) scale(4)}}
 @keyframes onda{from{transform:scale(.6);opacity:1}to{transform:scale(1.8);opacity:0}}
 @keyframes fita{to{transform:translateX(-50%)}}
 @keyframes selo-pulsa{0%,100%{box-shadow:0 10px 24px -8px rgba(200,20,12,.8),0 0 0 0 rgba(255,70,50,.6)}55%{box-shadow:0 10px 24px -8px rgba(200,20,12,.8),0 0 0 8px rgba(255,70,50,0)}}
-@keyframes selo-brilho{0%,55%{left:-60%}85%,100%{left:120%}}
-@keyframes pulsa{0%,100%{box-shadow:0 0 0 0 rgba(246,227,180,.45),0 8px 24px rgba(0,0,0,.45)}50%{box-shadow:0 0 0 11px rgba(246,227,180,0),0 8px 24px rgba(0,0,0,.45)}}
+@keyframes selo-brilho{0%,55%{transform:translateX(0) skewX(-18deg)}85%,100%{transform:translateX(400%) skewX(-18deg)}}
+@keyframes pulsa{0%{transform:scale(1);opacity:.9}60%,100%{transform:scale(1.5);opacity:0}}
 @keyframes paira{50%{transform:translateY(-8px) rotate(-1deg)}}
 
 /* reduzir movimento: nada se move (as entradas acima nem ligam sem .anima) */

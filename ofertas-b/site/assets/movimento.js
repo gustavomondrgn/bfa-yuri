@@ -127,6 +127,7 @@
     var t0 = performance.now();
     // com a abertura animada, o primeiro raio cai logo depois que a cortina sobe
     var depoisDaCortina = t0 + (doc.classList.contains("com-intro") ? 2300 : 500);
+    var comecaEm = t0 + (doc.classList.contains("com-intro") ? 1500 : 0);
     try { tempestade(); } catch (e) { cv.style.display = "none"; }
 
     function tempestade() {
@@ -135,7 +136,7 @@
       var VS = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
       var FS = [
         "#ifdef GL_FRAGMENT_PRECISION_HIGH", "precision highp float;", "#else", "precision mediump float;", "#endif",
-        "uniform vec2 R;uniform float T;uniform float F;uniform vec2 L;uniform float S;",
+        "uniform vec2 R;uniform float T;uniform float F;uniform vec2 L;uniform float S;uniform float M;",
         "float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}",
         "float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),f.x),f.y);}",
         "float fbm(vec2 p){float v=0.,a=.5;for(int k=0;k<5;k++){v+=a*n(p);p=mat2(1.6,1.2,-1.2,1.6)*p+vec2(3.1,1.7);a*=.5;}return v;}",
@@ -157,6 +158,8 @@
         // clarão do raio: acende as nuvens perto dele
         " float fl=F*exp(-length((uv-L)*vec2(R.x/R.y,1.))*1.6);",
         " c+=fl*(.25+1.5*v*v)*vec3(1.,.48,.4)+F*.05*vec3(1.,.3,.25);",
+        // M = fração de baixo que esmaece até o fundo da abertura (antes era uma máscara CSS)
+        " c=mix(vec3(.024,.016,.016),c,smoothstep(0.,M,uv.y));",
         " gl_FragColor=vec4(c,1.);",
         "}"
       ].join("\n");
@@ -174,7 +177,7 @@
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
       var la = gl.getAttribLocation(pr, "a"); gl.enableVertexAttribArray(la); gl.vertexAttribPointer(la, 2, gl.FLOAT, false, 0, 0);
       var uR = gl.getUniformLocation(pr, "R"), uT = gl.getUniformLocation(pr, "T"), uF = gl.getUniformLocation(pr, "F"),
-          uL = gl.getUniformLocation(pr, "L"), uS = gl.getUniformLocation(pr, "S");
+          uL = gl.getUniformLocation(pr, "L"), uS = gl.getUniformLocation(pr, "S"), uM = gl.getUniformLocation(pr, "M");
 
       var rc = $(".ceu-raios"), c2 = rc && rc.getContext("2d");
       var ESC = 0.45, W = 0, H = 0;
@@ -184,6 +187,7 @@
         gl.viewport(0, 0, cv.width, cv.height);
         gl.uniform2f(uR, cv.width, cv.height);
         gl.uniform1f(uS, Math.min(560, Math.max(300, W * 0.5)) * ESC);
+        gl.uniform1f(uM, innerWidth >= 1000 ? 0.28 : 0.42);
         if (c2) {
           var k = Math.min(2, window.devicePixelRatio || 1);
           rc.width = Math.round(W * k); rc.height = Math.round(H * k);
@@ -246,7 +250,7 @@
       var ult = 0, pronta = false, clarao = 0;
       function quadro(t) {
         requestAnimationFrame(quadro);
-        if (!visivel || t - ult < 32) return;
+        if (!visivel || t - ult < 32 || t < comecaEm) return;
         ult = t;
         var F = 0;
         if (c2 && !raio && t >= proximo) raio = novoRaio(t);

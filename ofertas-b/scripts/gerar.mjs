@@ -318,6 +318,7 @@ function dialHtml() {
 }
 
 const destaqueHtml = B ? `<article class="oferta destaque" id="d-bussola" data-id="bussola" aria-labelledby="t-d-bussola">
+<i class="destaque__aro" aria-hidden="true"></i>
 <span class="destaque__selo selo-volta">${esc(B.selo || "Voltou depois de um ano")}</span>
 <h2 id="t-d-bussola">Bússola <em>do Destino</em></h2>
 <p class="destaque__linha">Os seus próximos 12 meses, mês a mês, pela Revolução Lunar. Fechada desde novembro de 2025.</p>
