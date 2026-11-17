@@ -358,7 +358,8 @@
   // ------------------------------------------------------------------ quadro
   const ORDEM = {
     aguardando: (a, b) => Date.parse(a.criado) - Date.parse(b.criado),
-    pago: (a, b) => Date.parse(a.pagoEm || a.criado) - Date.parse(b.pagoEm || b.criado),
+    // pago: o pagamento mais recente em cima, o mais antigo embaixo
+    pago: (a, b) => Date.parse(b.pagoEm || b.criado) - Date.parse(a.pagoEm || a.criado),
     producao: (a, b) => Date.parse(a.atualizado) - Date.parse(b.atualizado),
     entregue: (a, b) => Date.parse(b.entregueEm || b.atualizado) - Date.parse(a.entregueEm || a.atualizado),
     cancelado: (a, b) => Date.parse(b.atualizado) - Date.parse(a.atualizado),
