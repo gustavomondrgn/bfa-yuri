@@ -39,6 +39,7 @@ if (cmd === "novo" && process.env.CRM_URL) {
     const j = r.ok ? await r.json() : null;
     let n = 0;
     for (const i of D.itens) for (const [f, v] of Object.entries(j?.precos?.[i.id] || {})) if (i.precos && Number.isInteger(v) && v > 0) { i.precos[f] = v; n++; }
+    for (const id of j?.esgotados || []) { const i = D.itens.find((o) => o.id === id); if (i) i.esgotadoCrm = true; }
     console.log(r.ok ? `  (preços do CRM: ${n} valor(es) aplicados)` : `  ATENÇÃO: preços do CRM não vieram (${r.status}); usando os do ofertas.json`);
   } catch (e) { console.log("  ATENÇÃO: CRM fora do ar; usando os preços do ofertas.json (" + e.message + ")"); }
 }
@@ -114,6 +115,7 @@ if (cmd === "novo") {
     const [id, q] = x.trim().split(":");
     const i = D.itens.find((o) => o.id === id);
     if (!i) throw new Error(`Oferta desconhecida: ${id}. Use: ${D.itens.map((o) => o.id).join(", ")}`);
+    if (i.esgotadoCrm) console.log(`  ATENÇÃO: ${i.nome} está ESGOTADO na página (CRM). Gerando o link mesmo assim.`);
     const preco = i.precos[f.id];
     if (preco == null) throw new Error(`${i.nome} sem preço em ${f.rotulo}.`);
     const qtd = Number(q || 1);

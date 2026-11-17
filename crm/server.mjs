@@ -80,15 +80,27 @@ const zerarVagas = () => { cacheVagas.em = 0; };
 // Cada versão anterior fica em 'precos-historico' (últimas 40) para desfazer um erro.
 const CATALOGO = process.env.CATALOGO_URL || "/bfa/ofertas.json";
 let cachePrecos = { em: 0, dados: null };
+// Esgotar (mesma tela): lista de ids em 'esgotar'; a página mostra o carimbo ESGOTADO e bloqueia o botão.
+// versaoPrecos sobe a cada gravação: uma leitura que começou antes de salvar não guarda resultado velho no cache
+let versaoPrecos = 0;
 async function precos() {
   if (cachePrecos.dados && Date.now() - cachePrecos.em < 10000) return cachePrecos.dados;
+  const v = versaoPrecos;
   const r = await pool.query("SELECT valor, atualizado FROM ajustes WHERE chave = 'precos'");
-  const dados = { precos: r.rows[0]?.valor || {}, atualizado: r.rows[0]?.atualizado || null };
-  cachePrecos = { em: Date.now(), dados };
+  const e = await pool.query("SELECT valor, atualizado FROM ajustes WHERE chave = 'esgotar'");
+  const quando = [r.rows[0]?.atualizado, e.rows[0]?.atualizado].filter(Boolean).map((d) => new Date(d).getTime());
+  const dados = { precos: r.rows[0]?.valor || {}, esgotados: Array.isArray(e.rows[0]?.valor) ? e.rows[0].valor : [], atualizado: quando.length ? new Date(Math.max(...quando)).toISOString() : null };
+  if (v === versaoPrecos) cachePrecos = { em: Date.now(), dados };
   return dados;
 }
+async function salvarEsgotados(lista) {
+  const antes = (await pool.query("SELECT valor FROM ajustes WHERE chave = 'esgotar'")).rows[0]?.valor || [];
+  await pool.query("INSERT INTO ajustes (chave, valor) VALUES ('esgotar', $1) ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor, atualizado = now()", [JSON.stringify(lista)]);
+  if (JSON.stringify(antes) !== JSON.stringify(lista)) console.log(`[esgotar] ${lista.join(", ") || "(nenhum)"}`);
+  versaoPrecos++; cachePrecos.em = 0;
+}
 function limparPrecos(c) {
-  const fonte = c && typeof c === "object" && c.precos && typeof c.precos === "object" ? c.precos : c;
+  const fonte = c && typeof c === "object" && c.precos && typeof c.precos === "object" ? c.precos : c && typeof c === "object" && !("esgotados" in c) ? c : {};
   const limpo = {}, erros = [];
   for (const [id, dias] of Object.entries(fonte && typeof fonte === "object" ? fonte : {})) {
     if (!/^[a-z0-9-]{1,40}$/.test(id) || !dias || typeof dias !== "object") { erros.push(id); continue; }
@@ -111,8 +123,7 @@ async function salvarPrecos(novo) {
   const mudou = [];
   for (const [id, dias] of Object.entries(novo)) for (const [f, v] of Object.entries(dias)) if (antes?.valor?.[id]?.[f] !== v) mudou.push(`${id}.${f}=${v}`);
   console.log(`[precos] salvo · ${mudou.length} mudança(s)${mudou.length ? ": " + mudou.slice(0, 40).join(" ") : ""}`);
-  cachePrecos.em = 0;
-  return precos();
+  versaoPrecos++; cachePrecos.em = 0;
 }
 
 async function registrarPagamento(dados, origem) {
@@ -327,7 +338,7 @@ function paginaPrecos(base) {
 </header>
 <main class="painel precos">
   <div class="precos__cab"><div><h1>Preços por dia</h1>
-    <p>Mude o valor e clique em <b>Salvar preços</b>. A página de ofertas troca sozinha, sem deploy: quem abrir já vê o preço novo, e quem já está nela vê em até 1 minuto. O link de pagamento também sai com o preço novo.</p></div>
+    <p>Mude o valor e clique em <b>Salvar preços</b>. A página de ofertas troca sozinha, sem deploy: quem abrir já vê o preço novo, e quem já está nela vê em até 1 minuto. O link de pagamento também sai com o preço novo. <b>Esgotar</b> põe o carimbo ESGOTADO no card e bloqueia a compra.</p></div>
     <p class="precos__info" id="pr-info"></p></div>
   <div id="pr-tabela"><p class="precos__carregando">Carregando ofertas…</p></div>
 </main>
@@ -422,9 +433,14 @@ http.createServer(async (req, res) => {
         let c;
         try { c = JSON.parse(await corpo(req, 60e3)); } catch { return json(res, 400, { erro: "json" }); }
         const { limpo, erros } = limparPrecos(c);
+        const esg = Array.isArray(c?.esgotados) ? [...new Set(c.esgotados.map(String))] : null;
+        if (esg && esg.some((id) => !/^[a-z0-9-]{1,40}$/.test(id))) erros.push("esgotados");
         if (erros.length) return json(res, 400, { erro: "valores", campos: erros });
-        if (!Object.keys(limpo).length) return json(res, 400, { erro: "vazio" });
-        return json(res, 200, await salvarPrecos(limpo));
+        if (!Object.keys(limpo).length && !esg) return json(res, 400, { erro: "vazio" });
+        if (esg) await salvarEsgotados(esg);
+        if (Object.keys(limpo).length) await salvarPrecos(limpo);
+        cachePrecos.em = 0;
+        return json(res, 200, await precos());
       }
       if (url.pathname === "/api/precos/historico" && req.method === "GET") {
         const h = (await pool.query("SELECT valor FROM ajustes WHERE chave = 'precos-historico'")).rows[0]?.valor || [];

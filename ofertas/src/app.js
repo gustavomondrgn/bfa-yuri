@@ -403,6 +403,10 @@
             if (!x || !i.precos) return;
             for (var f in x) if (Object.prototype.hasOwnProperty.call(x, f) && typeof x[f] === "number" && x[f] > 0) i.precos[f] = x[f];
           });
+          // esgotar pelo CRM (mesma tela): carimbo ESGOTADO e compra bloqueada
+          if (pc && pc.esgotados && pc.esgotados.length) novo.itens.forEach(function (i) {
+            if (pc.esgotados.indexOf(i.id) >= 0) i.esgotado = true;
+          });
           // sem resposta do CRM, vale o número do ofertas.json
           if (v && v.vendidos) novo.itens.forEach(function (i) {
             if (i.vagasIniciais == null || i.vagas == null) return;

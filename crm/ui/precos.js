@@ -15,6 +15,8 @@
 
   let D = null;          // ofertas.json da página
   let salvo = {};        // o que está gravado no CRM
+  let esgSalvo = new Set(); // ofertas esgotadas pelo CRM (gravado)
+  const esgAtual = new Set(); // como está na tela agora
   let vale = {};         // preço que a página usa hoje: salvo ?? ofertas.json  (id -> dia -> n)
   let ofertas = [];      // itens na ordem da página
 
@@ -48,6 +50,7 @@
       fetch(BASE + "/api/precos?t=" + Date.now(), { cache: "no-store", credentials: "same-origin" }).then((r) => { if (!r.ok) throw new Error("CRM respondeu " + r.status); return r.json(); }),
     ]);
     D = cat; salvo = pr.precos || {};
+    esgSalvo = new Set(Array.isArray(pr.esgotados) ? pr.esgotados : []);
     ofertas = [];
     for (const s of D.secoes || []) for (const i of D.itens || []) {
       if (i.secao !== s.id || !i.precos || (i.cenario && i.cenario !== D.cenarioCursos)) continue;
@@ -73,7 +76,8 @@
 
   function montar() {
     const dias = D.fases.map((f) => ({ f, sit: situacao(f), ...rotuloDia(f) }));
-    const cab = `<div class="pr-cab"><span>Oferta</span><span>Preço cheio</span>${dias.map((d) => `<span class="${d.sit}">${d.dia} ${d.sem}${d.sit === "hoje" ? " · no ar" : d.sit === "passado" ? " · encerrado" : ""}</span>`).join("")}</div>`;
+    const cab = `<div class="pr-cab"><span>Oferta</span><span>Preço cheio</span>${dias.map((d) => `<span class="${d.sit}">${d.dia} ${d.sem}${d.sit === "hoje" ? " · no ar" : d.sit === "passado" ? " · encerrado" : ""}</span>`).join("")}<span>Esgotar</span></div>`;
+    esgAtual.clear(); esgSalvo.forEach((id) => esgAtual.add(id));
     let html = "";
     let k = 0;
     for (const s of D.secoes) {
@@ -88,12 +92,16 @@
           const v = vale[i.id][d.f.id];
           html += `<label class="pr-cel ${d.sit}"><span class="pr-dia">${d.dia} ${d.sem}</span><span class="pr-campo"><i>R$</i><input inputmode="numeric" autocomplete="off" data-id="${esc(i.id)}" data-f="${esc(d.f.id)}" value="${v ?? ""}"${d.sit === "passado" ? " disabled" : ""} aria-label="${esc(i.nome)}, ${d.dia}"></span><small class="pr-off"></small></label>`;
         }
+        // esgotado no próprio ofertas.json não dá para reabrir daqui (só o arquivo manda nisso)
+        const fixo = !!i.esgotado;
+        html += `<div class="pr-esg-cel"><button type="button" class="pr-esg" data-esg="${esc(i.id)}" aria-pressed="${fixo || esgAtual.has(i.id)}"${fixo ? ' disabled title="Esgotado no arquivo da página"' : ""}><i aria-hidden="true"></i><span>${fixo || esgAtual.has(i.id) ? "Esgotado" : "Esgotar"}</span></button></div>`;
         html += `</div>`;
       }
       html += `</section>`;
     }
     $("#pr-tabela").innerHTML = html;
     $$("#pr-tabela input").forEach(conferir);
+    $$("#pr-tabela .pr-esg").forEach(pintarEsg);
     barra();
   }
 
@@ -110,12 +118,32 @@
   function mudancas() {
     return $$("#pr-tabela input:not(:disabled)").filter((inp) => lerCampo(inp) !== vale[inp.dataset.id][inp.dataset.f]).map((inp) => ({ inp, id: inp.dataset.id, f: inp.dataset.f, de: vale[inp.dataset.id][inp.dataset.f], para: lerCampo(inp) }));
   }
+  function mudancasEsg() {
+    const m = [];
+    for (const i of ofertas) if (esgAtual.has(i.id) !== esgSalvo.has(i.id)) m.push({ id: i.id, esgotar: esgAtual.has(i.id) });
+    return m;
+  }
+  function pintarEsg(btn) {
+    const id = btn.dataset.esg, on = esgAtual.has(id) || btn.disabled;
+    btn.setAttribute("aria-pressed", String(on));
+    $("span", btn).textContent = on ? "Esgotado" : "Esgotar";
+    btn.closest(".pr-linha").classList.toggle("esgotada", on);
+    btn.classList.toggle("mudou", !btn.disabled && esgAtual.has(id) !== esgSalvo.has(id));
+  }
   function barra() {
-    const m = mudancas(), erro = $$("#pr-tabela .pr-cel.erro input:not(:disabled)").length;
-    $("#pr-barra").hidden = !m.length;
-    $("#pr-n").textContent = erro ? `${erro} campo(s) sem preço` : `${m.length} preço(s) mudado(s)`;
+    const m = mudancas(), me = mudancasEsg(), erro = $$("#pr-tabela .pr-cel.erro input:not(:disabled)").length;
+    const n = m.length + me.length;
+    $("#pr-barra").hidden = !n;
+    $("#pr-n").textContent = erro ? `${erro} campo(s) sem preço` : [m.length ? `${m.length} preço(s)` : "", me.length ? `${me.length} esgotar/reabrir` : ""].filter(Boolean).join(" · ") + " para salvar";
     $("#pr-salvar").disabled = !!erro;
   }
+  $("#pr-tabela").addEventListener("click", (e) => {
+    const btn = e.target.closest(".pr-esg");
+    if (!btn || btn.disabled) return;
+    const id = btn.dataset.esg;
+    if (esgAtual.has(id)) esgAtual.delete(id); else esgAtual.add(id);
+    pintarEsg(btn); barra();
+  });
 
   $("#pr-tabela").addEventListener("input", (e) => {
     const inp = e.target.closest("input");
@@ -131,13 +159,12 @@
 
   const dlg = $("#pr-conf");
   $("#pr-salvar").addEventListener("click", () => {
-    const m = mudancas();
-    if (!m.length) return;
+    const m = mudancas(), me = mudancasEsg();
+    if (!m.length && !me.length) return;
     const nomeFase = (f) => { const x = D.fases.find((y) => y.id === f); return x ? rotuloDia(x).dia : f; };
-    $("#pr-lista").innerHTML = m.map((x) => {
-      const i = ofertas.find((o) => o.id === x.id);
-      return `<li><b>${esc(i.nome)}</b> · ${esc(nomeFase(x.f))}: ${x.de == null ? "sem preço" : brl(x.de)} → <b>${brl(x.para)}</b></li>`;
-    }).join("");
+    const nome = (id) => esc(ofertas.find((o) => o.id === id).nome);
+    $("#pr-lista").innerHTML = me.map((x) => `<li class="${x.esgotar ? "li-esg" : ""}"><b>${nome(x.id)}</b>: ${x.esgotar ? "<b>ESGOTAR</b> (carimbo na página, compra bloqueada)" : "volta a vender"}</li>`).join("")
+      + m.map((x) => `<li><b>${nome(x.id)}</b> · ${esc(nomeFase(x.f))}: ${x.de == null ? "sem preço" : brl(x.de)} → <b>${brl(x.para)}</b></li>`).join("");
     dlg.showModal();
   });
   dlg.addEventListener("close", async () => {
@@ -154,7 +181,7 @@
     }
     $("#pr-salvar").disabled = true;
     try {
-      const r = await fetch(BASE + "/api/precos", { method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ precos: tudo }) });
+      const r = await fetch(BASE + "/api/precos", { method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ precos: tudo, esgotados: [...esgAtual] }) });
       if (r.status === 401) { location.reload(); return; }
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.campos ? "valor inválido em " + j.campos.join(", ") : j.erro || "erro " + r.status);
@@ -165,7 +192,7 @@
       $("#pr-salvar").disabled = false;
     }
   });
-  addEventListener("beforeunload", (e) => { if (D && mudancas().length) { e.preventDefault(); e.returnValue = ""; } });
+  addEventListener("beforeunload", (e) => { if (D && (mudancas().length || mudancasEsg().length)) { e.preventDefault(); e.returnValue = ""; } });
 
   carregar().catch((e) => { $("#pr-tabela").innerHTML = `<p class="precos__carregando">Não consegui carregar: ${esc(e.message)}. Recarregue a página.</p>`; });
 })();

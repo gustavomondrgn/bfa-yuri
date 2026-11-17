@@ -366,7 +366,7 @@ dialog{color:var(--t1)}
 .precos__carregando{color:var(--t3);padding:30px 4px}
 .pr-sec{padding:16px 18px 6px}
 .pr-sec h2{margin:0 0 12px;font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--brasa)}
-.pr-cab,.pr-linha{display:grid;grid-template-columns:minmax(0,1.7fr) 92px repeat(4,minmax(96px,1fr));gap:10px;align-items:center}
+.pr-cab,.pr-linha{display:grid;grid-template-columns:minmax(0,1.7fr) 92px repeat(4,minmax(92px,1fr)) 112px;gap:10px;align-items:center}
 .pr-cab{padding:0 0 8px;border-bottom:1px solid var(--linha);font:600 10.5px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--t3)}
 .pr-cab .hoje{color:var(--creme)}
 .pr-cab .passado{opacity:.6}
@@ -389,6 +389,16 @@ dialog{color:var(--t1)}
 .pr-cel.erro .pr-campo{border-color:#D03B3B}
 .pr-off{font:500 11px/1 var(--mono);color:var(--t3);min-height:11px}
 .pr-off.acima,.pr-cel.erro .pr-off{color:#FF9A90}
+.pr-esg{appearance:none;display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 12px;border-radius:999px;border:1px solid var(--linha2);background:transparent;color:var(--t2);font:650 12.5px/1 var(--sans);white-space:nowrap;transition:.15s}
+.pr-esg i{width:14px;height:14px;border-radius:50%;border:1.5px solid currentColor;flex:none;position:relative}
+.pr-esg:hover{color:var(--t1);border-color:var(--t3)}
+.pr-esg[aria-pressed=true]{background:#7A1A14;border-color:#C8140C;color:#fff}
+.pr-esg[aria-pressed=true] i{background:#FF3B2E;border-color:#FF3B2E;box-shadow:0 0 10px #FF3B2E}
+.pr-esg.mudou{box-shadow:0 0 0 3px rgba(246,227,180,.35)}
+.pr-esg:disabled{opacity:.6;cursor:not-allowed}
+.pr-linha.esgotada .pr-nome b{text-decoration:line-through;text-decoration-color:#FF3B2E;text-decoration-thickness:2px}
+.pr-linha.esgotada .pr-campo{opacity:.55}
+.li-esg{color:#FF9A90}
 .precos__barra{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:10px;padding:10px 10px 10px 18px;background:rgba(27,22,18,.97);border:1px solid var(--linha2);border-radius:16px;box-shadow:0 20px 50px -20px rgba(0,0,0,.9);animation:subir .25s ease-out}
 .precos__barra span{font-weight:650;color:var(--creme);white-space:nowrap;margin-right:6px}
 .precos__barra .btn:disabled{opacity:.45;cursor:not-allowed}
@@ -408,6 +418,8 @@ dialog{color:var(--t1)}
   .pr-campo i{display:none}
   .pr-campo input{font-size:15px}
   .pr-off{font-size:10px}
+  .pr-esg-cel{grid-column:1 / -1}
+  .pr-esg{height:36px}
   .precos__barra{left:10px;right:10px;transform:none;justify-content:flex-end;flex-wrap:wrap;padding:10px}
   .precos__barra span{flex:1 1 100%;margin:0 0 2px 4px}
 }
