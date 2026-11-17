@@ -25,6 +25,11 @@
 - **Vagas** são as do campo `vagas` de cada item. Ao cotar, confira o arquivo atualizado (`git pull`) ou a página.
   Vaga esgotada não se reabre por conta do closer.
 - Antes de citar qualquer número, **abra o `ofertas.json`** e leia o preço da fase do dia. Nunca de memória.
+- 🔴 **O CRM sobrepõe o `ofertas.json`** *(descoberto em 17/11/2026)*. A página e o `pedido.mjs` leem os preços de
+  `CRM_URL/api/precos` ("preços do CRM: N valor(es) aplicados") e só caem no JSON se o CRM não responder. Em 17/11 o
+  JSON dizia R$ 77 no Raio-X, no Potencial, na Fórmula e no Temperamento, e R$ 547 na A Cura. O valor que valia era
+  R$ 97 e R$ 497. Três toques saíram com o "hoje está" errado. **Para cotar, leia o CRM**, em `ofertas/`:
+  `node --env-file=.env --input-type=module -e 'const j=await (await fetch(process.env.CRM_URL+"/api/precos")).json();console.log(j.precos)'`
 
 ## 3. Como o lead chega e como a venda fecha
 

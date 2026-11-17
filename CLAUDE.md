@@ -18,4 +18,6 @@ As duas só aparecem com a sessão **aberta nesta pasta** (`CMO\bfa-yuri`).
 
 ## Preço
 
-Fonte única: `ofertas/dados/ofertas.json`. A página `/bfa` está aprovada: só se mexe nela com pedido do Gustavo.
+Base: `ofertas/dados/ofertas.json`. **Mas o preço que vale é o do CRM** (`/bfa-crm/api/precos`): a página e o
+`pedido.mjs` aplicam o CRM por cima do JSON, e o JSON só manda se o CRM não responder (17/11/2026: o JSON dizia R$ 77
+onde valia R$ 97). A página `/bfa` está aprovada: só se mexe nela com pedido do Gustavo.

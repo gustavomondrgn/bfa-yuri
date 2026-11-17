@@ -21,7 +21,8 @@ Arquivos em `conhecimento/` (pasta desta skill). Os de `00` a `08` e o `aprendiz
 5. `conhecimento/aprendizado.md`: lições de leads passados.
 
 Abra o `ofertas/dados/ofertas.json` (raiz do repositório) **antes de citar qualquer preço, vaga ou produto**. Rode
-`git pull` antes, se a sessão estiver aberta há muito tempo: as vagas mudam durante o dia.
+`git pull` antes, se a sessão estiver aberta há muito tempo: as vagas mudam durante o dia. **O preço que vale é o do
+CRM (`/api/precos`), que sobrepõe o do JSON**: comando no `09_black-friday.md`, §2.
 
 ## Consulta: quando o caso pede
 
