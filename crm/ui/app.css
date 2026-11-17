@@ -364,9 +364,10 @@ dialog{color:var(--t1)}
 .precos__cab b{color:var(--t1)}
 .precos__info{font:500 12px/1.4 var(--mono)!important;color:var(--t3)!important}
 .precos__carregando{color:var(--t3);padding:30px 4px}
+#pr-tabela{display:grid;gap:22px}
 .pr-sec{padding:16px 18px 6px}
 .pr-sec h2{margin:0 0 12px;font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--brasa)}
-.pr-cab,.pr-linha{display:grid;grid-template-columns:minmax(0,1.7fr) 92px repeat(4,minmax(92px,1fr)) 112px;gap:10px;align-items:center}
+.pr-cab,.pr-linha{display:grid;grid-template-columns:minmax(0,1.7fr) 92px repeat(4,minmax(92px,1fr)) 122px;gap:10px;align-items:center}
 .pr-cab{padding:0 0 8px;border-bottom:1px solid var(--linha);font:600 10.5px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--t3)}
 .pr-cab .hoje{color:var(--creme)}
 .pr-cab .passado{opacity:.6}
