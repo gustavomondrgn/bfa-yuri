@@ -99,8 +99,8 @@
         "d18": 1117,
         "d19": 1257
       },
-      "vagas": 5,
-      "vagasIniciais": 10,
+      "vagas": 2,
+      "vagasIniciais": 17,
       "esgotado": false,
       "selo": "Voltou depois de um ano",
       "descricao": [
@@ -213,8 +213,8 @@
         "d18": 787,
         "d19": 867
       },
-      "vagas": 5,
-      "vagasIniciais": 5,
+      "vagas": 3,
+      "vagasIniciais": 9,
       "esgotado": false,
       "descricao": [
         "A consulta clássica sobre o seu mapa de nascimento. Você traz as perguntas e escolhe os temas: vocação, talentos, a forma de trabalhar que combina com você, padrões afetivos, o tipo de parceria, dificuldades que se repetem.",
@@ -595,7 +595,7 @@
         "d18": 3350,
         "d19": 3950
       },
-      "vagas": 4,
+      "vagas": 1,
       "vagasIniciais": 5,
       "esgotado": false,
       "descricao": [

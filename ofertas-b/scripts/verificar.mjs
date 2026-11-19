@@ -467,8 +467,10 @@ const numeroWa = (url) => new URL(url).pathname.replace("/", "");
   for (const id of visiveis) await clicar(p, `#o-${id} [data-add]`);
   const esperado = visiveis.reduce((s, id) => s + P(id), 0);
   ok(`Adicionar funciona em todas as ${visiveis.length} ofertas`, (await p.textContent("#barra-qtd")) === `${visiveis.length} itens no pedido` && (await p.textContent("#barra-total")) === brl(esperado), `${await p.textContent("#barra-qtd")} · ${await p.textContent("#barra-total")} (esperado ${brl(esperado)})`);
-  for (const id of visiveis) { if (await p.locator(`#o-${id} [data-mais]`).isEnabled()) await clicar(p, `#o-${id} [data-mais]`); }
-  for (const id of visiveis) { if (await p.locator(`#o-${id} [data-menos]`).count()) await clicar(p, `#o-${id} [data-menos]`); }
+  // só aperta − onde o + foi aceito (oferta com 1 vaga trava o + e o − tiraria o item do pedido)
+  const subiu = [];
+  for (const id of visiveis) { if (await p.locator(`#o-${id} [data-mais]`).isEnabled()) { await clicar(p, `#o-${id} [data-mais]`); subiu.push(id); } }
+  for (const id of subiu) { if (await p.locator(`#o-${id} [data-menos]`).count()) await clicar(p, `#o-${id} [data-menos]`); }
   ok("+ e − voltam ao mesmo total", (await p.textContent("#barra-total")) === brl(esperado), await p.textContent("#barra-total"));
   let detOk = true;
   for (const id of visiveis) {
